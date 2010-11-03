@@ -8,7 +8,7 @@
 
 set -x
 
-cd /pt/s/sbw_woq/
+cd /pt/s/rlk/sbw_woq/
 
 cat dat00_al.txt|sed '1,$s/.$//' |awk '{print $1","$2",aud_usd"}' |grep '^[0-9]'|grep -v ND >fxw_stage.csv
 cat dat00_eu.txt|sed '1,$s/.$//' |awk '{print $1","$2",eur_usd"}' |grep '^[0-9]'|grep -v ND >>fxw_stage.csv

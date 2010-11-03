@@ -8,7 +8,7 @@
 
 set -x
 
-cd /pt/s/sbw_woq/
+cd /pt/s/rlk/sbw_woq/
 
 wget http://www.federalreserve.gov/releases/h10/hist/dat00_eu.txt
 wget http://www.federalreserve.gov/releases/h10/hist/dat00_uk.txt
