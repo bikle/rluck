@@ -1,0 +1,141 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Thu Nov 4 02:58:54 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+02:58:54 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
+
+Session altered.
+
+Elapsed: 00:00:00.01
+02:58:54 SQL> 02:58:54 SQL> --
+02:58:54 SQL> -- qry_wom.sql
+02:58:54 SQL> --
+02:58:54 SQL> 
+02:58:54 SQL> -- I want to see my data 1st:
+02:58:54 SQL> SELECT
+02:58:54   2  yr
+02:58:54   3  ,pair
+02:58:54   4  ,wom
+02:58:54   5  ,AVG(nwgain)
+02:58:54   6  ,SUM(nwgain)
+02:58:54   7  FROM wjw
+02:58:54   8  WHERE yr = '2010'
+02:58:54   9  GROUP BY yr,pair,wom
+02:58:54  10  ORDER BY yr,pair,wom
+02:58:54  11  /
+
+YR   PAIR    W AVG(NWGAIN) SUM(NWGAIN)
+---- ------- - ----------- -----------
+2010 aud_usd 1	.008451672  .388776923
+2010 aud_usd 2	-.00222613  -.10462808
+2010 aud_usd 3	-.00113673  -.05456316
+2010 aud_usd 4	.001548888  .068151056
+2010 aud_usd 5	.000872712  .011345256
+2010 eur_usd 1	-.00213668  -.09828712
+2010 eur_usd 2	.000265412  .012474361
+2010 eur_usd 3	-.00334343  -.16048468
+2010 eur_usd 4	.001970275  .086692106
+2010 eur_usd 5	.001122792    .0145963
+2010 gbp_usd 1	-.00136741  -.06290097
+2010 gbp_usd 2	.000247857  .011649287
+2010 gbp_usd 3	 -.0008071  -.03874065
+2010 gbp_usd 4	.000891276  .039216149
+2010 gbp_usd 5	.001345865  .017496249
+2010 usd_cad 1	 -.0058555  -.26935301
+2010 usd_cad 2	.003092679  .145355925
+2010 usd_cad 3	.006677435  .320516858
+2010 usd_cad 4	-.00291236  -.12814397
+2010 usd_cad 5	-.00462692  -.06014991
+2010 usd_chf 1	-.00211201  -.09715268
+2010 usd_chf 2	-.00010628  -.00499516
+2010 usd_chf 3	.001150705  .055233822
+2010 usd_chf 4	-.00377916  -.16628326
+2010 usd_chf 5	.001662083  .021607083
+2010 usd_jpy 1	-.00346045  -.15918048
+2010 usd_jpy 2	-.00193337   -.0908683
+2010 usd_jpy 3	-.00488173  -.23432309
+2010 usd_jpy 4	-.00021693  -.00954491
+2010 usd_jpy 5	-.00838302  -.10897932
+
+30 rows selected.
+
+Elapsed: 00:00:00.02
+02:58:54 SQL> 
+02:58:54 SQL> -- ok now work with it:
+02:58:54 SQL> CREATE OR REPLACE VIEW wjw2010 AS SELECT pair,wom,AVG(nwgain)avgg FROM wjw WHERE yr = '2010'GROUP BY pair,wom;
+
+View created.
+
+Elapsed: 00:00:00.04
+02:58:54 SQL> CREATE OR REPLACE VIEW wjw2009 AS SELECT pair,wom,AVG(nwgain)avgg FROM wjw WHERE yr = '2009'GROUP BY pair,wom;
+
+View created.
+
+Elapsed: 00:00:00.04
+02:58:54 SQL> CREATE OR REPLACE VIEW wjw2008 AS SELECT pair,wom,AVG(nwgain)avgg FROM wjw WHERE yr = '2008'GROUP BY pair,wom;
+
+View created.
+
+Elapsed: 00:00:00.04
+02:58:54 SQL> CREATE OR REPLACE VIEW wjw2007 AS SELECT pair,wom,AVG(nwgain)avgg FROM wjw WHERE yr = '2007'GROUP BY pair,wom;
+
+View created.
+
+Elapsed: 00:00:00.05
+02:58:54 SQL> 
+02:58:54 SQL> CREATE OR REPLACE VIEW wjw0910 AS
+02:58:54   2  SELECT
+02:58:54   3  a.pair
+02:58:54   4  ,a.wom
+02:58:54   5  ,a.avgg avgga
+02:58:54   6  ,b.avgg avggb
+02:58:54   7  FROM wjw2009 a, wjw2010 b
+02:58:54   8  WHERE a.pair = b.pair AND a.wom = b.wom
+02:58:54   9  /
+
+View created.
+
+Elapsed: 00:00:00.04
+02:58:54 SQL> 
+02:58:54 SQL> SELECT
+02:58:54   2  pair
+02:58:54   3  ,wom
+02:58:54   4  ,avgga
+02:58:54   5  ,avggb
+02:58:54   6  ,avgga * avggb ab_prod
+02:58:54   7  FROM wjw0910
+02:58:54   8  WHERE (avgga * avggb) > 0
+02:58:54   9  ORDER BY (avgga * avggb) DESC
+02:58:54  10  /
+
+PAIR	W      AVGGA	  AVGGB    AB_PROD
+------- - ---------- ---------- ----------
+aud_usd 1 .004548971 .008451672 .000038446
+usd_cad 5 -.00717366 -.00462692 .000033192
+usd_jpy 1 -.00559013 -.00346045 .000019344
+aud_usd 5 .015855718 .000872712 .000013837
+usd_cad 1 -.00221508  -.0058555  .00001297
+gbp_usd 5 .007537778 .001345865 .000010145
+aud_usd 4 .004459708 .001548888 6.9076E-06
+gbp_usd 4 .004322128 .000891276 3.8522E-06
+eur_usd 5  .00308245 .001122792 .000003461
+usd_jpy 2  -.0013391 -.00193337 .000002589
+gbp_usd 1 -.00159782 -.00136741 2.1849E-06
+eur_usd 1 -.00064877 -.00213668 1.3862E-06
+usd_cad 2  .00040765 .003092679 1.2607E-06
+gbp_usd 3 -.00131465  -.0008071 .000001061
+gbp_usd 2 .002714154 .000247857 6.7272E-07
+
+15 rows selected.
+
+Elapsed: 00:00:00.03
+02:58:54 SQL> 
+02:58:54 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options

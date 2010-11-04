@@ -1,0 +1,86 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Thu Nov 4 02:14:30 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+02:14:30 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
+
+Session altered.
+
+Elapsed: 00:00:00.02
+02:14:30 SQL> 02:14:30 SQL> --
+02:14:30 SQL> -- merge_fxw.sql
+02:14:30 SQL> --
+02:14:30 SQL> 
+02:14:30 SQL> -- I use this to merge newly loaded data from fxw_stage into fxw which may eventually hold more permanent data.
+02:14:30 SQL> -- Currently, though, I just do a straight copy (filtering out duplicates) from fxw_stage into fxw.
+02:14:30 SQL> DROP TABLE fxw_old;
+
+Table dropped.
+
+Elapsed: 00:00:00.09
+02:14:30 SQL> 
+02:14:30 SQL> RENAME fxw TO fxw_old;
+
+Table renamed.
+
+Elapsed: 00:00:00.07
+02:14:30 SQL> 
+02:14:30 SQL> CREATE TABLE fxw COMPRESS AS
+02:14:30   2  SELECT
+02:14:30   3  pair,ydate,AVG(clse)clse
+02:14:30   4  FROM fxw_stage
+02:14:30   5  GROUP BY pair,ydate
+02:14:30   6  ORDER BY pair,ydate
+02:14:30   7  /
+
+Table created.
+
+Elapsed: 00:00:00.28
+02:14:31 SQL> 
+02:14:31 SQL> ANALYZE TABLE fxw COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.13
+02:14:31 SQL> 
+02:14:31 SQL> -- rpt
+02:14:31 SQL> SELECT COUNT(pair)FROM fxw_stage;
+
+COUNT(PAIR)
+-----------
+      16356
+
+Elapsed: 00:00:00.01
+02:14:31 SQL> SELECT COUNT(pair)FROM fxw;
+
+COUNT(PAIR)
+-----------
+      16356
+
+Elapsed: 00:00:00.01
+02:14:31 SQL> 
+02:14:31 SQL> 
+02:14:31 SQL> SELECT COUNT(DISTINCT pair||ydate)FROM fxw_stage;
+
+COUNT(DISTINCTPAIR||YDATE)
+--------------------------
+		     16356
+
+Elapsed: 00:00:00.03
+02:14:31 SQL> SELECT COUNT(DISTINCT pair||ydate)FROM fxw;
+
+COUNT(DISTINCTPAIR||YDATE)
+--------------------------
+		     16356
+
+Elapsed: 00:00:00.01
+02:14:31 SQL> 
+02:14:31 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
