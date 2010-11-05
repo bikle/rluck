@@ -1,0 +1,468 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Fri Nov 5 02:35:27 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+02:35:27 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+02:35:27 SQL> 02:35:27 SQL> --
+02:35:27 SQL> -- qry_dom.sql
+02:35:27 SQL> --
+02:35:27 SQL> 
+02:35:27 SQL> -- This helps me search for correlation trends related to "Day of Month".
+02:35:27 SQL> 
+02:35:27 SQL> -- First, I get a quick scan of the data I have:
+02:35:27 SQL> SELECT yr,COUNT(yr)FROM dom GROUP BY yr ORDER BY yr ;
+
+	YR  COUNT(YR)
+---------- ----------
+      2007	 1194
+      2008	 1176
+      2009	 1182
+      2010	  996
+
+Elapsed: 00:00:00.01
+02:35:27 SQL> SELECT pair,COUNT(pair)FROM dom GROUP BY pair ORDER BY pair ;
+
+PAIR	COUNT(PAIR)
+------- -----------
+aud_usd 	758
+eur_usd 	758
+gbp_usd 	758
+usd_cad 	758
+usd_chf 	758
+usd_jpy 	758
+
+6 rows selected.
+
+Elapsed: 00:00:00.00
+02:35:27 SQL> SELECT day_of_month,COUNT(day_of_month)FROM dom GROUP BY day_of_month ORDER BY day_of_month ;
+
+DAY_OF_MONTH COUNT(DAY_OF_MONTH)
+------------ -------------------
+	   1		     138
+	   2		     156
+	   3		     150
+	   4		     150
+	   5		     156
+	   6		     144
+	   7		     150
+	   8		     162
+	   9		     156
+	  10		     150
+	  11		     138
+	  12		     150
+	  13		     144
+	  14		     156
+	  15		     150
+	  16		     150
+	  17		     162
+	  18		     144
+	  19		     150
+	  20		     150
+	  21		     150
+	  22		     162
+	  23		     156
+	  24		     144
+	  25		     132
+	  26		     144
+	  27		     144
+	  28		     150
+	  29		     150
+	  30		     144
+	  31		      66
+
+31 rows selected.
+
+Elapsed: 00:00:00.01
+02:35:27 SQL> 
+02:35:27 SQL> -- Now start a serious look for a Correlation Trend by a simple aggregation over all years in the dom table.
+02:35:27 SQL> -- I want a return of 1 pip / hr so I filter out anything less than that:
+02:35:27 SQL> 
+02:35:27 SQL> CREATE OR REPLACE VIEW dom78910 AS
+02:35:27   2  SELECT
+02:35:27   3  pair
+02:35:27   4  ,day_of_month
+02:35:27   5  ,AVG(ndgain)avg_ndg
+02:35:27   6  ,SUM(ndgain)sum_ndg
+02:35:27   7  ,MIN(ydate1)mn_date
+02:35:27   8  ,COUNT(ndgain)ccount
+02:35:27   9  ,MAX(ydate2)mx_date
+02:35:27  10  FROM dom
+02:35:27  11  GROUP BY pair,day_of_month
+02:35:27  12  HAVING ABS(AVG(ndgain)) > 0.0024
+02:35:27  13  ORDER BY ABS(AVG(ndgain))DESC
+02:35:27  14  /
+
+View created.
+
+Elapsed: 00:00:00.05
+02:35:27 SQL> 
+02:35:27 SQL> SELECT * FROM dom78910;
+
+PAIR	DAY_OF_MONTH	AVG_NDG    SUM_NDG MN_DATE		   CCOUNT MX_DATE
+------- ------------ ---------- ---------- ------------------- ---------- -------------------
+usd_cad 	  31 -.00396669  -.0436336 2007-01-31 00:00:00	       11 2010-09-01 00:00:00
+usd_jpy 	  15 -.00393542 -.09838555 2007-02-15 00:00:00	       25 2010-09-16 00:00:00
+gbp_usd 	  30 .003678978 .088295469 2007-01-30 00:00:00	       24 2010-10-01 00:00:00
+usd_jpy 	  17 .003594697  .09705683 2007-01-17 00:00:00	       27 2010-08-18 00:00:00
+usd_chf 	  29 .003356835 .083920877 2007-01-29 00:00:00	       25 2010-09-30 00:00:00
+usd_jpy 	   7 -.00321301 -.08032536 2007-02-07 00:00:00	       25 2010-10-08 00:00:00
+aud_usd 	  14 -.00314529 -.08177744 2007-02-14 00:00:00	       26 2010-10-15 00:00:00
+aud_usd 	  10 .003021363 .075534073 2007-01-10 00:00:00	       25 2010-08-11 00:00:00
+usd_chf 	  31 .002964509 .032609595 2007-01-31 00:00:00	       11 2010-09-01 00:00:00
+aud_usd 	  23 -.00293263 -.07624835 2007-01-23 00:00:00	       26 2010-09-24 00:00:00
+usd_chf 	   4 .002804059 .070101479 2007-01-04 00:00:00	       25 2010-10-05 00:00:00
+aud_usd 	   8 .002767192 .074714176 2007-01-08 00:00:00	       27 2010-09-09 00:00:00
+aud_usd 	   4  -.0027404 -.06851004 2007-01-04 00:00:00	       25 2010-10-05 00:00:00
+aud_usd 	  15 -.00273362  -.0683404 2007-02-15 00:00:00	       25 2010-09-16 00:00:00
+aud_usd 	  19 -.00263308  -.0658271 2007-03-19 00:00:00	       25 2010-10-20 00:00:00
+aud_usd 	   7 -.00253469 -.06336717 2007-02-07 00:00:00	       25 2010-10-08 00:00:00
+usd_chf 	  30 -.00251167 -.06028005 2007-01-30 00:00:00	       24 2010-10-01 00:00:00
+aud_usd 	  27 .002465371 .059168901 2007-02-27 00:00:00	       24 2010-10-28 00:00:00
+gbp_usd 	  23 -.00241655 -.06283026 2007-01-23 00:00:00	       26 2010-09-24 00:00:00
+usd_cad 	   4  .00240996 .060249012 2007-01-04 00:00:00	       25 2010-10-05 00:00:00
+
+20 rows selected.
+
+Elapsed: 00:00:00.02
+02:35:27 SQL> 
+02:35:27 SQL> -- Now look for declines of USD value:
+02:35:27 SQL> SELECT pair,day_of_month,avg_ndg FROM dom78910
+02:35:27   2  WHERE (pair LIKE'%_usd'AND avg_ndg>0)
+02:35:27   3  OR    (pair LIKE'usd_%'AND avg_ndg<0)
+02:35:27   4  /
+
+PAIR	DAY_OF_MONTH	AVG_NDG
+------- ------------ ----------
+usd_cad 	  31 -.00396669
+usd_jpy 	  15 -.00393542
+gbp_usd 	  30 .003678978
+usd_jpy 	   7 -.00321301
+aud_usd 	  10 .003021363
+aud_usd 	   8 .002767192
+usd_chf 	  30 -.00251167
+aud_usd 	  27 .002465371
+
+8 rows selected.
+
+Elapsed: 00:00:00.01
+02:35:27 SQL> 
+02:35:27 SQL> -- Perhaps it is weighted near the end of the month.
+02:35:27 SQL> -- Try a simple avg:
+02:35:27 SQL> SELECT AVG(day_of_month)FROM dom78910
+02:35:27   2  WHERE (pair LIKE'%_usd'AND avg_ndg>0)
+02:35:27   3  OR    (pair LIKE'usd_%'AND avg_ndg<0)
+02:35:27   4  /
+
+AVG(DAY_OF_MONTH)
+-----------------
+	    19.75
+
+Elapsed: 00:00:00.01
+02:35:27 SQL> 
+02:35:27 SQL> -- Now look for increases of USD value:
+02:35:27 SQL> SELECT pair,day_of_month,avg_ndg FROM dom78910
+02:35:27   2  WHERE (pair LIKE'%_usd'AND avg_ndg<0)
+02:35:27   3  OR    (pair LIKE'usd_%'AND avg_ndg>0)
+02:35:27   4  /
+
+PAIR	DAY_OF_MONTH	AVG_NDG
+------- ------------ ----------
+usd_jpy 	  17 .003594697
+usd_chf 	  29 .003356835
+aud_usd 	  14 -.00314529
+usd_chf 	  31 .002964509
+aud_usd 	  23 -.00293263
+usd_chf 	   4 .002804059
+aud_usd 	   4  -.0027404
+aud_usd 	  15 -.00273362
+aud_usd 	  19 -.00263308
+aud_usd 	   7 -.00253469
+gbp_usd 	  23 -.00241655
+usd_cad 	   4  .00240996
+
+12 rows selected.
+
+Elapsed: 00:00:00.00
+02:35:27 SQL> 
+02:35:27 SQL> -- Perhaps it is weighted near the start of the month.
+02:35:27 SQL> -- Try a simple avg:
+02:35:27 SQL> SELECT AVG(day_of_month)FROM dom78910
+02:35:27   2  WHERE (pair LIKE'%_usd'AND avg_ndg<0)
+02:35:27   3  OR    (pair LIKE'usd_%'AND avg_ndg>0)
+02:35:27   4  /
+
+AVG(DAY_OF_MONTH)
+-----------------
+       15.8333333
+
+Elapsed: 00:00:00.01
+02:35:27 SQL> 
+02:35:27 SQL> -- Do it all over again but only for 2009, 2010:
+02:35:27 SQL> 
+02:35:27 SQL> CREATE OR REPLACE VIEW dom910 AS
+02:35:27   2  SELECT
+02:35:27   3  pair
+02:35:27   4  ,day_of_month
+02:35:27   5  ,AVG(ndgain)avg_ndg
+02:35:27   6  ,SUM(ndgain)sum_ndg
+02:35:27   7  ,MIN(ydate1)mn_date
+02:35:27   8  ,COUNT(ndgain)ccount
+02:35:27   9  ,MAX(ydate2)mx_date
+02:35:27  10  FROM dom
+02:35:27  11  WHERE ydate1 BETWEEN'2009-01-01'AND'2010-12-31'
+02:35:27  12  GROUP BY pair,day_of_month
+02:35:27  13  HAVING ABS(AVG(ndgain)) > 0.0024
+02:35:27  14  ORDER BY ABS(AVG(ndgain))DESC
+02:35:27  15  /
+
+View created.
+
+Elapsed: 00:00:00.03
+02:35:27 SQL> 
+02:35:27 SQL> SELECT * FROM dom910;
+
+PAIR	DAY_OF_MONTH	AVG_NDG    SUM_NDG MN_DATE		   CCOUNT MX_DATE
+------- ------------ ---------- ---------- ------------------- ---------- -------------------
+usd_chf 	  30 -.00827846 -.09106309 2009-03-30 00:00:00	       11 2010-10-01 00:00:00
+eur_usd 	  30 .006765919 .074425112 2009-03-30 00:00:00	       11 2010-10-01 00:00:00
+gbp_usd 	  30 .006262686 .068889547 2009-03-30 00:00:00	       11 2010-10-01 00:00:00
+usd_jpy 	   7 -.00594456 -.07133469 2009-01-07 00:00:00	       12 2010-10-08 00:00:00
+usd_chf 	   3 .005692919 .068315028 2009-02-03 00:00:00	       12 2010-08-04 00:00:00
+aud_usd 	   5 .005673698 .068084382 2009-01-05 00:00:00	       12 2010-10-06 00:00:00
+eur_usd 	   3  -.0054229 -.06507482 2009-02-03 00:00:00	       12 2010-08-04 00:00:00
+usd_jpy 	  18  -.0053719 -.05909086 2009-02-18 00:00:00	       11 2010-10-19 00:00:00
+aud_usd 	   8 .004890597 .063577767 2009-01-08 00:00:00	       13 2010-09-09 00:00:00
+gbp_usd 	  24 -.00475789 -.05233676 2009-02-24 00:00:00	       11 2010-08-25 00:00:00
+eur_usd 	  18 .004569728 .050267004 2009-02-18 00:00:00	       11 2010-10-19 00:00:00
+usd_cad 	   8 -.00453117 -.05890516 2009-01-08 00:00:00	       13 2010-09-09 00:00:00
+usd_chf 	  31 .004234206 .016936824 2009-03-31 00:00:00		4 2010-09-01 00:00:00
+eur_usd 	  16 -.00387336 -.04648027 2009-03-16 00:00:00	       12 2010-09-17 00:00:00
+gbp_usd 	  16 -.00372909  -.0447491 2009-03-16 00:00:00	       12 2010-09-17 00:00:00
+gbp_usd 	  13  .00368216 .044185918 2009-01-13 00:00:00	       12 2010-10-14 00:00:00
+usd_chf 	  18 -.00366761  -.0403437 2009-02-18 00:00:00	       11 2010-10-19 00:00:00
+aud_usd 	   3 -.00362649 -.04351784 2009-02-03 00:00:00	       12 2010-08-04 00:00:00
+usd_jpy 	  20 -.00345721 -.04148656 2009-01-20 00:00:00	       12 2010-10-21 00:00:00
+usd_cad 	  30 -.00342481  -.0376729 2009-03-30 00:00:00	       11 2010-10-01 00:00:00
+usd_jpy 	  14 .003389356 .044061622 2009-01-14 00:00:00	       13 2010-10-15 00:00:00
+usd_jpy 	  13 -.00334978 -.04019738 2009-01-13 00:00:00	       12 2010-10-14 00:00:00
+usd_cad 	  31 -.00333827 -.01335309 2009-03-31 00:00:00		4 2010-09-01 00:00:00
+eur_usd 	  10 -.00333546 -.03669004 2009-02-10 00:00:00	       11 2010-08-11 00:00:00
+eur_usd 	  21 .003314139 .043083812 2009-01-21 00:00:00	       13 2010-10-22 00:00:00
+aud_usd 	  11  -.0033132 -.03313197 2009-02-11 00:00:00	       10 2010-08-12 00:00:00
+aud_usd 	  14 -.00326021 -.04238275 2009-01-14 00:00:00	       13 2010-10-15 00:00:00
+usd_chf 	  26  .00322124 .038654878 2009-01-26 00:00:00	       12 2010-10-27 00:00:00
+usd_cad 	  26 .003216852 .038602224 2009-01-26 00:00:00	       12 2010-10-27 00:00:00
+usd_chf 	  16 .003203919 .038447023 2009-03-16 00:00:00	       12 2010-09-17 00:00:00
+aud_usd 	  21 .003198206 .041576683 2009-01-21 00:00:00	       13 2010-10-22 00:00:00
+gbp_usd 	  31 .003113688 .012454753 2009-03-31 00:00:00		4 2010-09-01 00:00:00
+usd_jpy 	   3 .003068917 .036827003 2009-02-03 00:00:00	       12 2010-08-04 00:00:00
+usd_jpy 	  10 -.00305413 -.03359542 2009-02-10 00:00:00	       11 2010-08-11 00:00:00
+eur_usd 	  15 .003039804 .036477649 2009-01-15 00:00:00	       12 2010-09-16 00:00:00
+usd_jpy 	  15 -.00303617 -.03643402 2009-01-15 00:00:00	       12 2010-09-16 00:00:00
+usd_cad 	  24 .002957377 .032531145 2009-02-24 00:00:00	       11 2010-08-25 00:00:00
+aud_usd 	   2 .002955639 .038423306 2009-02-02 00:00:00	       13 2010-09-03 00:00:00
+aud_usd 	  31 .002944686 .011778744 2009-03-31 00:00:00		4 2010-09-01 00:00:00
+aud_usd 	  12 .002936336  .03523603 2009-01-12 00:00:00	       12 2010-10-13 00:00:00
+usd_chf 	   4 .002933456 .035201473 2009-02-04 00:00:00	       12 2010-10-05 00:00:00
+gbp_usd 	  18 .002925569 .032181264 2009-02-18 00:00:00	       11 2010-10-19 00:00:00
+usd_jpy 	  17 .002715548 .032586573 2009-02-17 00:00:00	       12 2010-08-18 00:00:00
+eur_usd 	  26 -.00262342 -.03148109 2009-01-26 00:00:00	       12 2010-10-27 00:00:00
+usd_chf 	  28  -.0026082 -.03390661 2009-01-28 00:00:00	       13 2010-10-29 00:00:00
+usd_cad 	  21  -.0025481 -.03312532 2009-01-21 00:00:00	       13 2010-10-22 00:00:00
+gbp_usd 	  15 .002544978 .030539742 2009-01-15 00:00:00	       12 2010-09-16 00:00:00
+usd_jpy 	  31  .00245307  .00981228 2009-03-31 00:00:00		4 2010-09-01 00:00:00
+usd_cad 	  12 -.00245277 -.02943319 2009-01-12 00:00:00	       12 2010-10-13 00:00:00
+usd_cad 	  11 .002417744 .024177439 2009-02-11 00:00:00	       10 2010-08-12 00:00:00
+gbp_usd 	  14 .002411262 .031346404 2009-01-14 00:00:00	       13 2010-10-15 00:00:00
+usd_cad 	  16  .00240374 .028844883 2009-03-16 00:00:00	       12 2010-09-17 00:00:00
+
+52 rows selected.
+
+Elapsed: 00:00:00.02
+02:35:27 SQL> 
+02:35:27 SQL> -- Now look for declines of USD value:
+02:35:27 SQL> SELECT pair,day_of_month,avg_ndg FROM dom910
+02:35:27   2  WHERE (pair LIKE'%_usd'AND avg_ndg>0)
+02:35:27   3  OR    (pair LIKE'usd_%'AND avg_ndg<0)
+02:35:27   4  /
+
+PAIR	DAY_OF_MONTH	AVG_NDG
+------- ------------ ----------
+usd_chf 	  30 -.00827846
+eur_usd 	  30 .006765919
+gbp_usd 	  30 .006262686
+usd_jpy 	   7 -.00594456
+aud_usd 	   5 .005673698
+usd_jpy 	  18  -.0053719
+aud_usd 	   8 .004890597
+eur_usd 	  18 .004569728
+usd_cad 	   8 -.00453117
+gbp_usd 	  13  .00368216
+usd_chf 	  18 -.00366761
+usd_jpy 	  20 -.00345721
+usd_cad 	  30 -.00342481
+usd_jpy 	  13 -.00334978
+usd_cad 	  31 -.00333827
+eur_usd 	  21 .003314139
+aud_usd 	  21 .003198206
+gbp_usd 	  31 .003113688
+usd_jpy 	  10 -.00305413
+eur_usd 	  15 .003039804
+usd_jpy 	  15 -.00303617
+aud_usd 	   2 .002955639
+aud_usd 	  31 .002944686
+aud_usd 	  12 .002936336
+gbp_usd 	  18 .002925569
+usd_chf 	  28  -.0026082
+usd_cad 	  21  -.0025481
+gbp_usd 	  15 .002544978
+usd_cad 	  12 -.00245277
+gbp_usd 	  14 .002411262
+
+30 rows selected.
+
+Elapsed: 00:00:00.01
+02:35:28 SQL> 
+02:35:28 SQL> -- Perhaps it is weighted near the end of the month.
+02:35:28 SQL> -- Try a simple avg:
+02:35:28 SQL> SELECT AVG(day_of_month)FROM dom910
+02:35:28   2  WHERE (pair LIKE'%_usd'AND avg_ndg>0)
+02:35:28   3  OR    (pair LIKE'usd_%'AND avg_ndg<0)
+02:35:28   4  /
+
+AVG(DAY_OF_MONTH)
+-----------------
+       18.1666667
+
+Elapsed: 00:00:00.01
+02:35:28 SQL> 
+02:35:28 SQL> -- Now look for increases of USD value:
+02:35:28 SQL> SELECT pair,day_of_month,avg_ndg FROM dom910
+02:35:28   2  WHERE (pair LIKE'%_usd'AND avg_ndg<0)
+02:35:28   3  OR    (pair LIKE'usd_%'AND avg_ndg>0)
+02:35:28   4  /
+
+PAIR	DAY_OF_MONTH	AVG_NDG
+------- ------------ ----------
+usd_chf 	   3 .005692919
+eur_usd 	   3  -.0054229
+gbp_usd 	  24 -.00475789
+usd_chf 	  31 .004234206
+eur_usd 	  16 -.00387336
+gbp_usd 	  16 -.00372909
+aud_usd 	   3 -.00362649
+usd_jpy 	  14 .003389356
+eur_usd 	  10 -.00333546
+aud_usd 	  11  -.0033132
+aud_usd 	  14 -.00326021
+usd_chf 	  26  .00322124
+usd_cad 	  26 .003216852
+usd_chf 	  16 .003203919
+usd_jpy 	   3 .003068917
+usd_cad 	  24 .002957377
+usd_chf 	   4 .002933456
+usd_jpy 	  17 .002715548
+eur_usd 	  26 -.00262342
+usd_jpy 	  31  .00245307
+usd_cad 	  11 .002417744
+usd_cad 	  16  .00240374
+
+22 rows selected.
+
+Elapsed: 00:00:00.01
+02:35:28 SQL> 
+02:35:28 SQL> -- Perhaps it is weighted near the start of the month.
+02:35:28 SQL> -- Try a simple avg:
+02:35:28 SQL> SELECT AVG(day_of_month)FROM dom910
+02:35:28   2  WHERE (pair LIKE'%_usd'AND avg_ndg<0)
+02:35:28   3  OR    (pair LIKE'usd_%'AND avg_ndg>0)
+02:35:28   4  /
+
+AVG(DAY_OF_MONTH)
+-----------------
+       15.6818182
+
+Elapsed: 00:00:00.00
+02:35:28 SQL> 
+02:35:28 SQL> -- For years 2008, 2009, 2010 look for a Correlation Trend for a pair-dom combo:
+02:35:28 SQL> 
+02:35:28 SQL> CREATE OR REPLACE VIEW dom8  AS SELECT pair,dom,AVG(ndgain)avg8  FROM dom WHERE yr=2008 GROUP BY pair,dom;
+
+View created.
+
+Elapsed: 00:00:00.03
+02:35:28 SQL> CREATE OR REPLACE VIEW dom9  AS SELECT pair,dom,AVG(ndgain)avg9  FROM dom WHERE yr=2009 GROUP BY pair,dom;
+
+View created.
+
+Elapsed: 00:00:00.04
+02:35:28 SQL> CREATE OR REPLACE VIEW dom10 AS SELECT pair,dom,AVG(ndgain)avg10 FROM dom WHERE yr=2010 GROUP BY pair,dom;
+
+View created.
+
+Elapsed: 00:00:00.05
+02:35:28 SQL> 
+02:35:28 SQL> CREATE OR REPLACE VIEW dom8910 AS
+02:35:28   2  SELECT a.pair,a.dom,avg8,avg9,avg10
+02:35:28   3  FROM dom8 a, dom9 b, dom10 c
+02:35:28   4  WHERE a.pair = b.pair AND a.dom = b.dom
+02:35:28   5  AND   a.pair = c.pair AND a.dom = c.dom
+02:35:28   6  /
+
+View created.
+
+Elapsed: 00:00:00.04
+02:35:28 SQL> 
+02:35:28 SQL> -- See it:
+02:35:28 SQL> SELECT * FROM dom8910
+02:35:28   2  -- I want all the avgs to be the same sign:
+02:35:28   3  WHERE ABS(SIGN(avg8)+SIGN(avg9)+SIGN(avg10))=3
+02:35:28   4  -- I want more than 1 pip / hour:
+02:35:28   5  AND ABS(avg8 + avg9 + avg10) > (3 * 24 * 0.0001)
+02:35:28   6  -- Sort by avg giving more weight to more recent data:
+02:35:28   7  ORDER BY ABS(1*avg8 + 2*avg9 + 3*avg10) DESC
+02:35:28   8  /
+
+PAIR	       DOM	 AVG8	    AVG9      AVG10
+------- ---------- ---------- ---------- ----------
+aud_usd 	 8 .005248046 .003699449 .006280271
+usd_jpy 	 7 -.00407256  -.0104206 -.00146852
+gbp_usd 	30 .000846838 .007393519 .004283728
+usd_chf 	31 .005259288 .007045408 .001423003
+aud_usd 	14 -.00376118 -.00145646 -.00536458
+aud_usd 	11 -.00364577 -.00211535 -.00451104
+usd_jpy 	17 .008924497 .003440749 .001700266
+usd_jpy 	15 -.00413136 -.00234113 -.00400922
+gbp_usd 	13 .001732617 .003694604 .003669716
+usd_jpy 	20 -.00390058 -.00503383  -.0018806
+usd_chf 	 4 .005379568 .003581829 .002285083
+aud_usd 	13 .007672823 .000659641  .00326394
+usd_jpy 	31 .003462941 .000344998 .004561142
+usd_cad 	19 .012171842 .000944791 .001171099
+usd_jpy 	10  -.0045653 -.00468751 -.00109407
+aud_usd 	19 -.01164505 -.00230501 -.00014391
+gbp_usd 	 9 -.00373131 -.00178547 -.00296688
+usd_cad 	 6 .003689389 .001340637 .003019929
+eur_usd 	 4 -.00386732 -.00285942 -.00168543
+usd_chf 	29 .006813355 .003710297 .000086681
+gbp_usd 	28  .00330864 .003092881 .001560665
+gbp_usd 	23 -.00568272 -.00142894 -.00142714
+aud_usd 	10 .005065642 .001244312 .001133826
+
+23 rows selected.
+
+Elapsed: 00:00:00.03
+02:35:28 SQL> 
+02:35:28 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
