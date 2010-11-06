@@ -9,7 +9,7 @@
 
 set -x
 
-cd /pt/s/rlk/sbw_woq/
+cd /pt/s/rlk/sbw_woq_fed/
 
 ./wgetem.bash  > wgetem.txt  2>&1
 ./sqlldem.bash > sqlldem.txt 2>&1
