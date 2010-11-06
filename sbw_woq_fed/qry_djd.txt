@@ -1,0 +1,121 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sat Nov 6 15:35:10 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+15:35:10 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
+
+Session altered.
+
+Elapsed: 00:00:00.01
+15:35:10 SQL> 15:35:10 SQL> --
+15:35:10 SQL> -- qry_djd.sql
+15:35:10 SQL> --
+15:35:10 SQL> 
+15:35:10 SQL> -- I use this script to create a table which joins each row from fxw with another row in fxw which is 1 day ahead.
+15:35:10 SQL> -- Also I derive some data like the number of the quarter which the week is in and the daily gain for each day.
+15:35:10 SQL> 
+15:35:10 SQL> 
+15:35:10 SQL> CREATE OR REPLACE VIEW djd10 AS
+15:35:10   2  SELECT
+15:35:10   3  a.pair
+15:35:10   4  ,a.ydate ydate1
+15:35:10   5  -- ndgain is normalized daily gain
+15:35:10   6  ,(b.clse - a.clse)/a.clse ndgain
+15:35:10   7  ,TO_CHAR(a.ydate,'Q')qtr
+15:35:10   8  ,TO_CHAR(a.ydate,'YYYY')yr
+15:35:10   9  ,TO_CHAR(a.ydate,'WW')week_of_year
+15:35:10  10  FROM fxw a, fxw b
+15:35:10  11  WHERE a.pair = b.pair
+15:35:10  12  AND b.ydate - a.ydate = 1
+15:35:10  13  -- I want to compare this to my hourly data which I have for after 2009-01-01
+15:35:10  14  AND a.ydate > '2009-01-01'
+15:35:10  15  /
+
+View created.
+
+Elapsed: 00:00:00.05
+15:35:10 SQL> 
+15:35:10 SQL> -- Derive woq
+15:35:10 SQL> 
+15:35:10 SQL> CREATE OR REPLACE VIEW djd12 AS
+15:35:10   2  SELECT
+15:35:10   3  pair
+15:35:10   4  ,ydate1
+15:35:10   5  ,ndgain
+15:35:10   6  ,yr
+15:35:10   7  ,week_of_year - 13*(qtr-1)woq
+15:35:10   8  ,week_of_year - 13*(qtr-1)week_of_qtr
+15:35:10   9  FROM djd10
+15:35:10  10  /
+
+View created.
+
+Elapsed: 00:00:00.04
+15:35:11 SQL> 
+15:35:11 SQL> -- Now I can aggregate ndgain and GROUP BY week_of_qtr
+15:35:11 SQL> SELECT
+15:35:11   2  pair,week_of_qtr
+15:35:11   3  ,ROUND(AVG(ndgain),4)avg_ndgain
+15:35:11   4  ,ROUND(SUM(ndgain),4)sum_ndgain
+15:35:11   5  ,COUNT(ndgain)
+15:35:11   6  FROM djd12
+15:35:11   7  WHERE week_of_qtr > 0
+15:35:11   8  GROUP BY pair,week_of_qtr
+15:35:11   9  -- I want more than 12 pips / day
+15:35:11  10  HAVING ABS(AVG(ndgain)) > 0.0012
+15:35:11  11  ORDER BY ABS(AVG(ndgain))DESC
+15:35:11  12  /
+
+PAIR	WEEK_OF_QTR AVG_NDGAIN SUM_NDGAIN COUNT(NDGAIN)
+------- ----------- ---------- ---------- -------------
+aud_usd 	 10	 .0048	    .1239	     26
+eur_usd 	  6	-.0037	   -.0958	     26
+gbp_usd 	  6	-.0031	   -.0811	     26
+usd_chf 	 11	-.0025	   -.0709	     28
+aud_usd 	  1	 .0025	    .0749	     30
+aud_usd 	 11	 .0024	    .0683	     28
+usd_jpy 	  1	-.0024	   -.0718	     30
+usd_cad 	 10	-.0024	   -.0618	     26
+usd_jpy 	  5	-.0023	   -.0647	     28
+eur_usd 	 11	 .0022	    .0628	     28
+usd_cad 	  6	 .0019	    .0501	     26
+gbp_usd 	 13	 .0019	     .044	     23
+usd_cad 	  1	-.0018	   -.0549	     30
+gbp_usd 	 11	 .0018	    .0506	     28
+aud_usd 	  8	 .0018	    .0462	     26
+gbp_usd 	  2	 .0017	     .052	     30
+usd_chf 	  8	-.0017	   -.0431	     26
+eur_usd 	  5	-.0016	   -.0462	     28
+usd_chf 	  3	 .0016	    .0491	     30
+usd_chf 	  6	 .0016	    .0419	     26
+usd_cad 	 11	-.0016	   -.0441	     28
+gbp_usd 	 10	 .0016	    .0408	     26
+aud_usd 	  7	-.0016	   -.0406	     26
+gbp_usd 	  1	 .0016	    .0468	     30
+aud_usd 	  5	-.0015	   -.0427	     28
+aud_usd 	  9	 .0015	    .0378	     26
+usd_cad 	  5	 .0014	    .0405	     28
+aud_usd 	  6	-.0014	   -.0374	     26
+eur_usd 	 13	 .0013	     .031	     23
+usd_jpy 	  2	-.0013	     -.04	     30
+usd_chf 	 13	-.0013	   -.0304	     23
+usd_cad 	 12	 .0013	    .0362	     28
+usd_chf 	  9	-.0012	   -.0324	     26
+usd_chf 	 12	-.0012	   -.0345	     28
+eur_usd 	  8	 .0012	    .0315	     26
+gbp_usd 	  7	 .0012	    .0315	     26
+usd_chf 	  5	 .0012	    .0338	     28
+
+37 rows selected.
+
+Elapsed: 00:00:02.53
+15:35:13 SQL> 
+15:35:13 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
