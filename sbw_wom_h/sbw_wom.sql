@@ -6,7 +6,7 @@ SET LINES 66
 DESC hourly
 SET LINES 166
 
--- For each pair, look at wom over 2009, 2010:
+-- For each pair, look at wom WHERE ydate > '2009-01-01'
 SELECT pair,week_of_month,AVG(nhgain),SUM(nhgain),COUNT(nhgain)
 FROM
 (
