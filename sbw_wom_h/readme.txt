@@ -20,7 +20,7 @@ As far as I can tell, the data is accurate for after 2009.
 
 For 2008, some of the data for the usd_jpy pair is corrupt.  
 
-The corrupt usd_jpy data appears to be off by a factor of 100.
+The corrupt usd_jpy data appears to be off by a factor of 2.
 
 So, the SQL in this directory avoids data before 2009.
 
