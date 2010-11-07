@@ -59,7 +59,8 @@ My answers:
   - No, I do not think the trend will continue.
   Due to recent actions by the Fed I think that aud_usd will gain, not fall.
   When aud_usd gains that means traders are using USD to buy AUD.
-  Currently the Fed is increasing the supply of USD.
+  Currently the Fed is increasing the supply of USD:
+  https://www.google.com/finance?q=audusd
 
   - Yes, 16 pips / day is a decent rate of return.  To get that rate I need to supply 250 pips of my own money.
   My rate of return for one day would be 16 pips / 250 pips which is 6.4% / day.
@@ -68,14 +69,19 @@ My answers:
   The report for this trade shows a standard deviation of 116 pips.
   I visualize the risk as a normal curve centered at -16 pips.
   You can see a normal curve here:
+
   http://en.wikipedia.org/wiki/Standard_deviation
+
   A standard deviation of 116 pips means that it is significantly probable that this trade would lose 116 pips.
   To do this trade I need to supply 250 pips.
   So, I could lose almost half my money in 1 day.
+
   On the plus side, it is significantly probable that this trade would gain 116 pips.
   On the minus side, look how the standard deviation of other rows compare to 116 pips.
   The first row for example has a standard deviation of 84 pips.
+
   To keep my risk low, I would avoid shorting aud_usd during week 7 of the quarter.
+
   Instead I would be patient and wait.
   I would go-long on aud_usd during week 10.  
   It shows an average return of 48 pips which is 3 times larger than 16 pips.
