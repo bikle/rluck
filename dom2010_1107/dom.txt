@@ -1,0 +1,107 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Nov 7 22:37:49 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+22:37:50 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+22:37:50 SQL> 22:37:50 SQL> --
+22:37:50 SQL> -- dom.sql
+22:37:50 SQL> --
+22:37:50 SQL> 
+22:37:50 SQL> SET LINES 66
+22:37:50 SQL> DESC hourly
+ Name				  Null?    Type
+ -------------------------------- -------- -----------------------
+ PAIR					   VARCHAR2(15)
+ YDATE					   DATE
+ VOL					   NUMBER
+ OPN					   NUMBER
+ CLSE					   NUMBER
+ MN					   NUMBER
+ MX					   NUMBER
+
+22:37:50 SQL> SET LINES 166
+22:37:50 SQL> 
+22:37:50 SQL> -- For each pair, look at dom WHERE ydate > '2009-01-01'
+22:37:50 SQL> SELECT pair,day_of_month,AVG(nhgain),SUM(nhgain),COUNT(nhgain)
+22:37:50   2  FROM
+22:37:50   3  (
+22:37:50   4  	SELECT
+22:37:50   5  	pair
+22:37:50   6  	-- ydate is granular down to the hour:
+22:37:50   7  	,ydate
+22:37:50   8  	,opn
+22:37:50   9  	,clse
+22:37:50  10  	-- Hourly gain:
+22:37:50  11  	,(clse-opn)	 hgain
+22:37:50  12  	-- Normalized hourly gain:
+22:37:50  13  	,(clse-opn)/opn nhgain
+22:37:50  14  	,0+TO_CHAR(ydate,'DD')day_of_month
+22:37:50  15  	-- Guard against divide by zero:
+22:37:50  16  	FROM hourly WHERE opn>0
+22:37:50  17  )
+22:37:50  18  WHERE ydate > '2009-01-01'
+22:37:50  19  GROUP BY pair,day_of_month
+22:37:50  20  -- I want more than 1 pip / hour:
+22:37:50  21  HAVING ABS(AVG(nhgain)) > 0.0001
+22:37:50  22  -- I sort largest gainers to the top:
+22:37:50  23  ORDER BY ABS(AVG(nhgain))DESC
+22:37:50  24  /
+
+PAIR		DAY_OF_MONTH AVG(NHGAIN) SUM(NHGAIN) COUNT(NHGAIN)
+--------------- ------------ ----------- ----------- -------------
+usd_chf 		  31  -.00029205  -.05110847	       175
+aud_usd 		   6  .000227456  .087570747	       385
+aud_usd 		  31  .000205991  .036048495	       175
+usd_chf 		   5   .00020219  .079056129	       391
+usd_cad 		   9  -.00019345  -.07853947	       406
+usd_chf 		   8  -.00017735  -.06916676	       390
+aud_usd 		   9  .000175719  .071341861	       406
+usd_cad 		   8  -.00017459  -.06809034	       390
+usd_chf 		  27  .000170812  .065762617	       385
+gbp_usd 		  14  .000162161  .059026725	       364
+usd_jpy 		   8  -.00015442  -.07180602	       465
+eur_usd 		  31  .000150946   .02641551	       175
+gbp_usd 		  31   .00015048  .026333969	       175
+aud_usd 		  20  -.00014577  -.05611958	       385
+eur_usd 		   5  -.00014402  -.05631088	       391
+usd_jpy 		  16   -.0001422  -.06811501	       479
+eur_usd 		   8   .00013599   .05303626	       390
+aud_usd 		  30  -.00013551  -.04851142	       358
+usd_jpy 		   6  -.00013234  -.06061213	       458
+aud_usd 		   8  .000128967  .050297248	       390
+aud_usd 		   2	.0001241  .053363136	       430
+usd_chf 		  13  -.00012306  -.04737645	       385
+usd_jpy 		  26  -.00012236   -.0551846	       451
+usd_cad 		   1  -.00012219  -.05058593	       414
+gbp_usd 		   8  .000120398  .046955412	       390
+eur_usd 		   2  .000119827  .051525765	       430
+usd_jpy 		   3  .000119719  .054352634	       454
+usd_jpy 		  20  -.00011768  -.05389931	       458
+usd_cad 		   2  -.00011659  -.05013424	       430
+gbp_usd 		  25  -.00011565  -.04140152	       358
+gbp_usd 		  29   .00011524  .041832279	       363
+gbp_usd 		   1   .00011183  .046297519	       414
+usd_cad 		  13  -.00011081  -.04266294	       385
+eur_usd 		  16  .000109446  .044435168	       406
+usd_chf 		  15  .000104797  .040870929	       390
+usd_jpy 		  11   -.0001034  -.04249703	       411
+usd_cad 		  11   .00010098  .036554802	       362
+aud_usd 		  29  .000100057  .036320656	       363
+
+38 rows selected.
+
+Elapsed: 00:00:00.16
+22:37:50 SQL> 
+22:37:50 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
