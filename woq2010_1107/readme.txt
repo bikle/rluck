@@ -1,4 +1,4 @@
-sbw_woq_h/readme.txt
+woq2010_1107/readme.txt
 
 The files in this directory were derived from my efforts to look at Week-Of-Month returns using hourly data.
 
@@ -17,4 +17,4 @@ And the answer is Week Of Quarter #11.
 
 More pairs and more Week Of Quarters are listed here:
 
-https://github.com/bikle/rluck/blob/master/sbw_woq_h/sbw_woq_h.txt
+https://github.com/bikle/rluck/blob/master/woq2010_1107/sbw_woq_h.txt
