@@ -70,11 +70,9 @@ One convenient feature of SQL is that I can derive the Week-Of-Month attribute f
 
 So I do that and pass that attribute into the SQL query as a GROUP BY attribute.
 
-In theory, the aggregation done by the SUM() function should give me the same result as the 2-view-route, but that would only be true if I have every single hour for every single pair.
-
-Also that assumption would depend on a complete lack of rounding errors in the data.
-
-This method might be a little less accurate than going the 2-view-route but for my purposes it is good enough.
-
 Also I like the fact that the SQL query is only 18 lines long.
+
+Well, that first query is short and sweet.
+
+The SQL I had to write to separate the bullish-USD trades from the bearish ones looks ugly.
 
