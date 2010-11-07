@@ -1,5 +1,5 @@
 
-SQL*Plus: Release 11.2.0.1.0 Production on Sat Nov 6 16:12:02 2010
+SQL*Plus: Release 11.2.0.1.0 Production on Sat Nov 6 16:52:51 2010
 
 Copyright (c) 1982, 2009, Oracle.  All rights reserved.
 
@@ -8,114 +8,115 @@ Connected to:
 Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 
-16:12:02 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
+16:52:51 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
 
 Session altered.
 
 Elapsed: 00:00:00.00
-16:12:02 SQL> 16:12:02 SQL> --
-16:12:02 SQL> -- qry_djd.sql
-16:12:02 SQL> --
-16:12:02 SQL> 
-16:12:02 SQL> -- I use this script to create a table which joins each row from fxw with another row in fxw which is 1 day ahead.
-16:12:02 SQL> -- Also I derive some data like the number of the quarter which the week is in and the daily gain for each day.
-16:12:02 SQL> 
-16:12:02 SQL> 
-16:12:02 SQL> CREATE OR REPLACE VIEW djd10 AS
-16:12:02   2  SELECT
-16:12:02   3  a.pair
-16:12:02   4  ,a.ydate ydate1
-16:12:02   5  -- ndgain is normalized daily gain
-16:12:02   6  ,(b.clse - a.clse)/a.clse ndgain
-16:12:02   7  ,TO_CHAR(a.ydate,'Q')qtr
-16:12:02   8  ,TO_CHAR(a.ydate,'YYYY')yr
-16:12:02   9  ,TO_CHAR(a.ydate,'WW')week_of_year
-16:12:02  10  FROM fxw a, fxw b
-16:12:02  11  WHERE a.pair = b.pair
-16:12:02  12  AND b.ydate - a.ydate = 1
-16:12:02  13  -- I want to compare this to my hourly data which I have for after 2009-01-01
-16:12:02  14  AND a.ydate > '2009-01-01'
-16:12:02  15  /
+16:52:51 SQL> 16:52:51 SQL> --
+16:52:51 SQL> -- qry_djd.sql
+16:52:51 SQL> --
+16:52:51 SQL> 
+16:52:51 SQL> -- I use this script to create a table which joins each row from fxw with another row in fxw which is 1 day ahead.
+16:52:51 SQL> -- Also I derive some data like the number of the quarter which the week is in and the daily gain for each day.
+16:52:51 SQL> 
+16:52:51 SQL> 
+16:52:51 SQL> CREATE OR REPLACE VIEW djd10 AS
+16:52:51   2  SELECT
+16:52:51   3  a.pair
+16:52:51   4  ,a.ydate ydate1
+16:52:51   5  -- ndgain is normalized daily gain
+16:52:51   6  ,(b.clse - a.clse)/a.clse ndgain
+16:52:51   7  ,TO_CHAR(a.ydate,'Q')qtr
+16:52:51   8  ,TO_CHAR(a.ydate,'YYYY')yr
+16:52:51   9  ,TO_CHAR(a.ydate,'WW')week_of_year
+16:52:51  10  FROM fxw a, fxw b
+16:52:51  11  WHERE a.pair = b.pair
+16:52:51  12  AND b.ydate - a.ydate = 1
+16:52:51  13  -- I want to compare this to my hourly data which I have for after 2009-01-01
+16:52:51  14  AND a.ydate > '2009-01-01'
+16:52:51  15  /
 
 View created.
 
-Elapsed: 00:00:00.03
-16:12:02 SQL> 
-16:12:02 SQL> -- Derive woq
-16:12:02 SQL> 
-16:12:02 SQL> CREATE OR REPLACE VIEW djd12 AS
-16:12:02   2  SELECT
-16:12:02   3  pair
-16:12:02   4  ,ydate1
-16:12:02   5  ,ndgain
-16:12:02   6  ,yr
-16:12:02   7  ,week_of_year - 13*(qtr-1)woq
-16:12:02   8  ,week_of_year - 13*(qtr-1)week_of_qtr
-16:12:02   9  FROM djd10
-16:12:02  10  /
+Elapsed: 00:00:00.04
+16:52:51 SQL> 
+16:52:51 SQL> -- Derive woq
+16:52:51 SQL> 
+16:52:51 SQL> CREATE OR REPLACE VIEW djd12 AS
+16:52:51   2  SELECT
+16:52:51   3  pair
+16:52:51   4  ,ydate1
+16:52:51   5  ,ndgain
+16:52:51   6  ,yr
+16:52:51   7  ,week_of_year - 13*(qtr-1)woq
+16:52:51   8  ,week_of_year - 13*(qtr-1)week_of_qtr
+16:52:51   9  FROM djd10
+16:52:51  10  /
 
 View created.
 
 Elapsed: 00:00:00.05
-16:12:02 SQL> 
-16:12:02 SQL> -- Now I can aggregate ndgain and GROUP BY week_of_qtr
-16:12:02 SQL> SELECT
-16:12:02   2  pair,week_of_qtr
-16:12:02   3  ,ROUND(AVG(ndgain),4)avg_ndgain
-16:12:02   4  ,ROUND(SUM(ndgain),4)sum_ndgain
-16:12:02   5  ,COUNT(ndgain)
-16:12:02   6  FROM djd12
-16:12:02   7  WHERE week_of_qtr > 0
-16:12:02   8  GROUP BY pair,week_of_qtr
-16:12:02   9  -- I want more than 12 pips / day
-16:12:02  10  HAVING ABS(AVG(ndgain)) > 0.0012
-16:12:02  11  ORDER BY ABS(AVG(ndgain))DESC
-16:12:02  12  /
+16:52:51 SQL> 
+16:52:51 SQL> -- Now I can aggregate ndgain and GROUP BY week_of_qtr
+16:52:51 SQL> SELECT
+16:52:51   2  pair,week_of_qtr
+16:52:51   3  ,ROUND(AVG(ndgain),4)avg_ndgain
+16:52:51   4  ,ROUND(SUM(ndgain),4)sum_ndgain
+16:52:51   5  ,COUNT(ndgain)
+16:52:51   6  ,ROUND(STDDEV(ndgain),4)stddev_ndgain
+16:52:51   7  FROM djd12
+16:52:51   8  WHERE week_of_qtr > 0
+16:52:51   9  GROUP BY pair,week_of_qtr
+16:52:51  10  -- I want more than 12 pips / day
+16:52:51  11  HAVING ABS(AVG(ndgain)) > 0.0012
+16:52:51  12  ORDER BY ABS(AVG(ndgain))DESC
+16:52:51  13  /
 
-PAIR	WEEK_OF_QTR AVG_NDGAIN SUM_NDGAIN COUNT(NDGAIN)
-------- ----------- ---------- ---------- -------------
-aud_usd 	 10	 .0048	    .1239	     26
-eur_usd 	  6	-.0037	   -.0958	     26
-gbp_usd 	  6	-.0031	   -.0811	     26
-usd_chf 	 11	-.0025	   -.0709	     28
-aud_usd 	  1	 .0025	    .0749	     30
-aud_usd 	 11	 .0024	    .0683	     28
-usd_jpy 	  1	-.0024	   -.0718	     30
-usd_cad 	 10	-.0024	   -.0618	     26
-usd_jpy 	  5	-.0023	   -.0647	     28
-eur_usd 	 11	 .0022	    .0628	     28
-usd_cad 	  6	 .0019	    .0501	     26
-gbp_usd 	 13	 .0019	     .044	     23
-usd_cad 	  1	-.0018	   -.0549	     30
-gbp_usd 	 11	 .0018	    .0506	     28
-aud_usd 	  8	 .0018	    .0462	     26
-gbp_usd 	  2	 .0017	     .052	     30
-usd_chf 	  8	-.0017	   -.0431	     26
-eur_usd 	  5	-.0016	   -.0462	     28
-usd_chf 	  3	 .0016	    .0491	     30
-usd_chf 	  6	 .0016	    .0419	     26
-usd_cad 	 11	-.0016	   -.0441	     28
-gbp_usd 	 10	 .0016	    .0408	     26
-aud_usd 	  7	-.0016	   -.0406	     26
-gbp_usd 	  1	 .0016	    .0468	     30
-aud_usd 	  5	-.0015	   -.0427	     28
-aud_usd 	  9	 .0015	    .0378	     26
-usd_cad 	  5	 .0014	    .0405	     28
-aud_usd 	  6	-.0014	   -.0374	     26
-eur_usd 	 13	 .0013	     .031	     23
-usd_jpy 	  2	-.0013	     -.04	     30
-usd_chf 	 13	-.0013	   -.0304	     23
-usd_cad 	 12	 .0013	    .0362	     28
-usd_chf 	  9	-.0012	   -.0324	     26
-usd_chf 	 12	-.0012	   -.0345	     28
-eur_usd 	  8	 .0012	    .0315	     26
-gbp_usd 	  7	 .0012	    .0315	     26
-usd_chf 	  5	 .0012	    .0338	     28
+PAIR	WEEK_OF_QTR AVG_NDGAIN SUM_NDGAIN COUNT(NDGAIN) STDDEV_NDGAIN
+------- ----------- ---------- ---------- ------------- -------------
+aud_usd 	 10	 .0048	    .1239	     26 	.0084
+eur_usd 	  6	-.0037	   -.0958	     26 	.0062
+gbp_usd 	  6	-.0031	   -.0811	     26 	.0073
+usd_chf 	 11	-.0025	   -.0709	     28 	.0105
+aud_usd 	  1	 .0025	    .0749	     30 	.0097
+aud_usd 	 11	 .0024	    .0683	     28 	.0128
+usd_jpy 	  1	-.0024	   -.0718	     30 	.0082
+usd_cad 	 10	-.0024	   -.0618	     26 	.0073
+usd_jpy 	  5	-.0023	   -.0647	     28 	.0084
+eur_usd 	 11	 .0022	    .0628	     28 	 .011
+usd_cad 	  6	 .0019	    .0501	     26 	.0078
+gbp_usd 	 13	 .0019	     .044	     23 	 .007
+usd_cad 	  1	-.0018	   -.0549	     30 	.0058
+gbp_usd 	 11	 .0018	    .0506	     28 	.0107
+aud_usd 	  8	 .0018	    .0462	     26 	.0106
+gbp_usd 	  2	 .0017	     .052	     30 	.0073
+usd_chf 	  8	-.0017	   -.0431	     26 	.0062
+eur_usd 	  5	-.0016	   -.0462	     28 	.0087
+usd_chf 	  3	 .0016	    .0491	     30 	 .007
+usd_chf 	  6	 .0016	    .0419	     26 	 .006
+usd_cad 	 11	-.0016	   -.0441	     28 	.0087
+gbp_usd 	 10	 .0016	    .0408	     26 	.0073
+aud_usd 	  7	-.0016	   -.0406	     26 	.0116
+gbp_usd 	  1	 .0016	    .0468	     30 	.0083
+aud_usd 	  5	-.0015	   -.0427	     28 	.0106
+aud_usd 	  9	 .0015	    .0378	     26 	.0114
+usd_cad 	  5	 .0014	    .0405	     28 	.0063
+aud_usd 	  6	-.0014	   -.0374	     26 	.0114
+eur_usd 	 13	 .0013	     .031	     23 	.0081
+usd_jpy 	  2	-.0013	     -.04	     30 	 .007
+usd_chf 	 13	-.0013	   -.0304	     23 	.0073
+usd_cad 	 12	 .0013	    .0362	     28 	.0069
+usd_chf 	  9	-.0012	   -.0324	     26 	.0062
+usd_chf 	 12	-.0012	   -.0345	     28 	 .007
+eur_usd 	  8	 .0012	    .0315	     26 	.0063
+gbp_usd 	  7	 .0012	    .0315	     26 	.0064
+usd_chf 	  5	 .0012	    .0338	     28 	 .009
 
 37 rows selected.
 
-Elapsed: 00:00:02.56
-16:12:04 SQL> 
-16:12:04 SQL> exit
+Elapsed: 00:00:02.54
+16:52:54 SQL> 
+16:52:54 SQL> exit
 Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options

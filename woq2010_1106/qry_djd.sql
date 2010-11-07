@@ -41,6 +41,7 @@ pair,week_of_qtr
 ,ROUND(AVG(ndgain),4)avg_ndgain
 ,ROUND(SUM(ndgain),4)sum_ndgain
 ,COUNT(ndgain)
+,ROUND(STDDEV(ndgain),4)stddev_ndgain
 FROM djd12
 WHERE week_of_qtr > 0
 GROUP BY pair,week_of_qtr
