@@ -82,7 +82,8 @@ My answers:
 
   To keep my risk low, I would avoid shorting aud_usd during week 7 of the quarter.
 
-  Instead I would be patient and wait.
-  I would go-long on aud_usd during week 10.  
+  Instead I would show patience and wait.
+  I would go-long on aud_usd during week 10.
+  It conforms to my bullish sentiment towards aud_usd.
   It shows an average return of 48 pips which is 3 times larger than 16 pips.
   And the price I pay in stddev is less than half of 116 pips.
