@@ -9,9 +9,10 @@ SET LINES 166
 -- For each pair, look at dom WHERE ydate > '2009-01-01'
 CREATE OR REPLACE VIEW hdom AS
 SELECT pair,day_of_month
-,AVG(nhgain)  avg_nhgain
-,SUM(nhgain)  sum_nhgain
-,COUNT(nhgain)count_nhgain
+,AVG(nhgain)   avg_nhgain
+,SUM(nhgain)   sum_nhgain
+,COUNT(nhgain) count_nhgain
+,STDDEV(nhgain)stddev_nhgain
 FROM
 (
   SELECT

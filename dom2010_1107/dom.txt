@@ -1,5 +1,5 @@
 
-SQL*Plus: Release 11.2.0.1.0 Production on Sun Nov 7 22:37:49 2010
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Nov 7 23:38:03 2010
 
 Copyright (c) 1982, 2009, Oracle.  All rights reserved.
 
@@ -8,17 +8,17 @@ Connected to:
 Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 
-22:37:50 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+23:38:03 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
 
 Session altered.
 
 Elapsed: 00:00:00.00
-22:37:50 SQL> 22:37:50 SQL> --
-22:37:50 SQL> -- dom.sql
-22:37:50 SQL> --
-22:37:50 SQL> 
-22:37:50 SQL> SET LINES 66
-22:37:50 SQL> DESC hourly
+23:38:03 SQL> 23:38:03 SQL> --
+23:38:03 SQL> -- dom.sql
+23:38:03 SQL> --
+23:38:03 SQL> 
+23:38:03 SQL> SET LINES 66
+23:38:03 SQL> DESC hourly
  Name				  Null?    Type
  -------------------------------- -------- -----------------------
  PAIR					   VARCHAR2(15)
@@ -29,79 +29,165 @@ Elapsed: 00:00:00.00
  MN					   NUMBER
  MX					   NUMBER
 
-22:37:50 SQL> SET LINES 166
-22:37:50 SQL> 
-22:37:50 SQL> -- For each pair, look at dom WHERE ydate > '2009-01-01'
-22:37:50 SQL> SELECT pair,day_of_month,AVG(nhgain),SUM(nhgain),COUNT(nhgain)
-22:37:50   2  FROM
-22:37:50   3  (
-22:37:50   4  	SELECT
-22:37:50   5  	pair
-22:37:50   6  	-- ydate is granular down to the hour:
-22:37:50   7  	,ydate
-22:37:50   8  	,opn
-22:37:50   9  	,clse
-22:37:50  10  	-- Hourly gain:
-22:37:50  11  	,(clse-opn)	 hgain
-22:37:50  12  	-- Normalized hourly gain:
-22:37:50  13  	,(clse-opn)/opn nhgain
-22:37:50  14  	,0+TO_CHAR(ydate,'DD')day_of_month
-22:37:50  15  	-- Guard against divide by zero:
-22:37:50  16  	FROM hourly WHERE opn>0
-22:37:50  17  )
-22:37:50  18  WHERE ydate > '2009-01-01'
-22:37:50  19  GROUP BY pair,day_of_month
-22:37:50  20  -- I want more than 1 pip / hour:
-22:37:50  21  HAVING ABS(AVG(nhgain)) > 0.0001
-22:37:50  22  -- I sort largest gainers to the top:
-22:37:50  23  ORDER BY ABS(AVG(nhgain))DESC
-22:37:50  24  /
+23:38:03 SQL> SET LINES 166
+23:38:03 SQL> 
+23:38:03 SQL> -- For each pair, look at dom WHERE ydate > '2009-01-01'
+23:38:03 SQL> CREATE OR REPLACE VIEW hdom AS
+23:38:03   2  SELECT pair,day_of_month
+23:38:03   3  ,AVG(nhgain)   avg_nhgain
+23:38:03   4  ,SUM(nhgain)   sum_nhgain
+23:38:03   5  ,COUNT(nhgain) count_nhgain
+23:38:03   6  ,STDDEV(nhgain)stddev_nhgain
+23:38:03   7  FROM
+23:38:03   8  (
+23:38:03   9  	SELECT
+23:38:03  10  	pair
+23:38:03  11  	-- ydate is granular down to the hour:
+23:38:03  12  	,ydate
+23:38:03  13  	,opn
+23:38:03  14  	,clse
+23:38:03  15  	-- Hourly gain:
+23:38:03  16  	,(clse-opn)	 hgain
+23:38:03  17  	-- Normalized hourly gain:
+23:38:03  18  	,(clse-opn)/opn nhgain
+23:38:03  19  	,0+TO_CHAR(ydate,'DD')day_of_month
+23:38:03  20  	-- Guard against divide by zero:
+23:38:03  21  	FROM hourly WHERE opn>0
+23:38:03  22  )
+23:38:03  23  WHERE ydate > '2009-01-01'
+23:38:03  24  GROUP BY pair,day_of_month
+23:38:03  25  -- I want more than 1 pip / hour:
+23:38:03  26  HAVING ABS(AVG(nhgain)) > 0.0001
+23:38:03  27  -- I sort largest gainers to the top:
+23:38:03  28  ORDER BY ABS(AVG(nhgain))DESC
+23:38:03  29  /
 
-PAIR		DAY_OF_MONTH AVG(NHGAIN) SUM(NHGAIN) COUNT(NHGAIN)
---------------- ------------ ----------- ----------- -------------
-usd_chf 		  31  -.00029205  -.05110847	       175
-aud_usd 		   6  .000227456  .087570747	       385
-aud_usd 		  31  .000205991  .036048495	       175
-usd_chf 		   5   .00020219  .079056129	       391
-usd_cad 		   9  -.00019345  -.07853947	       406
-usd_chf 		   8  -.00017735  -.06916676	       390
-aud_usd 		   9  .000175719  .071341861	       406
-usd_cad 		   8  -.00017459  -.06809034	       390
-usd_chf 		  27  .000170812  .065762617	       385
-gbp_usd 		  14  .000162161  .059026725	       364
-usd_jpy 		   8  -.00015442  -.07180602	       465
-eur_usd 		  31  .000150946   .02641551	       175
-gbp_usd 		  31   .00015048  .026333969	       175
-aud_usd 		  20  -.00014577  -.05611958	       385
-eur_usd 		   5  -.00014402  -.05631088	       391
-usd_jpy 		  16   -.0001422  -.06811501	       479
-eur_usd 		   8   .00013599   .05303626	       390
-aud_usd 		  30  -.00013551  -.04851142	       358
-usd_jpy 		   6  -.00013234  -.06061213	       458
-aud_usd 		   8  .000128967  .050297248	       390
-aud_usd 		   2	.0001241  .053363136	       430
-usd_chf 		  13  -.00012306  -.04737645	       385
-usd_jpy 		  26  -.00012236   -.0551846	       451
-usd_cad 		   1  -.00012219  -.05058593	       414
-gbp_usd 		   8  .000120398  .046955412	       390
-eur_usd 		   2  .000119827  .051525765	       430
-usd_jpy 		   3  .000119719  .054352634	       454
-usd_jpy 		  20  -.00011768  -.05389931	       458
-usd_cad 		   2  -.00011659  -.05013424	       430
-gbp_usd 		  25  -.00011565  -.04140152	       358
-gbp_usd 		  29   .00011524  .041832279	       363
-gbp_usd 		   1   .00011183  .046297519	       414
-usd_cad 		  13  -.00011081  -.04266294	       385
-eur_usd 		  16  .000109446  .044435168	       406
-usd_chf 		  15  .000104797  .040870929	       390
-usd_jpy 		  11   -.0001034  -.04249703	       411
-usd_cad 		  11   .00010098  .036554802	       362
-aud_usd 		  29  .000100057  .036320656	       363
+View created.
+
+Elapsed: 00:00:00.09
+23:38:03 SQL> 
+23:38:03 SQL> -- I show it:
+23:38:03 SQL> SELECT * FROM hdom;
+
+PAIR		DAY_OF_MONTH AVG_NHGAIN SUM_NHGAIN COUNT_NHGAIN STDDEV_NHGAIN
+--------------- ------------ ---------- ---------- ------------ -------------
+usd_chf 		  31 -.00029205 -.05110847	    175    .001511265
+aud_usd 		   6 .000227456 .087570747	    385    .002336114
+aud_usd 		  31 .000205991 .036048495	    175    .001981873
+usd_chf 		   5  .00020219 .079056129	    391     .00195886
+usd_cad 		   9 -.00019345 -.07853947	    406    .001824661
+usd_chf 		   8 -.00017735 -.06916676	    390    .001594953
+aud_usd 		   9 .000175719 .071341861	    406    .002046704
+usd_cad 		   8 -.00017459 -.06809034	    390    .001773115
+usd_chf 		  27 .000170812 .065762617	    385    .001725218
+gbp_usd 		  14 .000162161 .059026725	    364    .001557558
+usd_jpy 		   8 -.00015442 -.07180602	    465    .001605936
+eur_usd 		  31 .000150946  .02641551	    175    .001340377
+gbp_usd 		  31  .00015048 .026333969	    175    .001426196
+aud_usd 		  20 -.00014577 -.05611958	    385    .002497958
+eur_usd 		   5 -.00014402 -.05631088	    391    .001776259
+usd_jpy 		  16  -.0001422 -.06811501	    479    .001400746
+eur_usd 		   8  .00013599  .05303626	    390    .001565826
+aud_usd 		  30 -.00013551 -.04851142	    358    .001994893
+usd_jpy 		   6 -.00013234 -.06061213	    458    .002351865
+aud_usd 		   8 .000128967 .050297248	    390     .00228271
+aud_usd 		   2   .0001241 .053363136	    430    .002253477
+usd_chf 		  13 -.00012306 -.04737645	    385    .001460662
+usd_jpy 		  26 -.00012236  -.0551846	    451     .00160386
+usd_cad 		   1 -.00012219 -.05058593	    414    .001682194
+gbp_usd 		   8 .000120398 .046955412	    390    .001754431
+eur_usd 		   2 .000119827 .051525765	    430    .001448013
+usd_jpy 		   3 .000119719 .054352634	    454    .001396842
+usd_jpy 		  20 -.00011768 -.05389931	    458    .001835691
+usd_cad 		   2 -.00011659 -.05013424	    430    .001701341
+gbp_usd 		  25 -.00011565 -.04140152	    358    .001468973
+gbp_usd 		  29  .00011524 .041832279	    363    .001525496
+gbp_usd 		   1  .00011183 .046297519	    414    .001626585
+usd_cad 		  13 -.00011081 -.04266294	    385    .001745106
+eur_usd 		  16 .000109446 .044435168	    406    .001256837
+usd_chf 		  15 .000104797 .040870929	    390    .001547193
+usd_jpy 		  11  -.0001034 -.04249703	    411    .001421311
+usd_cad 		  11  .00010098 .036554802	    362    .001551798
+aud_usd 		  29 .000100057 .036320656	    363    .002004535
 
 38 rows selected.
 
-Elapsed: 00:00:00.16
-22:37:50 SQL> 
-22:37:50 SQL> exit
+Elapsed: 00:00:00.27
+23:38:04 SQL> 
+23:38:04 SQL> -- Now I separate USD bears from USD bulls.
+23:38:04 SQL> 
+23:38:04 SQL> -- I show USD bears first:
+23:38:04 SQL> SELECT * FROM hdom
+23:38:04   2  WHERE
+23:38:04   3  (
+23:38:04   4  	(pair LIKE'%_usd'AND avg_nhgain>0)
+23:38:04   5  	OR
+23:38:04   6  	(pair LIKE'usd_%'AND avg_nhgain<0)
+23:38:04   7  )
+23:38:04   8  /
+
+PAIR		DAY_OF_MONTH AVG_NHGAIN SUM_NHGAIN COUNT_NHGAIN STDDEV_NHGAIN
+--------------- ------------ ---------- ---------- ------------ -------------
+usd_chf 		  31 -.00029205 -.05110847	    175    .001511265
+aud_usd 		   6 .000227456 .087570747	    385    .002336114
+aud_usd 		  31 .000205991 .036048495	    175    .001981873
+usd_cad 		   9 -.00019345 -.07853947	    406    .001824661
+usd_chf 		   8 -.00017735 -.06916676	    390    .001594953
+aud_usd 		   9 .000175719 .071341861	    406    .002046704
+usd_cad 		   8 -.00017459 -.06809034	    390    .001773115
+gbp_usd 		  14 .000162161 .059026725	    364    .001557558
+usd_jpy 		   8 -.00015442 -.07180602	    465    .001605936
+eur_usd 		  31 .000150946  .02641551	    175    .001340377
+gbp_usd 		  31  .00015048 .026333969	    175    .001426196
+usd_jpy 		  16  -.0001422 -.06811501	    479    .001400746
+eur_usd 		   8  .00013599  .05303626	    390    .001565826
+usd_jpy 		   6 -.00013234 -.06061213	    458    .002351865
+aud_usd 		   8 .000128967 .050297248	    390     .00228271
+aud_usd 		   2   .0001241 .053363136	    430    .002253477
+usd_chf 		  13 -.00012306 -.04737645	    385    .001460662
+usd_jpy 		  26 -.00012236  -.0551846	    451     .00160386
+usd_cad 		   1 -.00012219 -.05058593	    414    .001682194
+gbp_usd 		   8 .000120398 .046955412	    390    .001754431
+eur_usd 		   2 .000119827 .051525765	    430    .001448013
+usd_jpy 		  20 -.00011768 -.05389931	    458    .001835691
+usd_cad 		   2 -.00011659 -.05013424	    430    .001701341
+gbp_usd 		  29  .00011524 .041832279	    363    .001525496
+gbp_usd 		   1  .00011183 .046297519	    414    .001626585
+usd_cad 		  13 -.00011081 -.04266294	    385    .001745106
+eur_usd 		  16 .000109446 .044435168	    406    .001256837
+usd_jpy 		  11  -.0001034 -.04249703	    411    .001421311
+aud_usd 		  29 .000100057 .036320656	    363    .002004535
+
+29 rows selected.
+
+Elapsed: 00:00:00.22
+23:38:04 SQL> 
+23:38:04 SQL> -- I show USD bulls next:
+23:38:04 SQL> SELECT * FROM hdom
+23:38:04   2  WHERE
+23:38:04   3  (
+23:38:04   4  	(pair LIKE'%_usd'AND avg_nhgain<0)
+23:38:04   5  	OR
+23:38:04   6  	(pair LIKE'usd_%'AND avg_nhgain>0)
+23:38:04   7  )
+23:38:04   8  /
+
+PAIR		DAY_OF_MONTH AVG_NHGAIN SUM_NHGAIN COUNT_NHGAIN STDDEV_NHGAIN
+--------------- ------------ ---------- ---------- ------------ -------------
+usd_chf 		   5  .00020219 .079056129	    391     .00195886
+usd_chf 		  27 .000170812 .065762617	    385    .001725218
+aud_usd 		  20 -.00014577 -.05611958	    385    .002497958
+eur_usd 		   5 -.00014402 -.05631088	    391    .001776259
+aud_usd 		  30 -.00013551 -.04851142	    358    .001994893
+usd_jpy 		   3 .000119719 .054352634	    454    .001396842
+gbp_usd 		  25 -.00011565 -.04140152	    358    .001468973
+usd_chf 		  15 .000104797 .040870929	    390    .001547193
+usd_cad 		  11  .00010098 .036554802	    362    .001551798
+
+9 rows selected.
+
+Elapsed: 00:00:00.24
+23:38:04 SQL> 
+23:38:04 SQL> exit
 Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
