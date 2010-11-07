@@ -73,3 +73,10 @@ My answers:
   To do this trade I need to supply 250 pips.
   So, I could lose almost half my money in 1 day.
   On the plus side, it is significantly probable that this trade would gain 116 pips.
+  On the minus side, look how the standard deviation of other rows compare to 116 pips.
+  The first row for example has a standard deviation of 84 pips.
+  To keep my risk low, I would avoid shorting aud_usd during week 7 of the quarter.
+  Instead I would be patient and wait.
+  I would go-long on aud_usd during week 10.  
+  It shows an average return of 48 pips which is 3 times larger than 16 pips.
+  And the price I pay in stddev is less than half of 116 pips.
