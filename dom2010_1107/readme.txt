@@ -72,7 +72,7 @@ On average the trade returned almost 3 pips / hour for a total of 511 pips.
 
 A trader pursuing this trade would have needed 250 pips in collateral to finance the trade.
 
-So that hypothetical trader would have easily doubled his money.
+So that hypothetical trader would have easily doubled his collateral.
 
 The standard deviation behind this result was about 15 pips which compares favorably with 
 standard deviation from other trades.
