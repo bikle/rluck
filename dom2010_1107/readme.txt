@@ -37,8 +37,8 @@ I use stddev_nhgain as a feeble attempt to measure the amount of risk behind eac
 Normalized hourly gain is calculated by this expression: (closing_price - opening_price)/opening_price
 
 For some currencies, price is near 1 USD: AUD, CAD, CHF
-For others, price is not far from 1: GBP, EUR
-For JPY the price is near 80.
+For others, price is not far from 1 USD: GBP, EUR
+For JPY the price is near 80 JPY for 1 USD.
 
 So, the main purpose of normalized hourly gain is to allow me to compare JPY to other currencies.
 
@@ -52,7 +52,9 @@ Inside of the query which creates the hdom view,
 I arbitrarily set a constraint that says I am only interested in hdom-rows having an average-normalized-hourly-gain
 greater than 1 pip / hour.
 
-With this constraint in place, I see a subset of hdom which is only 38 rows long.
+With this constraint in place, I see a subset of hdom which is only 38 rows long:
+
+https://github.com/bikle/rluck/blob/master/dom2010_1107/dom.txt
 
 Another bit of helpful SQL I wrote separates hdom into 2 categories:
 
