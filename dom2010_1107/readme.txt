@@ -74,7 +74,7 @@ A trader pursuing this trade would have needed 250 pips in collateral to finance
 
 So that hypothetical trader would have easily doubled his collateral.
 
-The standard deviation behind this result was about 15 pips which compares favorably with 
+The standard deviation behind this result was about 15 pips per hour which compares favorably with 
 standard deviation from other trades.
 
 As a trader I want to see high absolute values for average-nhgain and low values for standard deviation.
