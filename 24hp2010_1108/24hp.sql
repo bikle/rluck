@@ -70,7 +70,7 @@ FROM hdp
 WHERE (ydate24 - ydate) = 1
 GROUP BY pair,dhr
 -- I want more than 0.75 pip / hr 
-HAVING AVG(npg) > 0.75*0.0024
+HAVING ABS(AVG(npg)) > 0.75*0.0024
 ORDER BY pair,dhr
 /
 

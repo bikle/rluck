@@ -19,7 +19,7 @@ All of the trades in the above report look attractive.
 My favorite is this 12-hour-period-trade:
 
   - 4_23 (Wednesday, 23:00 GMT, Which is mid-afternoon in California)
-  - Buy AUD, Sell USD
+  - Buy AUD, Sell USD (go long on aud_usd)
   - Hold for 12 hours and then close the position
 
 The average normalized-period-gain has been 17 pips which is more that 1 pip / hour.

@@ -1,0 +1,195 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Tue Nov 9 07:49:41 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+07:49:41 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+07:49:41 SQL> 07:49:41 SQL> --
+07:49:41 SQL> -- 6hp.sql
+07:49:41 SQL> --
+07:49:41 SQL> 
+07:49:41 SQL> SET LINES 66
+07:49:41 SQL> DESC hourly
+ Name                             Null?    Type
+ -------------------------------- -------- -----------------------
+ PAIR                                      VARCHAR2(15)
+ YDATE                                     DATE
+ VOL                                       NUMBER
+ OPN                                       NUMBER
+ CLSE                                      NUMBER
+ MN                                        NUMBER
+ MX                                        NUMBER
+
+07:49:41 SQL> SET LINES 166
+07:49:41 SQL> 
+07:49:41 SQL> CREATE OR REPLACE VIEW hp10 AS
+07:49:41   2  SELECT
+07:49:41   3  pair
+07:49:41   4  -- ydate is granular down to the hour:
+07:49:41   5  ,ydate
+07:49:41   6  ,opn
+07:49:41   7  -- Derive an attribute I call "day_hour":
+07:49:41   8  ,TO_CHAR(ydate,'D')||'_'||TO_CHAR(ydate,'HH24')dhr
+07:49:41   9  -- Get ydate 6 hours in the future:
+07:49:41  10  ,LEAD(ydate,6,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ydate6
+07:49:41  11  -- Get closing price 6 hours in the future:
+07:49:41  12  ,LEAD(clse,5,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) clse6
+07:49:41  13  FROM hourly
+07:49:41  14  WHERE ydate > '2009-01-01'
+07:49:41  15  -- Prevent divide by zero:
+07:49:41  16  AND opn > 0
+07:49:41  17  ORDER BY pair,ydate
+07:49:41  18  /
+
+View created.
+
+Elapsed: 00:00:00.04
+07:49:41 SQL> 
+07:49:41 SQL> -- I derive more attributes:
+07:49:41 SQL> CREATE OR REPLACE VIEW hp12 AS
+07:49:41   2  SELECT
+07:49:41   3  pair
+07:49:41   4  ,ydate
+07:49:41   5  ,opn
+07:49:41   6  ,dhr
+07:49:41   7  ,ydate6
+07:49:41   8  ,clse6
+07:49:41   9  ,(clse6 - opn)/opn npg
+07:49:41  10  FROM hp10
+07:49:41  11  ORDER BY pair,ydate
+07:49:41  12  /
+
+View created.
+
+Elapsed: 00:00:00.04
+07:49:41 SQL> 
+07:49:41 SQL> --rpt
+07:49:41 SQL> SELECT COUNT(ydate)FROM hp10;
+
+COUNT(YDATE)
+------------
+       69918
+
+Elapsed: 00:00:00.26
+07:49:41 SQL> SELECT AVG(ydate6 - ydate), MIN(ydate6 - ydate),MAX(ydate6 - ydate),COUNT(ydate)FROM hp12;
+
+AVG(YDATE6-YDATE) MIN(YDATE6-YDATE) MAX(YDATE6-YDATE) COUNT(YDATE)
+----------------- ----------------- ----------------- ------------
+       .348566154               .25        2.70833333        69918
+
+Elapsed: 00:00:00.37
+07:49:42 SQL> -- I should see no rows WHERE the date difference is less than 6 hours:
+07:49:42 SQL> SELECT COUNT(ydate)FROM hp12 WHERE (ydate6 - ydate) < 6/24;
+
+COUNT(YDATE)
+------------
+           0
+
+Elapsed: 00:00:00.28
+07:49:42 SQL> 
+07:49:42 SQL> -- I should see many rows WHERE the date difference is exactly 6 hours:
+07:49:42 SQL> SELECT COUNT(ydate)FROM hp12 WHERE (ydate6 - ydate) = 6/24
+07:49:42   2  
+07:49:42 SQL> -- I should see some rows
+07:49:42 SQL> -- WHERE the date difference is greater than 6 hours due to Saturday getting sandwiched between some of the records.
+07:49:42 SQL> -- Also if I am missing some rows, counts will appear here:
+07:49:42 SQL> SELECT TO_CHAR(ydate,'Day'),MIN(ydate),COUNT(ydate),MAX(ydate)
+07:49:42   2  FROM hp12 WHERE (ydate6 - ydate) > 6/24
+07:49:42   3  GROUP BY TO_CHAR(ydate,'Day')
+07:49:42   4  ORDER BY COUNT(ydate)
+07:49:42   5  /
+
+TO_CHAR(Y MIN(YDATE)          COUNT(YDATE) MAX(YDATE)
+--------- ------------------- ------------ -------------------
+Sunday    2009-05-10 21:00:00           18 2009-05-10 23:00:00
+Monday    2009-05-11 00:00:00           18 2009-05-11 02:00:00
+Thursday  2009-06-25 10:00:00           36 2009-06-25 15:00:00
+Wednesday 2010-06-23 13:00:00           36 2010-06-23 18:00:00
+Tuesday   2009-07-14 08:00:00           72 2009-08-18 21:00:00
+Friday    2009-01-02 16:00:00         3498 2010-11-05 21:00:00
+
+6 rows selected.
+
+Elapsed: 00:00:00.29
+07:49:42 SQL> 
+07:49:42 SQL> -- Now I can aggregate:
+07:49:42 SQL> SELECT
+07:49:42   2  pair,dhr
+07:49:42   3  ,COUNT(npg)count_npg
+07:49:42   4  ,ROUND(MIN(npg),4)min_npg
+07:49:42   5  ,ROUND(AVG(npg),4)avg_npg
+07:49:42   6  ,ROUND(STDDEV(npg),4)stddev_npg
+07:49:42   7  ,ROUND(MAX(npg),4)max_npg
+07:49:42   8  ,ROUND(SUM(npg),4)sum_npg
+07:49:42   9  FROM hp12
+07:49:42  10  WHERE (ydate6 - ydate) = 6/24
+07:49:42  11  GROUP BY pair,dhr
+07:49:42  12  -- I want more than 1 pip / hr which is 6 pips:
+07:49:42  13  HAVING AVG(npg) > 0.0006
+07:49:42  14  ORDER BY pair,dhr
+07:49:42  15  /
+
+PAIR            DHR   COUNT_NPG    MIN_NPG    AVG_NPG STDDEV_NPG    MAX_NPG    SUM_NPG
+--------------- ---- ---------- ---------- ---------- ---------- ---------- ----------
+aud_usd         2_10         97     -.0146      .0008      .0051       .018       .076
+aud_usd         2_11         97     -.0117      .0008       .005      .0164      .0787
+aud_usd         2_12         97     -.0108      .0008      .0051      .0164      .0782
+aud_usd         2_14         97      -.011      .0006      .0049      .0144      .0591
+aud_usd         3_09         95      -.016      .0008      .0051      .0165      .0795
+aud_usd         3_10         95     -.0131      .0009      .0058      .0131       .084
+aud_usd         3_11         95     -.0147      .0009      .0065      .0195      .0875
+aud_usd         3_12         95     -.0112      .0007       .006       .017      .0694
+aud_usd         4_05         96     -.0154      .0007      .0047      .0098      .0696
+aud_usd         4_19         95     -.0139      .0009      .0047      .0131      .0875
+aud_usd         4_20         96     -.0126      .0009      .0045      .0128      .0859
+aud_usd         4_22         96     -.0105      .0006      .0051      .0139      .0579
+aud_usd         5_03         97     -.0168      .0008      .0051      .0105      .0779
+aud_usd         5_04         97     -.0148      .0011      .0051      .0149      .1047
+aud_usd         5_05         97     -.0166      .0011      .0054      .0138      .1096
+aud_usd         5_06         97      -.011      .0009      .0051      .0181      .0836
+aud_usd         5_07         97     -.0106       .001      .0055      .0213      .0973
+aud_usd         5_08         97     -.0159      .0006       .006      .0158      .0608
+aud_usd         6_13         97     -.0177      .0006      .0072      .0276       .062
+aud_usd         6_15         96       -.01      .0008       .005      .0169       .075
+eur_usd         4_04         96     -.0076      .0007      .0027      .0068      .0624
+eur_usd         4_05         96     -.0082      .0007      .0031      .0083       .065
+eur_usd         5_07         97     -.0099      .0007      .0049       .016      .0704
+eur_usd         5_08         97     -.0122      .0007      .0052      .0148      .0724
+gbp_usd         3_10         95      -.009       .001      .0045      .0127      .0915
+gbp_usd         3_11         95     -.0139       .001      .0051      .0162      .0955
+gbp_usd         3_12         95     -.0117      .0012      .0052      .0232      .1117
+gbp_usd         3_13         95      -.021      .0007      .0053      .0213      .0697
+gbp_usd         3_14         95     -.0177      .0011      .0051      .0258      .1056
+gbp_usd         4_11         96     -.0163      .0007      .0052       .022      .0675
+gbp_usd         4_13         95     -.0119      .0006      .0049      .0191      .0592
+gbp_usd         5_08         97     -.0151      .0007      .0063      .0227      .0703
+gbp_usd         5_09         97     -.0122      .0007      .0056      .0195      .0676
+gbp_usd         6_15         95     -.0141      .0006      .0043      .0124      .0571
+usd_cad         5_11         96     -.0134      .0008      .0055      .0154       .074
+usd_cad         5_13         96     -.0132      .0009       .006      .0265       .087
+usd_cad         6_11         97     -.0138      .0006       .006      .0137      .0627
+usd_chf         5_21         96     -.0064      .0007      .0025      .0087       .069
+usd_chf         6_07         96     -.0093       .001      .0042      .0155      .0976
+usd_chf         6_09         97     -.0128      .0007      .0051      .0145      .0639
+usd_jpy         4_09         96     -.0082      .0006      .0042      .0102      .0607
+usd_jpy         5_19         96     -.0066      .0007      .0039      .0297      .0652
+usd_jpy         6_10         97      -.012      .0008      .0063      .0263       .074
+usd_jpy         6_12         97     -.0134      .0006      .0058      .0235      .0617
+
+44 rows selected.
+
+Elapsed: 00:00:00.66
+07:49:43 SQL> 
+07:49:43 SQL> 
+07:49:43 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
