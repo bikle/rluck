@@ -18,7 +18,7 @@ All of the trades in the above report look attractive.
 
 My favorite is this 12-hour-period-trade:
 
-  - 4_23 (Wednesday, 23:00 GMT)
+  - 4_23 (Wednesday, 23:00 GMT, Which is mid-afternoon in California)
   - Buy AUD, Sell USD
   - Hold for 12 hours and then close the position
 
