@@ -98,7 +98,7 @@ pair,dhr
 FROM hdp
 GROUP BY pair,dhr
 -- I want more than 1 pip / hr which is 12 pips:
-HAVING AVG(npg) > 0.0012
+HAVING ABS(AVG(npg)) > 0.0012
 ORDER BY pair,dhr
 /
 
