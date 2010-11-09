@@ -66,7 +66,7 @@ pair,dhr
 ,ROUND(STDDEV(npg),4)stddev_npg
 ,ROUND(MAX(npg),4)max_npg
 ,ROUND(SUM(npg),4)sum_npg
-FROM hdp
+FROM hp12
 WHERE (ydate6 - ydate) = 6/24
 GROUP BY pair,dhr
 -- I want more than 1 pip / hr which is 6 pips:

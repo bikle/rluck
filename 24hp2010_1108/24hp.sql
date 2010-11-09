@@ -26,7 +26,7 @@ ORDER BY pair,ydate
 /
 
 -- I derive more attributes:
-CREATE OR REPLACE VIEW hp24 AS
+CREATE OR REPLACE VIEW hdp AS
 SELECT
 pair
 ,ydate
