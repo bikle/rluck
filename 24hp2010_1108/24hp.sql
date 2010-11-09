@@ -17,7 +17,7 @@ pair
 -- Get ydate 24 hours in the future:
 ,LEAD(ydate,24,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ydate24
 -- Get closing price 24 hours in the future:
-,LEAD(clse,11,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) clse24
+,LEAD(clse,23,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) clse24
 FROM hourly 
 WHERE ydate > '2009-01-01'
 -- Prevent divide by zero:
@@ -69,8 +69,8 @@ pair,dhr
 FROM hdp
 WHERE (ydate24 - ydate) = 1
 GROUP BY pair,dhr
--- I want more than 1/2 pip / hr which is 12 pips:
-HAVING AVG(npg) > 0.0012
+-- I want more than 0.75 pip / hr 
+HAVING AVG(npg) > 0.75*0.0024
 ORDER BY pair,dhr
 /
 
