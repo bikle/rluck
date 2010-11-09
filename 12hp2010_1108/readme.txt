@@ -32,7 +32,7 @@ The most money lost on 1 execution of the trade has been -223 pips.
 
 The most money gained on 1 execution of the trade has been  199 pips.
 
-Usually gains are within 82 pips of the 17 pip average.
+Normally, gains are within 82 pips of the 17 pip average.
 
 Another aspect of the trade I like is that it matches my sentiment.
 
