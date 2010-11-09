@@ -12,4 +12,30 @@ On Wednesday the series starts at 19:00 and ends on Thursday at 01:00.
 
 I keep a copy of the query output here:
 
+https://github.com/bikle/rluck/blob/master/12hp2010_1108/12hp.txt
 
+All of the trades in the above report look attractive.
+
+My favorite is this 12-hour-period-trade:
+
+  - 4_23 (Wednesday, 23:00 GMT)
+  - Buy AUD, Sell USD
+  - Hold for 12 hours and then close the position
+
+The average normalized-period-gain has been 17 pips which is more that 1 pip / hour.
+
+The opportunity has appeared 96 times since 2009-01-01.
+
+This trade has so far accumulated 1660 pips which dwarfs the 250 pips I would need to finance the trade.
+
+The most money lost on 1 execution of the trade has been -223 pips.
+
+The most money gained on 1 execution of the trade has been  199 pips.
+
+Usually gains are within 82 pips of the 17 pip average.
+
+Another aspect of the trade I like is that it matches my sentiment.
+
+Currently I am bullish on AUD and bearish on USD.
+
+  
