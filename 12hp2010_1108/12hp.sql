@@ -45,15 +45,63 @@ SELECT AVG(ydate12 - ydate), MIN(ydate12 - ydate),MAX(ydate12 - ydate),COUNT(yda
 -- I should see no rows WHERE the date difference is less than 12 hours:
 SELECT COUNT(ydate)FROM hp12 WHERE (ydate12 - ydate) < 0.5;
 
+-- I should see many rows WHERE the date difference is exactly 12 hours:
+SELECT COUNT(ydate)FROM hp12 WHERE (ydate12 - ydate) = 0.5;
 
 -- I should see some rows 
 -- WHERE the date difference is greater than 12 hours due to Saturday getting sandwiched between some of the records.
--- Also if I am missing some rows, that will show up here:
+-- Also if I am missing some rows, counts will appear here:
 SELECT TO_CHAR(ydate,'Day'),MIN(ydate),COUNT(ydate),MAX(ydate)
 FROM hp12 WHERE (ydate12 - ydate) > 0.5
 GROUP BY TO_CHAR(ydate,'Day')
 ORDER BY COUNT(ydate)
 /
+
+-- Now I can aggregate:
+CREATE OR REPLACE VIEW hdp AS
+SELECT
+pair
+,ydate
+,opn
+,dhr
+,ydate12
+,clse12
+,npg
+FROM hp12
+WHERE (ydate12 - ydate) = 0.5
+/
+
+-- The query below gives me an idea of the scale of each aggregation:
+SELECT
+dhr
+,COUNT(npg)count_npg
+,ROUND(SUM(npg),4)sum_npg
+,ROUND(MIN(npg),4)min_npg
+,ROUND(AVG(npg),4)avg_npg
+,ROUND(MAX(npg),4)max_npg
+,ROUND(STDDEV(npg),4)stddev_npg
+FROM hdp
+GROUP BY dhr
+ORDER BY dhr
+/
+
+-- The above aggregation is interesting but it shows no pairs.
+-- I need to know about pairs:
+SELECT
+pair,dhr
+,COUNT(npg)count_npg
+,ROUND(MIN(npg),4)min_npg
+,ROUND(AVG(npg),4)avg_npg
+,ROUND(STDDEV(npg),4)stddev_npg
+,ROUND(MAX(npg),4)max_npg
+,ROUND(SUM(npg),4)sum_npg
+FROM hdp
+GROUP BY pair,dhr
+-- I want more than 1 pip / hr which is 12 pips:
+HAVING AVG(npg) > 0.0012
+ORDER BY pair,dhr
+/
+
 
 exit
 
