@@ -22,7 +22,7 @@ My favorite is this 12-hour-period-trade:
   - Buy AUD, Sell USD (go long on aud_usd)
   - Hold for 12 hours and then close the position
 
-The average normalized-period-gain has been 17 pips which is more that 1 pip / hour.
+The average normalized-period-gain has been 17 pips which is more than 1 pip / hour.
 
 The opportunity has appeared 96 times since 2009-01-01.
 
