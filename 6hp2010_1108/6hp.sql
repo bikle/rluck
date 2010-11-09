@@ -70,7 +70,7 @@ FROM hp12
 WHERE (ydate6 - ydate) = 6/24
 GROUP BY pair,dhr
 -- I want more than 1 pip / hr which is 6 pips:
-HAVING AVG(npg) > 0.0006
+HAVING ABS(AVG(npg)) > 0.0006
 ORDER BY pair,dhr
 /
 
