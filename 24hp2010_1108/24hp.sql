@@ -43,7 +43,7 @@ ORDER BY pair,ydate
 SELECT COUNT(ydate)FROM hp10;
 SELECT AVG(ydate24 - ydate), MIN(ydate24 - ydate),MAX(ydate24 - ydate),COUNT(ydate)FROM hp24;
 -- I should see no rows WHERE the date difference is less than 24 hours:
-SELECT COUNT(ydate)FROM hp24 WHERE (ydate24 - ydate) < 0.5;
+SELECT COUNT(ydate)FROM hp24 WHERE (ydate24 - ydate) < 1;
 
 -- I should see many rows WHERE the date difference is exactly 24 hours:
 SELECT COUNT(ydate)FROM hp24 WHERE (ydate24 - ydate) = 1;
@@ -52,53 +52,25 @@ SELECT COUNT(ydate)FROM hp24 WHERE (ydate24 - ydate) = 1;
 -- WHERE the date difference is greater than 24 hours due to Saturday getting sandwiched between some of the records.
 -- Also if I am missing some rows, counts will appear here:
 SELECT TO_CHAR(ydate,'Day'),MIN(ydate),COUNT(ydate),MAX(ydate)
-FROM hp24 WHERE (ydate24 - ydate) > 0.5
+FROM hp24 WHERE (ydate24 - ydate) > 1
 GROUP BY TO_CHAR(ydate,'Day')
 ORDER BY COUNT(ydate)
 /
 
 -- Now I can aggregate:
-CREATE OR REPLACE VIEW hdp AS
-SELECT
-pair
-,ydate
-,opn
-,dhr
-,ydate24
-,clse24
-,npg
-FROM hp24
-WHERE (ydate24 - ydate) = 0.5
-/
-
--- The query below gives me an idea of the scale of each aggregation:
-SELECT
-dhr
-,COUNT(npg)count_npg
-,ROUND(SUM(npg),4)sum_npg
-,ROUND(MIN(npg),4)min_npg
-,ROUND(AVG(npg),4)avg_npg
-,ROUND(MAX(npg),4)max_npg
-,ROUND(STDDEV(npg),4)stddev_npg
-FROM hdp
-GROUP BY dhr
-ORDER BY dhr
-/
-
--- The above aggregation is interesting but it shows no pairs.
--- I need to know about pairs:
 SELECT
 pair,dhr
-,COUNT(npg)count_npg
-,ROUND(MIN(npg),4)min_npg
-,ROUND(AVG(npg),4)avg_npg
+,COUNT(npg)          count_npg
+,ROUND(MIN(npg),4)   min_npg
+,ROUND(AVG(npg),4)   avg_npg
 ,ROUND(STDDEV(npg),4)stddev_npg
-,ROUND(MAX(npg),4)max_npg
-,ROUND(SUM(npg),4)sum_npg
+,ROUND(MAX(npg),4)   max_npg
+,ROUND(SUM(npg),4)   sum_npg
 FROM hdp
+WHERE (ydate24 - ydate) = 1
 GROUP BY pair,dhr
--- I want more than 1 pip / hr which is 24 pips:
-HAVING AVG(npg) > 0.0024
+-- I want more than 1/2 pip / hr which is 12 pips:
+HAVING AVG(npg) > 0.0012
 ORDER BY pair,dhr
 /
 
