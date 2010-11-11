@@ -1,0 +1,176 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Wed Nov 10 23:47:48 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+23:47:48 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+23:47:48 SQL> 23:47:48 SQL> --
+23:47:48 SQL> -- 48hp.sql
+23:47:48 SQL> --
+23:47:48 SQL> 
+23:47:48 SQL> SET LINES 66
+23:47:48 SQL> DESC hourly
+ Name                             Null?    Type
+ -------------------------------- -------- -----------------------
+ PAIR                                      VARCHAR2(15)
+ YDATE                                     DATE
+ VOL                                       NUMBER
+ OPN                                       NUMBER
+ CLSE                                      NUMBER
+ MN                                        NUMBER
+ MX                                        NUMBER
+
+23:47:48 SQL> SET LINES 166
+23:47:48 SQL> 
+23:47:48 SQL> -- What is the duration of hourly?:
+23:47:48 SQL> SELECT
+23:47:48   2  TO_CHAR(ydate,'YYYY')yr
+23:47:48   3  ,MIN(ydate)
+23:47:48   4  ,COUNT(ydate)
+23:47:48   5  ,MAX(ydate)
+23:47:48   6  FROM hourly
+23:47:48   7  GROUP BY TO_CHAR(ydate,'YYYY')
+23:47:48   8  ORDER BY TO_CHAR(ydate,'YYYY')
+23:47:48   9  /
+
+YR   MIN(YDATE)          COUNT(YDATE) MAX(YDATE)
+---- ------------------- ------------ -------------------
+2007 2007-02-26 12:00:00        28308 2007-12-31 23:00:00
+2008 2008-01-01 00:00:00        37987 2008-12-31 23:00:00
+2009 2009-01-01 00:00:00        37710 2009-12-31 23:00:00
+2010 2010-01-01 00:00:00        32392 2010-11-10 21:00:00
+
+Elapsed: 00:00:00.10
+23:47:48 SQL> 
+23:47:48 SQL> -- What is the distribution of pairs for after 2009-01-01?:
+23:47:48 SQL> SELECT
+23:47:48   2  TO_CHAR(ydate,'YYYY')yr
+23:47:48   3  ,pair
+23:47:48   4  ,MIN(ydate)
+23:47:48   5  ,COUNT(ydate)
+23:47:48   6  ,MAX(ydate)
+23:47:48   7  FROM hourly
+23:47:48   8  WHERE ydate>'2009-01-01'
+23:47:48   9  GROUP BY TO_CHAR(ydate,'YYYY'),pair
+23:47:48  10  ORDER BY TO_CHAR(ydate,'YYYY'),pair
+23:47:48  11  /
+
+YR   PAIR            MIN(YDATE)          COUNT(YDATE) MAX(YDATE)
+---- --------------- ------------------- ------------ -------------------
+2009 aud_usd         2009-01-01 01:00:00         6286 2009-12-31 23:00:00
+2009 eur_usd         2009-01-01 01:00:00         6286 2009-12-31 23:00:00
+2009 gbp_usd         2009-01-01 01:00:00         6274 2009-12-31 23:00:00
+2009 usd_cad         2009-01-01 01:00:00         6286 2009-12-31 23:00:00
+2009 usd_chf         2009-01-01 01:00:00         6286 2009-12-31 23:00:00
+2009 usd_jpy         2009-01-01 01:00:00         6286 2009-12-31 23:00:00
+2010 aud_usd         2010-01-01 00:00:00         5395 2010-11-09 23:00:00
+2010 eur_usd         2010-01-01 00:00:00         5417 2010-11-10 21:00:00
+2010 gbp_usd         2010-01-01 00:00:00         5395 2010-11-09 23:00:00
+2010 usd_cad         2010-01-01 00:00:00         5395 2010-11-09 23:00:00
+2010 usd_chf         2010-01-01 00:00:00         5395 2010-11-09 23:00:00
+2010 usd_jpy         2010-01-01 00:00:00         5395 2010-11-09 23:00:00
+
+12 rows selected.
+
+Elapsed: 00:00:00.06
+23:47:48 SQL> 
+23:47:48 SQL> CREATE OR REPLACE VIEW hp1048 AS
+23:47:48   2  SELECT
+23:47:48   3  pair
+23:47:48   4  -- ydate is granular down to the hour:
+23:47:48   5  ,ydate
+23:47:48   6  ,opn
+23:47:48   7  -- Derive an attribute I call "day_hour":
+23:47:48   8  ,TO_CHAR(ydate,'D')||'_'||TO_CHAR(ydate,'HH24')dhr
+23:47:48   9  -- Get ydate 48 hours in the future:
+23:47:48  10  ,LEAD(ydate,48,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ydate48
+23:47:48  11  -- Get closing price 48 hours in the future:
+23:47:48  12  ,LEAD(clse,47,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) clse48
+23:47:48  13  FROM hourly
+23:47:48  14  WHERE ydate > '2009-01-01'
+23:47:48  15  -- Prevent divide by zero:
+23:47:48  16  AND opn > 0
+23:47:48  17  ORDER BY pair,ydate
+23:47:48  18  /
+
+View created.
+
+Elapsed: 00:00:00.05
+23:47:48 SQL> 
+23:47:48 SQL> -- I derive more attributes:
+23:47:48 SQL> CREATE OR REPLACE VIEW hp48 AS
+23:47:48   2  SELECT
+23:47:48   3  pair
+23:47:48   4  ,ydate
+23:47:48   5  ,opn
+23:47:48   6  ,dhr
+23:47:48   7  ,ydate48
+23:47:48   8  ,clse48
+23:47:48   9  ,(clse48 - opn)/opn npg
+23:47:48  10  FROM hp1048
+23:47:48  11  ORDER BY pair,ydate
+23:47:48  12  /
+
+View created.
+
+Elapsed: 00:00:00.03
+23:47:48 SQL> 
+23:47:48 SQL> -- Now I can aggregate:
+23:47:48 SQL> SELECT
+23:47:48   2  pair,dhr
+23:47:48   3  ,COUNT(npg)          count_npg
+23:47:48   4  ,ROUND(MIN(npg),4)   min_npg
+23:47:48   5  ,ROUND(AVG(npg),4)   avg_npg
+23:47:48   6  ,ROUND(STDDEV(npg),4)stddev_npg
+23:47:48   7  ,ROUND(MAX(npg),4)   max_npg
+23:47:48   8  ,ROUND(SUM(npg),4)   sum_npg
+23:47:48   9  FROM hp48
+23:47:48  10  -- I want my holding to span Sat,Sun if nec:
+23:47:48  11  WHERE (ydate48 - ydate) <= 4.0
+23:47:48  12  GROUP BY pair,dhr
+23:47:48  13  -- I want more than 0.5 pip / hr
+23:47:48  14  HAVING ABS(AVG(npg)) > 0.5*0.0001*48
+23:47:48  15  ORDER BY pair,dhr
+23:47:48  16  /
+
+PAIR            DHR   COUNT_NPG    MIN_NPG    AVG_NPG STDDEV_NPG    MAX_NPG    SUM_NPG
+--------------- ---- ---------- ---------- ---------- ---------- ---------- ----------
+aud_usd         3_01         96     -.0353      .0025      .0141      .0403      .2396
+aud_usd         3_02         96     -.0437      .0026      .0142      .0451        .25
+aud_usd         3_07         96      -.052      .0026      .0149       .049      .2465
+aud_usd         3_08         96     -.0467      .0027      .0147      .0525      .2634
+aud_usd         3_09         96     -.0507      .0028      .0147      .0463      .2684
+aud_usd         3_10         96     -.0492       .003      .0149      .0417      .2897
+aud_usd         3_11         96     -.0533      .0032      .0153      .0431      .3096
+aud_usd         3_12         96     -.0573       .003      .0153      .0427      .2854
+aud_usd         3_13         96     -.0551      .0031      .0149      .0436      .2948
+aud_usd         3_14         95     -.0587       .003      .0151      .0439      .2835
+aud_usd         3_19         96     -.0422      .0027      .0141      .0381       .256
+aud_usd         3_20         96      -.051      .0027      .0141      .0367      .2626
+aud_usd         3_21         96     -.0546      .0025      .0141      .0348      .2412
+aud_usd         4_01         95     -.0413      .0024      .0146      .0453      .2324
+aud_usd         4_04         96     -.0332      .0026      .0135      .0383       .245
+aud_usd         4_05         96     -.0339      .0027      .0138      .0416       .258
+aud_usd         4_07         95     -.0368      .0025      .0142      .0387      .2348
+gbp_usd         3_10         96      -.042      .0024      .0107      .0295      .2305
+gbp_usd         3_11         96     -.0414      .0026      .0107      .0293      .2473
+gbp_usd         3_12         96     -.0403      .0025       .011      .0312      .2353
+gbp_usd         3_13         96     -.0405      .0026      .0115      .0459      .2495
+gbp_usd         3_14         95     -.0336      .0029       .012      .0535      .2715
+
+22 rows selected.
+
+Elapsed: 00:00:00.69
+23:47:49 SQL> 
+23:47:49 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
