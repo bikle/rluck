@@ -28,8 +28,10 @@ AND pair = '&1'
 
 -- rpt
 -- I should see only 1 row. This is the row I want to score:
-SELECT COUNT(prdate)FROM sme;
-SELECT * FROM sme;
+
+SELECT COUNT(prdate)FROM sme
+
+SELECT * FROM sme
 
 -- Build a view which holds rows I use to fill the SVM model.
 -- Notice that each row resides in sme's past.
@@ -52,9 +54,10 @@ AND pair = '&1'
 /
 
 -- rpt
+
 SELECT pair,ydate FROM svm4ms            WHERE pair = '&1'AND ydate  ='&2'||' '||'&3'
 
-SELECT MAX(ydate),MAX(ydate6)FROM svm4ms WHERE pair = '&1'AND ydate6<='&2'||' '||'&3'
+SELECT MAX(ydate),MAX(ydate4)FROM svm4ms WHERE pair = '&1'AND ydate4<='&2'||' '||'&3'
 
 SELECT
 gatt,MIN(prdate),COUNT(prdate),MAX(prdate)
@@ -65,8 +68,6 @@ gatt,MIN(prdate),COUNT(prdate),MAX(prdate)
 ,AVG(ma18_slope)
 FROM bme
 GROUP BY gatt
-
-exit
 
 -- Now send both sme and bme to SVM.
 -- It scores the 1 row in sme using rows in bme as a data source for the SVM model.
