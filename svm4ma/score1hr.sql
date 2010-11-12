@@ -2,8 +2,8 @@
 -- score1hr.sql
 --
 
--- I use this script to score 1 row constructed from svm6ms.
--- svm6ms is also the source of rows I use to build the model behind the SVM scoring algorithm.
+-- I use this script to score 1 row constructed from svm4ms.
+-- svm4ms is also the source of rows I use to build the model behind the SVM scoring algorithm.
 
 -- Aside from the case_id and the target attribute, all columns in both sme and bme should be numeric.
 
@@ -16,11 +16,12 @@ SELECT
 '&1'||ydate prdate
 ,NULL gatt
 -- Numeric attributes for SVM:
+,ma4_slope
 ,ma6_slope
 ,ma9_slope
 ,ma12_slope
 ,ma18_slope
-FROM svm6ms
+FROM svm4ms
 WHERE ydate = '&2'||' '||'&3'
 AND pair = '&1'
 /
@@ -39,26 +40,25 @@ SELECT
 '&1'||ydate prdate
 ,gatt
 -- Numeric attributes for SVM:
+,ma4_slope
 ,ma6_slope
 ,ma9_slope
 ,ma12_slope
 ,ma18_slope
-FROM svm6ms
--- I want data from the past, not present or future.
--- ydate6 is at least 6 hours ahead of ydate.
--- So, I block all rows where ydate6 is ahead of the 1 sme row.
-WHERE ydate6 <= '&2'||' '||'&3'
+FROM svm4ms
+WHERE ydate4 <= '&2'||' '||'&3'
 AND gatt IN('nup','up')
 AND pair = '&1'
 /
 
 -- rpt
-SELECT pair,ydate FROM svm6ms            WHERE pair = '&1'AND ydate  ='&2'||' '||'&3'
+SELECT pair,ydate FROM svm4ms            WHERE pair = '&1'AND ydate  ='&2'||' '||'&3'
 
-SELECT MAX(ydate),MAX(ydate6)FROM svm6ms WHERE pair = '&1'AND ydate6<='&2'||' '||'&3'
+SELECT MAX(ydate),MAX(ydate6)FROM svm4ms WHERE pair = '&1'AND ydate6<='&2'||' '||'&3'
 
 SELECT
 gatt,MIN(prdate),COUNT(prdate),MAX(prdate)
+,AVG(ma4_slope)
 ,AVG(ma6_slope)
 ,AVG(ma9_slope)
 ,AVG(ma12_slope)
@@ -72,7 +72,7 @@ exit
 -- It scores the 1 row in sme using rows in bme as a data source for the SVM model.
 @svm_score.sql
 
-INSERT INTO svm6scores (prdate,score,rundate)
+INSERT INTO svm4scores (prdate,score,rundate)
 SELECT
 prdate
 ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
