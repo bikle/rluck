@@ -1,0 +1,105 @@
+/pt/s/rlk/svm4ma/results2010_1114.txt
+
+
+oracle@z2:/pt/s/rlk/svm4ma$ sqt @qj
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Nov 14 06:44:48 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+06:44:51 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.02
+06:44:51 SQL> --
+06:44:51 SQL> -- score_j_model.sql
+06:44:51 SQL> --
+06:44:51 SQL> 
+06:44:51 SQL> -- I use this script to join the score table with the model source so I can gauge the effectiveness of SVM.
+06:44:51 SQL> 
+06:44:51 SQL> -- See what I have to work with:
+06:44:51 SQL> SELECT COUNT(npg),AVG(npg)FROM svm4ms;
+
+COUNT(NPG)   AVG(NPG)
+---------- ----------
+     70332 5.6945E-06
+
+Elapsed: 00:00:01.58
+06:44:52 SQL> SELECT COUNT(score),AVG(score)FROM svm4scores;
+
+COUNT(SCORE) AVG(SCORE)
+------------ ----------
+       23352 .332111752
+
+Elapsed: 00:00:00.34
+06:44:52 SQL> 
+06:44:52 SQL> CREATE OR REPLACE VIEW score_j_model AS
+06:44:52   2  SELECT pair,ydate,m.prdate,score,npg FROM svm4scores s, svm4ms m
+06:44:52   3  WHERE s.prdate = m.prdate
+06:44:52   4  /
+
+View created.
+
+Elapsed: 00:00:00.11
+06:44:53 SQL> 
+06:44:53 SQL> SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg)FROM score_j_model GROUP BY pair;
+
+PAIR		COUNT(SCORE) CORR(SCORE,NPG)   AVG(NPG)   SUM(NPG)
+--------------- ------------ --------------- ---------- ----------
+eur_usd 		3892	  .123644123 .000031405 .122134897
+gbp_usd 		3892	  .108531995 .000061087 .237568193
+usd_jpy 		3892	  .108537448 -.00012709 -.49424663
+aud_usd 		3892	  .104498361 .000079173 .307903572
+usd_cad 		3892	  .124096721 -.00001403 -.05454366
+usd_chf 		3892	  .055006194 -.00007864 -.30582939
+
+6 rows selected.
+
+Elapsed: 00:00:01.65
+06:44:54 SQL> 
+06:44:54 SQL> SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg),MIN(npg),STDDEV(npg),MAX(npg)
+06:44:54   2  FROM score_j_model
+06:44:54   3  WHERE score > 0.5 GROUP BY pair
+06:44:54   4  /
+
+PAIR		COUNT(SCORE) CORR(SCORE,NPG)   AVG(NPG)   SUM(NPG)   MIN(NPG) STDDEV(NPG)   MAX(NPG)
+--------------- ------------ --------------- ---------- ---------- ---------- ----------- ----------
+eur_usd 		 846	  -.02957338 .000817032 .689574892 -.01159346  .003295851 .018812845
+gbp_usd 		 968	  .111756663 .000464588 .449721484 -.01023141  .002873691 .013515377
+usd_jpy 		 495	  .024778617 .000596278 .295157802 -.01509642  .003025896  .02373208
+usd_cad 		 709	  .054102856 .000847656 .600988428 -.01109961  .003589502 .026153252
+aud_usd 		1395	  .008343301 .000595767 .831095524 -.01719777  .003597507 .018188522
+usd_chf 		 709	  .041556619 .000264214  .18679928 -.01210716	 .0031404 .014258951
+
+6 rows selected.
+
+Elapsed: 00:00:01.57
+06:44:56 SQL> 
+06:44:56 SQL> SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg),MIN(npg),STDDEV(npg),MAX(npg)
+06:44:56   2  FROM score_j_model
+06:44:56   3  WHERE score > 0.75 GROUP BY pair
+06:44:56   4  /
+
+PAIR		COUNT(SCORE) CORR(SCORE,NPG)   AVG(NPG)   SUM(NPG)   MIN(NPG) STDDEV(NPG)   MAX(NPG)
+--------------- ------------ --------------- ---------- ---------- ---------- ----------- ----------
+eur_usd 		 412	  .030196381 .000670651 .274967098 -.01159346  .003185317 .013222465
+gbp_usd 		 405	  .109952993 .000811648 .328717545 -.00900504  .002891736 .010449117
+usd_jpy 		 191	  .030387055 .000610333 .116573588 -.01046951  .002935037 .008858965
+aud_usd 		 699	   .02026054 .000620241 .433548227 -.01114523  .003447955 .013484991
+usd_cad 		 333	   -.0427106 .001088194 .362368636  -.0084124  .003670284 .026153252
+usd_chf 		 359	  .010319492 .000458278  .16406349 -.00982486  .003064351 .014258951
+
+6 rows selected.
+
+Elapsed: 00:00:01.53
+06:44:57 SQL> 
+06:44:57 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z2:/pt/s/rlk/svm4ma$ 

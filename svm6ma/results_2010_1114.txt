@@ -1,0 +1,104 @@
+/pt/s/rlk/svm6ma/results_2010_1114.txt
+
+
+oracle@zu:/pt/s/rlk/svm6ma$ sqt @qj
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Nov 14 18:06:29 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+18:06:29 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+18:06:29 SQL> --
+18:06:29 SQL> -- score_j_model.sql
+18:06:29 SQL> --
+18:06:29 SQL> 
+18:06:29 SQL> -- I use this script to join the score table with the model source so I can gauge the effectiveness of SVM.
+18:06:29 SQL> 
+18:06:29 SQL> -- See what I have to work with:
+18:06:29 SQL> SELECT COUNT(npg),AVG(npg)FROM svm6ms;
+
+COUNT(NPG)   AVG(NPG)
+---------- ----------
+     70044 9.1031E-06
+
+Elapsed: 00:00:01.43
+18:06:31 SQL> SELECT COUNT(score),AVG(score)FROM svm6scores;
+
+COUNT(SCORE) AVG(SCORE)
+------------ ----------
+       32364 .276888396
+
+Elapsed: 00:00:00.01
+18:06:31 SQL> 
+18:06:31 SQL> CREATE OR REPLACE VIEW score_j_model AS
+18:06:31   2  SELECT pair,ydate,m.prdate,score,npg FROM svm6scores s, svm6ms m
+18:06:31   3  WHERE s.prdate = m.prdate
+18:06:31   4  /
+
+View created.
+
+Elapsed: 00:00:00.03
+18:06:31 SQL> 
+18:06:31 SQL> SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg)FROM score_j_model GROUP BY pair;
+
+PAIR		COUNT(SCORE) CORR(SCORE,NPG)   AVG(NPG)   SUM(NPG)
+--------------- ------------ --------------- ---------- ----------
+eur_usd 		5394	   .05105596  -.0000231 -.12448287
+gbp_usd 		5394	  .042883045 -7.288E-06 -.03927583
+usd_jpy 		5394	  .060154945 -.00014113 -.76055516
+usd_cad 		5394	  .046161601 -.00005113 -.27556183
+aud_usd 		5394	  .062422831 .000120052  .64696213
+usd_chf 		5394	  .022487519 -.00007502 -.40429903
+
+6 rows selected.
+
+Elapsed: 00:00:01.51
+18:06:32 SQL> 
+18:06:32 SQL> SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg),MIN(npg),STDDEV(npg),MAX(npg)
+18:06:32   2  FROM score_j_model WHERE score > 0.5 GROUP BY pair
+18:06:32   3  /
+
+PAIR		COUNT(SCORE) CORR(SCORE,NPG)   AVG(NPG)   SUM(NPG)   MIN(NPG) STDDEV(NPG)   MAX(NPG)
+--------------- ------------ --------------- ---------- ---------- ---------- ----------- ----------
+eur_usd 		 637	  .020787766 .000396149 .251950466 -.01659818  .003718871 .013715405
+gbp_usd 		 681	  .086699107 .000298515 .202989867 -.01480287  .003273393 .011722521
+usd_jpy 		 390	  .061014687 .000478788 .185291058 -.01406112  .003591051 .023009276
+aud_usd 		1312	  -.01384868  .00073751 .967612502 -.01356198  .004042238 .015428571
+usd_cad 		 597	  .020542745 .000418701 .248289443 -.01249075  .003852543 .015344528
+usd_chf 		 478	  .081079316 .000214277 .102210302 -.01332764  .003424485 .011612763
+
+6 rows selected.
+
+Elapsed: 00:00:01.30
+18:06:34 SQL> SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg),MIN(npg),STDDEV(npg),MAX(npg)
+18:06:34   2  FROM score_j_model WHERE score > 0.75 GROUP BY pair
+18:06:34   3  /
+
+PAIR		COUNT(SCORE) CORR(SCORE,NPG)   AVG(NPG)   SUM(NPG)   MIN(NPG) STDDEV(NPG)   MAX(NPG)
+--------------- ------------ --------------- ---------- ---------- ---------- ----------- ----------
+eur_usd 		 249	  .006425488  .00042417  .10561837 -.01659818  .003716696 .013715405
+gbp_usd 		 273	  .025644999 .000627137   .1712084 -.01164584  .003259533 .011722521
+usd_jpy 		 141	  -.02503727 .000732801 .103324879 -.01406112	.00407387 .023009276
+aud_usd 		 624	  -.04901572 .000808608 .504571511 -.01356198  .003978125 .014774859
+usd_cad 		 297	  -.00597978  .00048332 .142579333 -.01207443  .004065682 .015188912
+usd_chf 		 185	  .104174886 .000471981 .086844593 -.01064743  .003444941 .010076775
+
+6 rows selected.
+
+Elapsed: 00:00:01.28
+18:06:35 SQL> 
+18:06:35 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@zu:/pt/s/rlk/svm6ma$ 
+oracle@zu:/pt/s/rlk/svm6ma$ 
+oracle@zu:/pt/s/rlk/svm6ma$ 
