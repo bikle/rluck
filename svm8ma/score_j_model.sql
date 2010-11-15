@@ -13,7 +13,13 @@ SELECT pair,ydate,m.prdate,score,npg FROM svm8scores s, svm8ms m
 WHERE s.prdate = m.prdate
 /
 
-SELECT COUNT(score),CORR(score,npg),AVG(npg),SUM(npg)FROM score_j_model;
-SELECT COUNT(score),CORR(score,npg),AVG(npg),SUM(npg)FROM score_j_model WHERE score > 0.5;
+SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg)FROM score_j_model GROUP BY pair;
+
+SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg),MIN(npg),STDDEV(npg),MAX(npg)
+FROM score_j_model WHERE score > 0.5 GROUP BY pair
+/
+SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg),MIN(npg),STDDEV(npg),MAX(npg)
+FROM score_j_model WHERE score > 0.75 GROUP BY pair
+/
 
 exit
