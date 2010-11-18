@@ -1,0 +1,76 @@
+/pt/s/rlk/svm4man/results2010_1114.txt
+
+Elapsed: 00:00:00.00
+12:58:14 SQL> --
+12:58:14 SQL> -- score_j_model.sql
+12:58:14 SQL> --
+12:58:14 SQL> 
+12:58:14 SQL> -- I use this script to join the score table with the model source so I can gauge the effectiveness of SVM.
+12:58:14 SQL> 
+12:58:14 SQL> -- See what I have to work with:
+12:58:14 SQL> SELECT COUNT(npg),AVG(npg)FROM svm4ms;
+
+COUNT(NPG)   AVG(NPG)
+---------- ----------
+     70332 5.6945E-06
+
+Elapsed: 00:00:05.80
+12:58:20 SQL> SELECT COUNT(score),AVG(score)FROM svm4scores;
+
+COUNT(SCORE) AVG(SCORE)
+------------ ----------
+       11265 .342684501
+
+Elapsed: 00:00:00.17
+12:58:20 SQL> 
+12:58:20 SQL> CREATE OR REPLACE VIEW score_j_model AS
+12:58:20   2  SELECT pair,ydate,m.prdate,score,npg FROM svm4scores s, svm4ms m
+12:58:20   3  WHERE s.prdate = m.prdate
+12:58:20   4  /
+
+View created.
+
+Elapsed: 00:00:00.37
+12:58:20 SQL> 
+12:58:20 SQL> SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg)FROM score_j_model GROUP BY pair;
+
+PAIR		COUNT(SCORE) CORR(SCORE,NPG)   AVG(NPG)   SUM(NPG)
+--------------- ------------ --------------- ---------- ----------
+eur_usd 		3892	  -.10076808 .000031405 .122134897
+gbp_usd 		3481	  -.13259119 .000036801 .128103498
+aud_usd 		3892	  -.09273306 .000079173 .307903572
+
+Elapsed: 00:00:03.54
+12:58:24 SQL> 
+12:58:24 SQL> SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg),MIN(npg),STDDEV(npg),MAX(npg)
+12:58:24   2  FROM score_j_model
+12:58:24   3  WHERE score > 0.5 GROUP BY pair
+12:58:24   4  /
+
+PAIR		COUNT(SCORE) CORR(SCORE,NPG)   AVG(NPG)   SUM(NPG)   MIN(NPG) STDDEV(NPG)   MAX(NPG)
+--------------- ------------ --------------- ---------- ---------- ---------- ----------- ----------
+eur_usd 		 887	  -.03874858 -.00055671 -.49324312 -.01213789  .003202835 .016041397
+gbp_usd 		 687	  -.12091022 -.00056126 -.38558578  -.0158217  .003116506 .011730205
+aud_usd 		1060	  .012539973 -.00045367 -.47952857 -.01879448  .003684862 .013459365
+
+Elapsed: 00:00:02.82
+12:58:27 SQL> 
+12:58:27 SQL> SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg),MIN(npg),STDDEV(npg),MAX(npg)
+12:58:27   2  FROM score_j_model
+12:58:27   3  WHERE score > 0.75 GROUP BY pair
+12:58:27   4  /
+
+PAIR		COUNT(SCORE) CORR(SCORE,NPG)   AVG(NPG)   SUM(NPG)   MIN(NPG) STDDEV(NPG)   MAX(NPG)
+--------------- ------------ --------------- ---------- ---------- ---------- ----------- ----------
+eur_usd 		 431	  .008413077 -.00071461 -.30799844 -.01084991  .003095368 .012443346
+gbp_usd 		 306	  -.09086954 -.00092012 -.28155681  -.0158217  .003056169 .009541001
+aud_usd 		 506	  .036091721 -.00038963 -.19676476 -.01322632  .003385339 .011551155
+
+Elapsed: 00:00:02.67
+12:58:29 SQL> 
+12:58:29 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@linux:/pt/s/rlk/svm4man$ 
+oracle@linux:/pt/s/rlk/svm4man$ 
+oracle@linux:/pt/s/rlk/svm4man$ 
