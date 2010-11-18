@@ -7,7 +7,7 @@ SELECT
 pair
 -- ydate is granular down to the hour:
 ,ydate
-,opn
+,clse
 -- Use analytic function to get moving average1:
 ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING)ma1_6
 ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 10 PRECEDING AND 1 PRECEDING)ma1_9
@@ -21,12 +21,11 @@ pair
 -- Get ydate 6 hours in the future:
 ,LEAD(ydate,6,NULL)OVER(PARTITION BY pair ORDER BY ydate) ydate6
 -- Get closing price 6 rows (usually 6 hours) in the future:
-,LEAD(clse,5,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse6
+,LEAD(clse,6,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse6
 FROM hourly 
-WHERE ydate >'2009-01-01'
+WHERE ydate >'2009-04-01'
 -- Prevent divide by zero:
-AND opn > 0
--- Focus on aud_usd for now:
+AND clse > 0
 ORDER BY ydate
 /
 
@@ -45,13 +44,13 @@ pair
 ,(ma2_18 - ma1_18)ma18_slope
 ,ydate6
 ,clse6
-,(clse6 - opn)/opn npg
+,(clse6 - clse)/clse npg
 -- I use a simple CASE expression to build gatt which is the target attribute.
 -- Notice that gatt can have 3 values,
 -- NULL, 'up', and 'nup'.
 -- To me, 'nup' means not-up rather than down:
 ,CASE WHEN clse6 IS NULL THEN NULL 
-      WHEN (clse6 - opn)/opn > 0.0009 THEN 'up'
+      WHEN (clse6 - clse)/clse > 0.0009 THEN 'up'
       ELSE 'nup' END gatt
 FROM svm610
 ORDER BY ydate
@@ -61,7 +60,7 @@ ORDER BY ydate
 
 -- I should see 6 x 6:
 SELECT COUNT(*)FROM svm6ms WHERE ydate6 IS NULL;
--- I should see 6 x 5:
+-- I should see 6 x 6:
 SELECT COUNT(*)FROM svm6ms WHERE clse6 IS NULL;
 SELECT COUNT(*)FROM svm6ms WHERE gatt IS NULL;
 
@@ -76,7 +75,7 @@ SELECT COUNT(ydate)FROM svm6ms WHERE (ydate6 - ydate) < 6/24;
 SELECT COUNT(ydate)FROM svm6ms WHERE (ydate6 - ydate) = 6/24;
 
 -- I show up, nup distribution.
--- I should see 5 rows that are too far in the future to give me a gatt value yet:
+-- I should see 6 rows that are too far in the future to give me a gatt value yet:
 SELECT NVL(gatt,'null_gatt')gatt,COUNT(NVL(gatt,'null_gatt'))FROM svm6ms GROUP BY NVL(gatt,'null_gatt');
 
 -- Is ma_slope correlated with npg?

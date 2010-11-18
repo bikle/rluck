@@ -1,0 +1,198 @@
+I use svm6 to prepare some data to be scored by SVM.
+
+
+sqt @svm6
+
+SQL*Plus: Release 11.2.0.1.0 Production on Thu Nov 18 21:20:10 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+21:20:10 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+21:20:10 SQL> --
+21:20:10 SQL> -- svm6.sql
+21:20:10 SQL> --
+21:20:10 SQL> 
+21:20:10 SQL> CREATE OR REPLACE VIEW svm610 AS
+21:20:10   2  SELECT
+21:20:10   3  pair
+21:20:10   4  -- ydate is granular down to the hour:
+21:20:10   5  ,ydate
+21:20:10   6  ,clse
+21:20:10   7  -- Use analytic function to get moving average1:
+21:20:10   8  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING)ma1_6
+21:20:10   9  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 10 PRECEDING AND 1 PRECEDING)ma1_9
+21:20:10  10  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 13 PRECEDING AND 1 PRECEDING)ma1_12
+21:20:10  11  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 19 PRECEDING AND 1 PRECEDING)ma1_18
+21:20:10  12  -- Use analytic function to get moving average2:
+21:20:10  13  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)ma2_6
+21:20:10  14  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 9 PRECEDING AND CURRENT ROW)ma2_9
+21:20:10  15  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12 PRECEDING AND CURRENT ROW)ma2_12
+21:20:10  16  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 18 PRECEDING AND CURRENT ROW)ma2_18
+21:20:10  17  -- Get ydate 6 hours in the future:
+21:20:10  18  ,LEAD(ydate,6,NULL)OVER(PARTITION BY pair ORDER BY ydate) ydate6
+21:20:10  19  -- Get closing price 6 rows (usually 6 hours) in the future:
+21:20:10  20  ,LEAD(clse,6,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse6
+21:20:10  21  FROM hourly
+21:20:10  22  WHERE ydate >'2009-04-01'
+21:20:10  23  -- Prevent divide by zero:
+21:20:10  24  AND clse > 0
+21:20:10  25  ORDER BY ydate
+21:20:10  26  /
+
+View created.
+
+Elapsed: 00:00:00.30
+21:20:10 SQL> 
+21:20:10 SQL> SELECT COUNT(*)FROM svm610 WHERE ydate6 IS NULL;
+
+  COUNT(*)
+----------
+	36
+
+Elapsed: 00:00:00.83
+21:20:11 SQL> SELECT COUNT(*)FROM svm610 WHERE clse6 IS NULL;
+
+  COUNT(*)
+----------
+	36
+
+Elapsed: 00:00:00.80
+21:20:12 SQL> 
+21:20:12 SQL> -- I derive slope of moving-averages:
+21:20:12 SQL> CREATE OR REPLACE VIEW svm6ms AS
+21:20:12   2  SELECT
+21:20:12   3  pair
+21:20:12   4  ,ydate
+21:20:12   5  ,pair||ydate prdate
+21:20:12   6  ,(ma2_6 - ma1_6)ma6_slope
+21:20:12   7  ,(ma2_9 - ma1_9)ma9_slope
+21:20:12   8  ,(ma2_12 - ma1_12)ma12_slope
+21:20:12   9  ,(ma2_18 - ma1_18)ma18_slope
+21:20:12  10  ,ydate6
+21:20:12  11  ,clse6
+21:20:12  12  ,(clse6 - clse)/clse npg
+21:20:12  13  -- I use a simple CASE expression to build gatt which is the target attribute.
+21:20:12  14  -- Notice that gatt can have 3 values,
+21:20:12  15  -- NULL, 'up', and 'nup'.
+21:20:12  16  -- To me, 'nup' means not-up rather than down:
+21:20:12  17  ,CASE WHEN clse6 IS NULL THEN NULL
+21:20:12  18  	    WHEN (clse6 - clse)/clse > 0.0009 THEN 'up'
+21:20:12  19  	    ELSE 'nup' END gatt
+21:20:12  20  FROM svm610
+21:20:12  21  ORDER BY ydate
+21:20:12  22  /
+
+View created.
+
+Elapsed: 00:00:00.04
+21:20:12 SQL> 
+21:20:12 SQL> --rpt
+21:20:12 SQL> 
+21:20:12 SQL> -- I should see 6 x 6:
+21:20:12 SQL> SELECT COUNT(*)FROM svm6ms WHERE ydate6 IS NULL;
+
+  COUNT(*)
+----------
+	36
+
+Elapsed: 00:00:00.85
+21:20:13 SQL> -- I should see 6 x 6:
+21:20:13 SQL> SELECT COUNT(*)FROM svm6ms WHERE clse6 IS NULL;
+
+  COUNT(*)
+----------
+	36
+
+Elapsed: 00:00:00.80
+21:20:14 SQL> SELECT COUNT(*)FROM svm6ms WHERE gatt IS NULL;
+
+  COUNT(*)
+----------
+	36
+
+Elapsed: 00:00:00.83
+21:20:15 SQL> 
+21:20:15 SQL> SELECT COUNT(ydate)FROM svm610;
+
+COUNT(YDATE)
+------------
+       61674
+
+Elapsed: 00:00:00.79
+21:20:15 SQL> 
+21:20:15 SQL> SELECT COUNT(ydate),AVG(ydate6-ydate),MIN(ydate6-ydate),MAX(ydate6-ydate) FROM svm6ms;
+
+COUNT(YDATE) AVG(YDATE6-YDATE) MIN(YDATE6-YDATE) MAX(YDATE6-YDATE)
+------------ ----------------- ----------------- -----------------
+       61674	    .348023946		     .25	2.70833333
+
+Elapsed: 00:00:00.89
+21:20:16 SQL> 
+21:20:16 SQL> -- I should see no rows WHERE the date difference is less than 6 hours:
+21:20:16 SQL> SELECT COUNT(ydate)FROM svm6ms WHERE (ydate6 - ydate) < 6/24;
+
+COUNT(YDATE)
+------------
+	   0
+
+Elapsed: 00:00:00.83
+21:20:17 SQL> 
+21:20:17 SQL> -- I should see many rows WHERE the date difference is exactly 6 hours:
+21:20:17 SQL> SELECT COUNT(ydate)FROM svm6ms WHERE (ydate6 - ydate) = 6/24;
+
+COUNT(YDATE)
+------------
+       58392
+
+Elapsed: 00:00:00.82
+21:20:18 SQL> 
+21:20:18 SQL> -- I show up, nup distribution.
+21:20:18 SQL> -- I should see 6 rows that are too far in the future to give me a gatt value yet:
+21:20:18 SQL> SELECT NVL(gatt,'null_gatt')gatt,COUNT(NVL(gatt,'null_gatt'))FROM svm6ms GROUP BY NVL(gatt,'null_gatt');
+
+GATT	  COUNT(NVL(GATT,'NULL_GATT'))
+--------- ----------------------------
+nup				 38889
+up				 22749
+null_gatt			    36
+
+Elapsed: 00:00:00.88
+21:20:19 SQL> 
+21:20:19 SQL> -- Is ma_slope correlated with npg?
+21:20:19 SQL> SELECT
+21:20:19   2  pair
+21:20:19   3  ,COUNT(npg)
+21:20:19   4  ,CORR(ma6_slope,npg)
+21:20:19   5  ,CORR(ma9_slope,npg)
+21:20:19   6  ,CORR(ma12_slope,npg)
+21:20:19   7  ,CORR(ma18_slope,npg)
+21:20:19   8  FROM svm6ms
+21:20:19   9  GROUP BY pair
+21:20:19  10  /
+
+PAIR		COUNT(NPG) CORR(MA6_SLOPE,NPG) CORR(MA9_SLOPE,NPG) CORR(MA12_SLOPE,NPG) CORR(MA18_SLOPE,NPG)
+--------------- ---------- ------------------- ------------------- -------------------- --------------------
+eur_usd 	     10275	     .02428782		.017393465	     .009209808 	  .014517948
+gbp_usd 	     10263	    -.01542486		-.01070025	     -.00075636 	  -.00519771
+usd_jpy 	     10275	    -.04363989		-.04100002	     -.03576591 	  -.02396916
+usd_cad 	     10275	    .012231488		.004394526	     .008132223 	  .020679618
+aud_usd 	     10275	    .026150819		.019629129	     .012064018 	  .013735832
+usd_chf 	     10275	    -.00649754		-.01078276	     -.01736468 	  -.01970111
+
+6 rows selected.
+
+Elapsed: 00:00:02.52
+21:20:21 SQL> 
+21:20:21 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z2:/pt/s/rlk/svm6ma$ 

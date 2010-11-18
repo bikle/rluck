@@ -4,6 +4,8 @@
 
 -- I use this table to collect scores calculated by the SVM algorithm.
 DROP   TABLE svm6scores;
+PURGE RECYCLEBIN;
+
 CREATE TABLE svm6scores (prdate VARCHAR2(30),score NUMBER,rundate DATE);
 
 exit
