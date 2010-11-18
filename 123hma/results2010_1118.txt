@@ -1,0 +1,318 @@
+/pt/s/rlk/123hma/results2010_1118.txt
+
+
+oracle@z2:/pt/s/rlk/123hma$ sqt @123hma
+
+SQL*Plus: Release 11.2.0.1.0 Production on Thu Nov 18 19:38:35 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+19:38:35 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+19:38:35 SQL> --
+19:38:35 SQL> -- 123hma.sql
+19:38:35 SQL> --
+19:38:35 SQL> 
+19:38:35 SQL> -- I use this script to help me answer the question,
+19:38:35 SQL> -- Is moving average slope predictive?
+19:38:35 SQL> 
+19:38:35 SQL> CREATE OR REPLACE VIEW v123hma10 AS
+19:38:35   2  SELECT
+19:38:35   3  pair
+19:38:35   4  -- ydate is granular down to the hour:
+19:38:35   5  ,ydate
+19:38:35   6  ,clse
+19:38:35   7  -- Use analytic function to get moving average1:
+19:38:35   8  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING)ma1_1
+19:38:35   9  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 3 PRECEDING AND 1 PRECEDING)ma1_2
+19:38:35  10  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 4 PRECEDING AND 1 PRECEDING)ma1_3
+19:38:35  11  -- Use analytic function to get moving average2:
+19:38:35  12  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)ma2_1
+19:38:35  13  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)ma2_2
+19:38:35  14  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 3 PRECEDING AND CURRENT ROW)ma2_3
+19:38:35  15  -- Get future ydates
+19:38:35  16  ,LEAD(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate) ydate1
+19:38:35  17  ,LEAD(ydate,2,NULL)OVER(PARTITION BY pair ORDER BY ydate) ydate2
+19:38:35  18  ,LEAD(ydate,3,NULL)OVER(PARTITION BY pair ORDER BY ydate) ydate3
+19:38:35  19  -- Relative to current-row, get future closing prices:
+19:38:35  20  ,LEAD(clse,1,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse1
+19:38:35  21  ,LEAD(clse,2,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse2
+19:38:35  22  ,LEAD(clse,3,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse3
+19:38:35  23  FROM hourly
+19:38:35  24  WHERE ydate >'2009-01-01'
+19:38:35  25  -- Prevent divide by zero:
+19:38:35  26  AND opn > 0
+19:38:35  27  -- Focus on aud_usd for now:
+19:38:35  28  ORDER BY ydate
+19:38:35  29  /
+
+View created.
+
+Elapsed: 00:00:00.10
+19:38:35 SQL> 
+19:38:35 SQL> -- I should see 6 x 3:
+19:38:35 SQL> SELECT pair,COUNT(*)FROM v123hma10 WHERE ydate3 IS NULL GROUP BY pair;
+
+PAIR              COUNT(*)
+--------------- ----------
+eur_usd                  3
+gbp_usd                  3
+usd_jpy                  3
+usd_cad                  3
+aud_usd                  3
+usd_chf                  3
+
+6 rows selected.
+
+Elapsed: 00:00:00.95
+19:38:36 SQL> -- I should see 6 x 3:
+19:38:36 SQL> SELECT pair,COUNT(*)FROM v123hma10 WHERE clse3 IS NULL GROUP BY pair;
+
+PAIR              COUNT(*)
+--------------- ----------
+eur_usd                  3
+gbp_usd                  3
+usd_jpy                  3
+usd_cad                  3
+aud_usd                  3
+usd_chf                  3
+
+6 rows selected.
+
+Elapsed: 00:00:00.92
+19:38:37 SQL> 
+19:38:37 SQL> -- I derive slope of moving-averages:
+19:38:37 SQL> CREATE OR REPLACE VIEW v123hma AS
+19:38:37   2  SELECT
+19:38:37   3  pair
+19:38:37   4  ,ydate
+19:38:37   5  ,(ma2_1 - ma1_1)ma1_slope
+19:38:37   6  ,(ma2_2 - ma1_2)ma2_slope
+19:38:37   7  ,(ma2_3 - ma1_3)ma3_slope
+19:38:37   8  ,ydate1
+19:38:37   9  ,ydate2
+19:38:37  10  ,ydate3
+19:38:37  11  ,clse1
+19:38:37  12  ,clse2
+19:38:37  13  ,clse3
+19:38:37  14  ,(clse1 - clse)/clse npg1
+19:38:37  15  ,(clse2 - clse)/clse npg2
+19:38:37  16  ,(clse3 - clse)/clse npg3
+19:38:37  17  FROM v123hma10
+19:38:37  18  ORDER BY ydate
+19:38:37  19  /
+
+View created.
+
+Elapsed: 00:00:00.13
+19:38:37 SQL> 
+19:38:37 SQL> -- Is ma_slope correlated with npg1?:
+19:38:37 SQL> COLUMN pair FORMAT A7
+19:38:37 SQL> 
+19:38:37 SQL> SELECT
+19:38:37   2  pair
+19:38:37   3  ,COUNT(npg1)
+19:38:37   4  ,ROUND(CORR(ma1_slope,npg1),2)corr1
+19:38:37   5  ,ROUND(CORR(ma2_slope,npg1),2)corr2
+19:38:37   6  ,ROUND(CORR(ma3_slope,npg1),2)corr3
+19:38:37   7  FROM v123hma
+19:38:37   8  GROUP BY pair
+19:38:37   9  ORDER BY pair
+19:38:37  10  /
+
+PAIR    COUNT(NPG1)      CORR1      CORR2      CORR3
+------- ----------- ---------- ---------- ----------
+aud_usd       11829       -.03       -.03       -.03
+eur_usd       11829       -.01       -.01       -.01
+gbp_usd       11817       -.03       -.01       -.02
+usd_cad       11829       -.05       -.03       -.04
+usd_chf       11829       -.02       -.02       -.02
+usd_jpy       11829       -.03       -.02       -.03
+
+6 rows selected.
+
+Elapsed: 00:00:02.22
+19:38:39 SQL> 
+19:38:39 SQL> -- Is ma_slope correlated with npg2?:
+19:38:39 SQL> 
+19:38:39 SQL> SELECT
+19:38:39   2  pair
+19:38:39   3  ,COUNT(npg2)
+19:38:39   4  ,ROUND(CORR(ma1_slope,npg2),2)corr1
+19:38:39   5  ,ROUND(CORR(ma2_slope,npg2),2)corr2
+19:38:39   6  ,ROUND(CORR(ma3_slope,npg2),2)corr3
+19:38:39   7  FROM v123hma
+19:38:39   8  GROUP BY pair
+19:38:39   9  ORDER BY pair
+19:38:39  10  /
+
+PAIR    COUNT(NPG2)      CORR1      CORR2      CORR3
+------- ----------- ---------- ---------- ----------
+aud_usd       11828       -.03       -.03       -.02
+eur_usd       11828       -.01       -.01       -.01
+gbp_usd       11816       -.02       -.02       -.02
+usd_cad       11828       -.04       -.03       -.03
+usd_chf       11828       -.02       -.02       -.02
+usd_jpy       11828       -.03       -.03       -.03
+
+6 rows selected.
+
+Elapsed: 00:00:02.22
+19:38:41 SQL> 
+19:38:41 SQL> -- Look at ma1_slope and npg1,2,3:
+19:38:41 SQL> SELECT
+19:38:41   2  pair
+19:38:41   3  ,nt74
+19:38:41   4  ,AVG(ma1_slope)avg_ma1s
+19:38:41   5  ,AVG(npg1)avg_npg1
+19:38:41   6  ,AVG(npg2)avg_npg2
+19:38:41   7  ,AVG(npg3)avg_npg3
+19:38:41   8  ,COUNT(pair)
+19:38:41   9  ,STDDEV(npg1)stddev_npg1
+19:38:41  10  FROM
+19:38:41  11  (
+19:38:41  12    SELECT
+19:38:41  13    pair
+19:38:41  14    ,NTILE(7) OVER (PARTITION BY pair ORDER BY (ma1_slope))nt74
+19:38:41  15    ,ma1_slope
+19:38:41  16    ,npg1,npg2,npg3
+19:38:41  17    FROM v123hma
+19:38:41  18  )
+19:38:41  19  GROUP BY pair,nt74
+19:38:41  20  ORDER BY pair,nt74
+19:38:41  21  /
+
+PAIR          NT74   AVG_MA1S   AVG_NPG1   AVG_NPG2   AVG_NPG3 COUNT(PAIR) STDDEV_NPG1
+------- ---------- ---------- ---------- ---------- ---------- ----------- -----------
+aud_usd          1 -.00191775 .000167146 .000239759 .000269041        1690  .002494457
+aud_usd          2 -.00078817 .000053335 .000118755 .000254311        1690  .002134062
+aud_usd          3   -.000335 .000083189 .000112718 .000055789        1690  .002007605
+aud_usd          4  .00003284 -.00003857 1.7454E-06 .000035652        1690  .002032354
+aud_usd          5 .000396538 -.00005703 -.00001011 .000022003        1690   .00200566
+aud_usd          6 .000854704  .00003286 .000016096 .000034433        1690  .002076517
+aud_usd          7 .001921936 -.00002755 -.00005692 -.00004112        1690  .002412682
+eur_usd          1 -.00231831 -.00001245 -.00002418 -.00003067        1690  .001834029
+eur_usd          2 -.00089816 .000082442 .000106018 .000196939        1690  .001477645
+eur_usd          3 -.00037875 .000056649 .000037775 .000039585        1690  .001358645
+eur_usd          4 -1.785E-07 -.00003389 -.00002951 -.00002601        1690  .001324623
+eur_usd          5  .00038164 9.4170E-07 .000043621 -.00001164        1690  .001499396
+eur_usd          6 .000894511 -.00007975 -.00011051 -.00012267        1690  .001524003
+eur_usd          7 .002296938   -.000022 -.00004068 -.00007283        1690   .00185566
+gbp_usd          1 -.00288598 .000062871 .000097745 .000124775        1689  .002004249
+gbp_usd          2  -.0010915 .000066666 .000151606 .000196313        1689  .001648544
+gbp_usd          3 -.00044084 .000057184 .000057045 .000072249        1688  .001523778
+gbp_usd          4 .000017579 .000031725 -4.303E-06 9.7776E-06        1688  .001591447
+gbp_usd          5 .000478821 -.00001244 -.00005656 -.00010891        1688  .001556384
+gbp_usd          6 .001103465 -.00006582 -.00006525 -.00004145        1688  .001567746
+gbp_usd          7 .002896906 -.00008081 -.00006251 -.00007674        1688  .002108249
+usd_cad          1 -.00211843  .00008235 .000048075 .000050355        1690  .002073844
+usd_cad          2 -.00081385 .000107423 .000107193 .000157467        1690  .001568686
+usd_cad          3 -.00035976 .000022154 9.6606E-06 -5.643E-06        1690  .001565866
+usd_cad          4 -.00001642 -.00002722 -.00002228 -.00011025        1690  .001500915
+usd_cad          5  .00031213 -.00008183 -.00002291 -.00007015        1690  .001467464
+usd_cad          6 .000779675 -.00008254  -.0001762 -.00019069        1690   .00169648
+usd_cad          7 .002097573 -.00011751 -.00013477 -.00011558        1690  .002178788
+usd_chf          1 -.00184357 .000052665 .000057288 .000074703        1690  .001908503
+usd_chf          2 -.00068807 .000072387 .000076829 .000111183        1690  .001525344
+usd_chf          3 -.00030192 -2.842E-06 -4.558E-06 -.00001404        1690  .001352558
+usd_chf          4 -.00001644 .000024938 .000033273  .00004381        1690  .001329482
+usd_chf          5 .000272074 -.00003263 -.00002829 -.00005813        1690  .001370019
+usd_chf          6 .000679156 -.00006618 -.00008493 -.00009871        1690  .001588946
+usd_chf          7  .00185357 -.00008489 -.00012226 -.00016755        1690  .001965136
+usd_jpy          1 -.16139645  .00006409 .000101502 .000131867        1690  .002047174
+usd_jpy          2 -.06010059 .000011878 .000065966  .00006884        1690  .001490913
+usd_jpy          3  -.0248432 -.00002733 -.00009076  -.0001107        1690  .001484987
+usd_jpy          4 .000207101 -.00001661 -.00001517 3.6005E-06        1690  .001401503
+usd_jpy          5 .025674556 -6.957E-06 -.00002923 -.00010482        1690   .00139806
+usd_jpy          6 .059544379 -.00003529 -.00005846 -.00010745        1690  .001450296
+usd_jpy          7 .156645944 -.00003094 -.00005615 -5.584E-06        1690  .001974084
+
+42 rows selected.
+
+Elapsed: 00:00:01.45
+19:38:43 SQL> 
+19:38:43 SQL> 
+19:38:43 SQL> -- Look at ma2_slope and npg1,2,3:
+19:38:43 SQL> SELECT
+19:38:43   2  pair
+19:38:43   3  ,nt74
+19:38:43   4  ,AVG(ma2_slope)avg_ma2s
+19:38:43   5  ,AVG(npg1)avg_npg1
+19:38:43   6  ,AVG(npg2)avg_npg2
+19:38:43   7  ,AVG(npg3)avg_npg3
+19:38:43   8  ,COUNT(pair)
+19:38:43   9  ,STDDEV(npg1)stddev_npg1
+19:38:43  10  FROM
+19:38:43  11  (
+19:38:43  12    SELECT
+19:38:43  13    pair
+19:38:43  14    ,NTILE(7) OVER (PARTITION BY pair ORDER BY (ma2_slope))nt74
+19:38:43  15    ,ma2_slope
+19:38:43  16    ,npg1,npg2,npg3
+19:38:43  17    FROM v123hma
+19:38:43  18  )
+19:38:43  19  GROUP BY pair,nt74
+19:38:43  20  ORDER BY pair,nt74
+19:38:43  21  /
+
+PAIR          NT74   AVG_MA2S   AVG_NPG1   AVG_NPG2   AVG_NPG3 COUNT(PAIR) STDDEV_NPG1
+------- ---------- ---------- ---------- ---------- ---------- ----------- -----------
+aud_usd          1 -.00155256 .000117256 .000168014 .000212578        1690  .002525331
+aud_usd          2 -.00065108 .000109018 .000255369 .000275305        1690  .002203345
+aud_usd          3 -.00026099 -.00000872 7.4955E-06 -8.685E-06        1690  .002015156
+aud_usd          4 .000024931 .000067188 -4.732E-06 -.00005398        1690  .002057432
+aud_usd          5 .000327179 -.00005832 -1.885E-06  .00007689        1690  .001973716
+aud_usd          6 .000708008 .000059229 .000047478 .000094788        1690  .001988826
+aud_usd          7 .001569035 -.00007222 -.00004971 .000033156        1690  .002391034
+eur_usd          1 -.00189438 9.0538E-06 .000014006 .000011132        1690  .001773531
+eur_usd          2 -.00074025 -2.205E-06 5.5043E-06 -7.667E-06        1690  .001476913
+eur_usd          3    -.00031 .000028709 .000052462 .000055297        1690  .001458038
+eur_usd          4 -4.538E-06 .000016592 .000027923 .000015025        1690   .00139804
+eur_usd          5 .000306904 -.00001508 -.00003175 -.00001887        1690  .001366896
+eur_usd          6 .000742882 1.1475E-06 -8.673E-06 -2.564E-06        1690  .001548755
+eur_usd          7 .001876347 -.00004627 -.00007695 -.00007967        1690  .001871298
+gbp_usd          1 -.00234295 .000023495  .00008221 .000076228        1689  .001989382
+gbp_usd          2 -.00091008 .000114954 .000137703 .000100167        1689  .001679594
+gbp_usd          3 -.00036418 .000045328 .000099709 .000126948        1688  .001469883
+gbp_usd          4 .000019733 -.00002602 -.00005509 -.00007557        1688  .001487484
+gbp_usd          5 .000399147 -.00005024 -.00002182 .000048423        1688  .001605452
+gbp_usd          6 .000910425 -.00004657  -.0000881 -.00010103        1688  .001761972
+gbp_usd          7  .00236548 -1.562E-06 -.00003683 8.1393E-07        1688  .002020556
+usd_cad          1 -.00171306 .000024916  .00005558 .000016536        1690  .002027702
+usd_cad          2 -.00065903 .000070647 .000095792 .000075644        1690  .001600719
+usd_cad          3 -.00029542 .000024753   .0000325 -.00003768        1690  .001455392
+usd_cad          4 -.00002393 1.8646E-06 -.00002755 -.00005413        1690  .001505537
+usd_cad          5 .000246529  -.0000444 -.00012409 -.00010329        1690  .001522057
+usd_cad          6 .000634477 -.00006833 -.00009659 -.00009568        1690  .001754262
+usd_cad          7 .001691652 -.00010662 -.00012684  -.0000859        1690  .002194024
+usd_chf          1 -.00151153 .000051806 .000050244 .000071106        1690  .001931221
+usd_chf          2 -.00056565 .000070161 .000125318 .000102849        1690  .001475208
+usd_chf          3 -.00024018 .000035107 .000083228 .000080648        1690  .001393003
+usd_chf          4 -9.153E-06 -.00003936 -.00008587 -.00006229        1690  .001389179
+usd_chf          5  .00022222  -.0000293 -.00005258 -.00007551        1690  .001332395
+usd_chf          6 .000545839 -.00003541 -.00005797 -.00006406        1690   .00148815
+usd_chf          7 .001513235 -.00008957 -.00013498  -.0001614        1690  .002015935
+usd_jpy          1 -.13038659 .000096257 .000099945 .000121403        1690  .002089701
+usd_jpy          2 -.05046351 .000038256 .000104185  .00007524        1690  .001444843
+usd_jpy          3 -.02083826 -.00010561 -.00009043 -.00008486        1690  .001403824
+usd_jpy          4 .000335306 -2.463E-06 -.00004354 -.00003807        1690  .001339088
+usd_jpy          5  .02078501 -.00002276 -.00006929 -.00010875        1690  .001358146
+usd_jpy          6 .048404339 3.9925E-06 -4.891E-06 -.00004724        1690  .001623359
+usd_jpy          7 .127872508 -.00004884 -.00007834 -.00004202        1690  .001955135
+
+42 rows selected.
+
+Elapsed: 00:00:01.42
+19:38:44 SQL> 
+19:38:44 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z2:/pt/s/rlk/123hma$ 

@@ -11,6 +11,7 @@ pair
 -- ydate is granular down to the hour:
 ,ydate
 ,opn
+,clse
 -- Use analytic function to get moving average1:
 ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 5 PRECEDING AND 1 PRECEDING)ma1_4
 ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING)ma1_6
@@ -30,14 +31,13 @@ pair
 ,LEAD(ydate,6,NULL)OVER(PARTITION BY pair ORDER BY ydate) ydate6
 ,LEAD(ydate,8,NULL)OVER(PARTITION BY pair ORDER BY ydate) ydate8
 -- Relative to current-row, get future closing prices:
-,LEAD(clse,3,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse4
-,LEAD(clse,5,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse6
-,LEAD(clse,7,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse8
+,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse4
+,LEAD(clse,6,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse6
+,LEAD(clse,8,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse8
 FROM hourly 
 WHERE ydate >'2009-01-01'
 -- Prevent divide by zero:
-AND opn > 0
--- Focus on aud_usd for now:
+AND clse > 0
 ORDER BY ydate
 /
 
@@ -45,7 +45,7 @@ ORDER BY ydate
 
 -- I should see 6 x 6:
 SELECT pair,COUNT(*)FROM v468hma10 WHERE ydate6 IS NULL GROUP BY pair;
--- I should see 6 x 5:
+-- I should see 6 x 6:
 SELECT pair,COUNT(*)FROM v468hma10 WHERE clse6 IS NULL GROUP BY pair;
 
 -- I derive slope of moving-averages:
@@ -65,9 +65,9 @@ pair
 ,clse4
 ,clse6
 ,clse8
-,(clse4 - opn)/opn npg4
-,(clse6 - opn)/opn npg6
-,(clse8 - opn)/opn npg8
+,(clse4 - clse)/clse npg4
+,(clse6 - clse)/clse npg6
+,(clse8 - clse)/clse npg8
 FROM v468hma10
 ORDER BY ydate
 /
@@ -135,6 +135,30 @@ FROM
   pair
   ,NTILE(7) OVER (PARTITION BY pair ORDER BY (ma4_slope))nt74
   ,ma4_slope
+  ,npg4,npg6,npg8
+  FROM v468hma
+)
+GROUP BY pair,nt74
+ORDER BY pair,nt74
+/
+
+
+-- Look at ma8_slope and npg4,6,8:
+SELECT
+pair
+,nt74
+,AVG(ma8_slope)avg_ma8s
+,AVG(npg4)avg_npg4
+,AVG(npg6)avg_npg6
+,AVG(npg8)avg_npg8
+,COUNT(pair)
+,STDDEV(npg4)stddev_npg4
+FROM
+(
+  SELECT
+  pair
+  ,NTILE(7) OVER (PARTITION BY pair ORDER BY (ma8_slope))nt74
+  ,ma8_slope
   ,npg4,npg6,npg8
   FROM v468hma
 )
