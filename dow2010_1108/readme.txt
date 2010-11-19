@@ -50,5 +50,5 @@ For example if that Monday were to fall on the 25th I would be tempted to enter 
 
 https://github.com/bikle/rluck/blob/master/dom2010_1107/dom.txt
 
-I scan of the calendar reveals that Monday will next fall on the 25th at 2011-04-25.
+A scan of the calendar reveals that Monday will next fall on the 25th at 2011-04-25.
 
