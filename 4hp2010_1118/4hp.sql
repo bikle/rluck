@@ -18,7 +18,9 @@ pair
 ,LEAD(ydate,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ydate4
 -- Get closing price 4 hours in the future:
 ,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) clse4
-FROM hourly 
+-- FROM hourly 
+-- Look at 15 pairs instead of just 9:
+FROM h15c
 WHERE ydate > '2009-01-01'
 -- Prevent divide by zero:
 AND clse > 0
