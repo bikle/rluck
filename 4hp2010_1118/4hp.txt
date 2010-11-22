@@ -1,0 +1,409 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Nov 22 21:32:09 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+21:32:09 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+21:32:09 SQL> 21:32:09 SQL> --
+21:32:09 SQL> -- 4hp.sql
+21:32:09 SQL> --
+21:32:09 SQL> 
+21:32:09 SQL> SET LINES 66
+21:32:09 SQL> -- I create h15c using h15c.sql to derive prices from hourly table:
+21:32:09 SQL> DESC h15c
+ Name				  Null?    Type
+ -------------------------------- -------- -----------------------
+ PAIR					   CHAR(7)
+ YDATE					   DATE
+ CLSE					   NUMBER
+
+21:32:09 SQL> SELECT pair,MIN(ydate),COUNT(*),MAX(ydate)FROM h15c GROUP BY pair;
+
+PAIR	MIN(YDATE)	      COUNT(*) MAX(YDATE)
+------- ------------------- ---------- -------------------
+eur_usd 2007-06-06 06:00:00	 21832 2010-11-22 19:00:00
+gbp_usd 2007-06-06 10:00:00	 21786 2010-11-22 19:00:00
+gbp_jpy 2007-06-06 10:00:00	 21786 2010-11-22 19:00:00
+gbp_cad 2007-06-06 10:00:00	 21786 2010-11-22 19:00:00
+usd_jpy 2007-02-26 12:00:00	 23547 2010-11-22 19:00:00
+eur_gbp 2007-06-06 10:00:00	 21786 2010-11-22 19:00:00
+eur_aud 2007-06-06 06:00:00	 21832 2010-11-22 19:00:00
+eur_jpy 2007-06-06 06:00:00	 21832 2010-11-22 19:00:00
+gbp_aud 2007-06-06 10:00:00	 21786 2010-11-22 19:00:00
+gbp_chf 2007-06-06 10:00:00	 21786 2010-11-22 19:00:00
+eur_cad 2007-06-06 06:00:00	 21832 2010-11-22 19:00:00
+eur_chf 2007-06-06 06:00:00	 21832 2010-11-22 19:00:00
+usd_cad 2007-02-27 19:00:00	 23498 2010-11-22 19:00:00
+aud_usd 2007-02-27 19:00:00	 23498 2010-11-22 19:00:00
+usd_chf 2007-02-28 13:00:00	 23498 2010-11-22 19:00:00
+
+15 rows selected.
+
+Elapsed: 00:00:00.13
+21:32:09 SQL> SET LINES 166
+21:32:09 SQL> 
+21:32:09 SQL> CREATE OR REPLACE VIEW hp10 AS
+21:32:09   2  SELECT
+21:32:09   3  pair
+21:32:09   4  -- ydate is granular down to the hour:
+21:32:09   5  ,ydate
+21:32:09   6  ,clse
+21:32:09   7  -- Derive an attribute I call "day_hour":
+21:32:09   8  ,TO_CHAR(ydate,'D')||'_'||TO_CHAR(ydate,'HH24')dhr
+21:32:09   9  -- Get ydate 4 hours in the future:
+21:32:09  10  ,LEAD(ydate,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ydate4
+21:32:09  11  -- Get closing price 4 hours in the future:
+21:32:09  12  ,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) clse4
+21:32:09  13  -- Calculate "Normalized-Price-Gain":
+21:32:09  14  ,((LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) - clse)/clse) npg
+21:32:09  15  -- I use hourly to supply 6 pairs:
+21:32:09  16  -- FROM hourly
+21:32:09  17  -- I use h15c to supply 15 pairs instead of just 6:
+21:32:09  18  FROM h15c
+21:32:09  19  WHERE ydate > '2009-01-01'
+21:32:09  20  -- Prevent divide by zero:
+21:32:09  21  AND clse > 0
+21:32:09  22  ORDER BY pair,ydate
+21:32:09  23  /
+
+View created.
+
+Elapsed: 00:00:00.05
+21:32:09 SQL> 
+21:32:09 SQL> -- I create a view of what I call "Near-Past":
+21:32:09 SQL> CREATE OR REPLACE VIEW hpnp AS SELECT * FROM hp10 WHERE ydate > sysdate - 60;
+
+View created.
+
+Elapsed: 00:00:00.04
+21:32:09 SQL> 
+21:32:09 SQL> -- I create a view of what I call "Far-Past":
+21:32:09 SQL> CREATE OR REPLACE VIEW hpfp AS SELECT * FROM hp10 WHERE ydate <= sysdate - 60;
+
+View created.
+
+Elapsed: 00:00:00.04
+21:32:09 SQL> 
+21:32:09 SQL> --rpt
+21:32:09 SQL> SELECT AVG(ydate4 - ydate), MIN(ydate4 - ydate),MAX(ydate4 - ydate),COUNT(ydate)FROM hp10;
+
+AVG(YDATE4-YDATE) MIN(YDATE4-YDATE) MAX(YDATE4-YDATE) COUNT(YDATE)
+----------------- ----------------- ----------------- ------------
+       .232412377	 .166666667		2.625	    178353
+
+Elapsed: 00:00:00.86
+21:32:10 SQL> -- I should see no rows WHERE the date difference is less than 4 hours:
+21:32:10 SQL> SELECT COUNT(ydate)FROM hp10 WHERE (ydate4 - ydate) < 4/24;
+
+COUNT(YDATE)
+------------
+	   0
+
+Elapsed: 00:00:00.52
+21:32:11 SQL> 
+21:32:11 SQL> -- I should see many rows WHERE the date difference is exactly 4 hours:
+21:32:11 SQL> SELECT COUNT(ydate)FROM hp10 WHERE (ydate4 - ydate) = 4/24;
+
+COUNT(YDATE)
+------------
+      172038
+
+Elapsed: 00:00:00.52
+21:32:11 SQL> 
+21:32:11 SQL> -- I should see some rows
+21:32:11 SQL> -- WHERE the date difference is greater than 4 hours due to Saturday getting sandwiched between some of the records.
+21:32:11 SQL> -- Also if I am missing some rows, counts will appear here:
+21:32:11 SQL> SELECT TO_CHAR(ydate,'Day'),MIN(ydate),COUNT(ydate),MAX(ydate)
+21:32:11   2  FROM hp10 WHERE (ydate4 - ydate) > 4/24
+21:32:11   3  GROUP BY TO_CHAR(ydate,'Day')
+21:32:11   4  ORDER BY COUNT(ydate)
+21:32:11   5  /
+
+TO_CHAR(Y MIN(YDATE)	      COUNT(YDATE) MAX(YDATE)
+--------- ------------------- ------------ -------------------
+Sunday	  2009-05-10 23:00:00		15 2009-05-10 23:00:00
+Monday	  2009-05-11 00:00:00		45 2009-05-11 02:00:00
+Thursday  2009-06-25 12:00:00		60 2009-06-25 15:00:00
+Wednesday 2010-06-23 15:00:00		60 2010-06-23 18:00:00
+Tuesday   2009-07-14 10:00:00	       120 2009-08-18 21:00:00
+Friday	  2009-01-02 18:00:00	      5955 2010-11-19 21:00:00
+
+6 rows selected.
+
+Elapsed: 00:00:00.53
+21:32:12 SQL> 
+21:32:12 SQL> -- Now I can aggregate Far-Past:
+21:32:12 SQL> CREATE OR REPLACE VIEW hpfp_agg AS
+21:32:12   2  SELECT
+21:32:12   3  pair,dhr
+21:32:12   4  ,COUNT(npg)count_npg
+21:32:12   5  ,ROUND(MIN(npg),4)min_npg
+21:32:12   6  ,ROUND(AVG(npg),4)avg_npg
+21:32:12   7  ,ROUND(STDDEV(npg),4)stddev_npg
+21:32:12   8  ,ROUND(MAX(npg),4)max_npg
+21:32:12   9  ,ROUND(SUM(npg),4)sum_npg
+21:32:12  10  FROM hpfp
+21:32:12  11  WHERE (ydate4 - ydate) = 4/24
+21:32:12  12  GROUP BY pair,dhr
+21:32:12  13  -- I want more than 1.5 pip / hr over the 4hr period:
+21:32:12  14  HAVING ABS(AVG(npg)) > 1.5 * 0.0001 * 4
+21:32:12  15  /
+
+View created.
+
+Elapsed: 00:00:00.05
+21:32:12 SQL> 
+21:32:12 SQL> -- Sort by pair 1st:
+21:32:12 SQL> SELECT COUNT(*)FROM hpfp_agg;
+
+  COUNT(*)
+----------
+       148
+
+Elapsed: 00:00:00.91
+21:32:13 SQL> 
+21:32:13 SQL> SELECT * FROM hpfp_agg ORDER BY pair,dhr
+21:32:13   2  
+21:32:13 SQL> -- Now I can aggregate Near-Past:
+21:32:13 SQL> CREATE OR REPLACE VIEW hpnp_agg AS
+21:32:13   2  SELECT
+21:32:13   3  pair,dhr
+21:32:13   4  ,COUNT(npg)count_npg
+21:32:13   5  ,ROUND(MIN(npg),4)min_npg
+21:32:13   6  ,ROUND(AVG(npg),4)avg_npg
+21:32:13   7  ,ROUND(STDDEV(npg),4)stddev_npg
+21:32:13   8  ,ROUND(MAX(npg),4)max_npg
+21:32:13   9  ,ROUND(SUM(npg),4)sum_npg
+21:32:13  10  FROM hpnp
+21:32:13  11  WHERE (ydate4 - ydate) = 4/24
+21:32:13  12  GROUP BY pair,dhr
+21:32:13  13  /
+
+View created.
+
+Elapsed: 00:00:00.04
+21:32:13 SQL> 
+21:32:13 SQL> SELECT COUNT(*)FROM hpnp_agg;
+
+  COUNT(*)
+----------
+      1755
+
+Elapsed: 00:00:00.67
+21:32:13 SQL> 
+21:32:13 SQL> SELECT * FROM hpnp_agg ORDER BY pair,dhr
+21:32:13   2  
+21:32:13 SQL> -- Join agg views:
+21:32:13 SQL> 
+21:32:13 SQL> CREATE OR REPLACE VIEW hp4aggj AS
+21:32:13   2  SELECT
+21:32:13   3  a.pair
+21:32:13   4  ,a.dhr
+21:32:13   5  ,a.avg_npg avg_npg1
+21:32:13   6  ,b.avg_npg avg_npg2
+21:32:13   7  FROM hpfp_agg a, hpnp_agg b
+21:32:13   8  WHERE a.pair = b.pair AND a.dhr = b.dhr
+21:32:13   9  /
+
+View created.
+
+Elapsed: 00:00:00.03
+21:32:13 SQL> 
+21:32:13 SQL> -- Sort by dhr since I can then easily compare to my calendar:
+21:32:13 SQL> SELECT * FROM hp4aggj ORDER BY dhr,pair;
+
+PAIR	DHR    AVG_NPG1   AVG_NPG2
+------- ---- ---------- ----------
+usd_chf 1_21	  .0007      .0012
+gbp_cad 2_05	 -.0006      .0001
+aud_usd 2_10	  .0006      .0005
+usd_chf 2_10	 -.0008       .001
+aud_usd 2_11	  .0008      .0002
+eur_aud 2_11	 -.0006     -.0019
+gbp_aud 2_11	 -.0009     -.0003
+gbp_cad 2_11	 -.0007     -.0008
+gbp_chf 2_11	 -.0007      .0007
+aud_usd 2_13	  .0007     -.0003
+eur_gbp 2_15	 -.0007      .0005
+gbp_cad 2_15	  .0008     -.0002
+gbp_chf 2_15	  .0007     -.0007
+gbp_jpy 2_19	 -.0007     -.0005
+aud_usd 2_20	 -.0009     -.0002
+eur_jpy 2_20	 -.0011      .0004
+eur_usd 2_20	 -.0008     -.0002
+gbp_jpy 2_20	 -.0011      .0007
+gbp_usd 2_20	 -.0008 	 0
+eur_jpy 2_21	  -.001     -.0004
+gbp_jpy 2_21	  -.001      .0006
+eur_jpy 2_22	 -.0008     -.0002
+gbp_jpy 2_22	 -.0008 	 0
+gbp_jpy 3_04	 -.0007      .0001
+eur_jpy 3_05	 -.0009      .0018
+gbp_aud 3_05	 -.0008     -.0004
+gbp_cad 3_05	 -.0007      .0009
+gbp_jpy 3_05	 -.0011      .0012
+gbp_usd 3_05	 -.0006      .0007
+eur_jpy 3_07	 -.0009      .0018
+gbp_jpy 3_07	 -.0006      .0004
+gbp_cad 3_09	  .0006     -.0001
+aud_usd 3_10	  .0011     -.0005
+eur_aud 3_10	 -.0008      .0007
+gbp_cad 3_10	  .0007     -.0003
+gbp_usd 3_10	  .0008     -.0011
+usd_chf 3_10	 -.0006      .0009
+aud_usd 3_11	   .001       .001
+eur_aud 3_11	 -.0008     -.0003
+eur_gbp 3_11	 -.0008      .0019
+gbp_cad 3_11	  .0008     -.0008
+gbp_jpy 3_11	  .0008     -.0018
+gbp_usd 3_11	  .0011     -.0012
+gbp_cad 3_12	   .001     -.0015
+gbp_usd 3_12	  .0008     -.0027
+usd_chf 3_12	 -.0007 	 0
+eur_gbp 3_13	 -.0008      .0013
+gbp_aud 3_13	  .0008     -.0017
+gbp_cad 3_13	   .001     -.0018
+gbp_jpy 3_13	  .0007     -.0007
+gbp_usd 3_13	   .001     -.0015
+eur_gbp 3_14	 -.0006      .0013
+gbp_aud 3_14	  .0008     -.0015
+gbp_cad 3_14	  .0007     -.0015
+eur_cad 3_15	  .0006     -.0012
+gbp_cad 3_15	   .001     -.0011
+usd_cad 3_15	  .0007      .0006
+eur_jpy 3_20	 -.0006 	 0
+eur_usd 3_20	 -.0006      .0001
+aud_usd 4_04	  .0006      .0014
+eur_jpy 4_04	  .0007      .0009
+eur_jpy 4_05	  .0007      .0018
+usd_chf 4_05	 -.0007 	 0
+eur_jpy 4_06	  .0008      .0009
+gbp_jpy 4_06	  .0006       .001
+usd_chf 4_06	 -.0007     -.0011
+gbp_jpy 4_10	  .0009      .0007
+gbp_usd 4_12	  .0007      .0015
+eur_jpy 4_14	 -.0009      .0022
+gbp_jpy 4_14	 -.0007      .0011
+usd_jpy 4_14	 -.0009      .0004
+gbp_jpy 4_18	  .0007     -.0006
+eur_aud 4_20	 -.0006     -.0001
+aud_usd 4_21	  .0008      .0014
+eur_aud 4_21	 -.0008     -.0005
+gbp_aud 4_21	 -.0007     -.0007
+eur_jpy 4_23	 -.0006     -.0005
+gbp_jpy 4_23	 -.0006     -.0006
+usd_jpy 4_23	 -.0007     -.0014
+eur_jpy 5_00	 -.0006     -.0008
+gbp_jpy 5_00	 -.0007     -.0008
+usd_jpy 5_00	 -.0007     -.0011
+aud_usd 5_03	  .0006      .0014
+eur_aud 5_03	 -.0006 	 0
+gbp_aud 5_03	 -.0008     -.0008
+aud_usd 5_04	  .0008      .0025
+gbp_aud 5_04	  -.001     -.0009
+gbp_cad 5_04	 -.0006     -.0003
+aud_usd 5_05	  .0009     -.0249
+eur_aud 5_05	 -.0007      .0175
+eur_jpy 5_05	  .0007      .0221
+gbp_aud 5_05	 -.0011      .0577
+aud_usd 5_06	  .0006      .0015
+gbp_aud 5_06	 -.0007      .0004
+eur_jpy 5_08	   .001      .0008
+gbp_jpy 5_08	  .0011      .0015
+gbp_cad 5_09	  .0008     -.0337
+gbp_jpy 5_09	  .0006     -.0407
+gbp_usd 5_09	  .0006     -.0151
+eur_cad 5_10	  .0007      .0098
+gbp_cad 5_10	  .0008      .0489
+eur_cad 5_11	  .0007     -.0008
+gbp_cad 5_11	  .0008      .0002
+gbp_jpy 5_11	  .0007      .0002
+aud_usd 5_12	 -.0007     -.0041
+gbp_cad 5_12	  .0007      .0004
+usd_cad 5_12	  .0009      .0028
+aud_usd 5_16	  .0006      .0009
+gbp_jpy 5_16	  .0007      .0008
+gbp_usd 5_16	  .0007      .0004
+usd_chf 5_16	 -.0006     -.0001
+usd_jpy 5_18	  .0006      .0002
+aud_usd 5_20	 -.0006     -.0008
+eur_usd 5_20	 -.0007     -.0006
+gbp_usd 5_20	 -.0007      .0001
+gbp_jpy 5_22	 -.0007     -.0012
+gbp_jpy 6_05	 -.0007     -.0009
+eur_jpy 6_07	 -.0007      .0017
+aud_usd 6_08	 -.0009      .0012
+eur_cad 6_08	 -.0009     -.0011
+
+PAIR	DHR    AVG_NPG1   AVG_NPG2
+------- ---- ---------- ----------
+eur_jpy 6_08	  -.001      .0014
+eur_usd 6_08	 -.0011      .0009
+gbp_cad 6_08	 -.0006     -.0003
+gbp_jpy 6_08	 -.0007      .0022
+gbp_usd 6_08	 -.0009      .0017
+usd_chf 6_08	  .0009     -.0007
+eur_aud 6_09	 -.0007     -.0014
+eur_usd 6_09	 -.0009      .0009
+gbp_usd 6_09	 -.0007      .0013
+usd_chf 6_09	  .0007      .0003
+usd_jpy 6_09	  .0007      .0008
+eur_aud 6_10	 -.0008     -.0018
+eur_usd 6_10	  -.001      .0008
+gbp_usd 6_10	 -.0009      .0016
+usd_cad 6_10	  .0008     -.0024
+usd_chf 6_10	   .001      .0004
+usd_jpy 6_10	   .001      .0003
+eur_aud 6_11	 -.0007      -.002
+eur_usd 6_11	 -.0007     -.0009
+usd_jpy 6_11	  .0008      .0007
+eur_chf 6_12	 -.0006      .0007
+gbp_chf 6_12	 -.0008      .0022
+usd_chf 6_14	 -.0007      .0019
+aud_usd 6_16	  .0008      .0006
+eur_jpy 6_16	  .0008      .0003
+gbp_jpy 6_16	  .0009      -.001
+usd_cad 6_16	 -.0007      -.001
+usd_cad 6_17	 -.0006     -.0014
+
+148 rows selected.
+
+Elapsed: 00:00:01.91
+21:32:15 SQL> 
+21:32:15 SQL> -- Look for CORR():
+21:32:15 SQL> SELECT pair, CORR(avg_npg1,avg_npg2),COUNT(*)FROM hp4aggj GROUP BY pair ORDER BY pair;
+
+PAIR	CORR(AVG_NPG1,AVG_NPG2)   COUNT(*)
+------- ----------------------- ----------
+aud_usd 	     -.07552016 	17
+eur_aud 	     .019908373 	10
+eur_cad 	     .370538104 	 4
+eur_chf 				 1
+eur_gbp 	     -.39393939 	 4
+eur_jpy 	     .309521007 	17
+eur_usd 	     -.77176199 	 7
+gbp_aud 	     -.33146458 	 9
+gbp_cad 	     .019597053 	17
+gbp_chf 	     -.88521062 	 3
+gbp_jpy 	     -.20313421 	23
+gbp_usd 	     -.37881047 	13
+usd_cad 	     .441946077 	 5
+usd_chf 	     -.07536655 	11
+usd_jpy 	     .670944497 	 7
+
+15 rows selected.
+
+Elapsed: 00:00:01.73
+21:32:17 SQL> 
+21:32:17 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options

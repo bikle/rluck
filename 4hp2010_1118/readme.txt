@@ -10,4 +10,4 @@ I keep a copy of the query output here:
 
 https://github.com/bikle/rluck/blob/master/4hp2010_1118/4hp.txt
 
-All of the trades in the above report look attractive.
+
