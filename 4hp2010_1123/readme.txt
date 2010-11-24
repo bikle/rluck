@@ -1,4 +1,4 @@
-4hp2010_1118/readme.txt
+4hp2010_1123/readme.txt
 
 The scripts in this directory are an effort to find a consistent 4 hour period during every week after 2009-01-01 which was lucrative.
 
@@ -8,6 +8,6 @@ For example the string 1_23 would identify a 4 hour period which starts on Sunda
 
 I keep a copy of the query output here:
 
-https://github.com/bikle/rluck/blob/master/4hp2010_1118/4hp.txt
+https://github.com/bikle/rluck/blob/master/4hp2010_1123/4hp.txt
 
 
