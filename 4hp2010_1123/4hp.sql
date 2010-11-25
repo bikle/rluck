@@ -64,15 +64,38 @@ FROM hp410
 GROUP BY pair,dhr
 /
 
--- rpt
--- First, I want more than 2 pips / hr:
-SELECT COUNT(*)FROM hp4agg WHERE avg_npg > 2 * 0.0001 * 4;
+-- I want more than 2 pips / hr:
+SELECT * FROM hp4agg WHERE ABS(avg_npg) > 2 * 0.0001 * 4 ORDER BY dhr,pair;
+
+SELECT dhr,ROUND(SUM(ABS(sum_npg)),4)SUM_npg FROM 
+  (SELECT * FROM hp4agg WHERE ABS(avg_npg) > 2 * 0.0001 * 4)
+GROUP BY dhr ORDER BY dhr
+/
+
+-- I want to see 2010:
+CREATE OR REPLACE VIEW hp4agg2010 AS
+SELECT
+pair,dhr
+,COUNT(npg)count_npg
+,ROUND(MIN(npg),4)min_npg
+,ROUND(AVG(npg),4)avg_npg
+,ROUND(STDDEV(npg),4)stddev_npg
+,ROUND(MAX(npg),4)max_npg
+,ROUND(SUM(npg),4)sum_npg
+FROM hp410
+WHERE ydate > '2010-01-01'
+GROUP BY pair,dhr
+/
+
+-- I want more than 2 pips / hr:
+SELECT * FROM hp4agg2010 WHERE ABS(avg_npg) > 2 * 0.0001 * 4 ORDER BY dhr,pair;
+
+SELECT dhr,ROUND(SUM(ABS(sum_npg)),4)SUM_npg FROM 
+  (SELECT * FROM hp4agg2010 WHERE ABS(avg_npg) > 2 * 0.0001 * 4)
+GROUP BY dhr ORDER BY dhr
+/
 
 exit
 
--- Sort by dhr since I can then easily compare to my calendar:
-SELECT * FROM hp4agg ORDER BY dhr,pair;
-
-exit
 
 
