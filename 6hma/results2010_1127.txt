@@ -1,0 +1,329 @@
+/pt/s/rlk/6hma/results2010_1127.txt
+
+For these pairs:
+  - gbp_usd, usd_chf, usd_jpy
+If stepness is > 3 stddev of ma-slope-distribution
+And ma-slope is > 0
+Then I see a strong correlation with reversion to mean.
+
+usd_cad has a nice value for correlation but avg normalized gain is only 2 pips.
+
+
+Here is a screen dump:
+
+
+oracle@z2:/pt/s/rlk/6hma$ sqt @6hma.sql
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sat Nov 27 10:35:27 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+10:35:27 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+10:35:27 SQL> --
+10:35:27 SQL> -- 6hma.sql
+10:35:27 SQL> --
+10:35:27 SQL> 
+10:35:27 SQL> -- I use this script to help me answer the question,
+10:35:27 SQL> -- Is slope of moving average predictive?
+10:35:27 SQL> 
+10:35:27 SQL> CREATE OR REPLACE VIEW v6hma10 AS
+10:35:27   2  SELECT
+10:35:27   3  pair
+10:35:27   4  -- ydate is granular down to the hour:
+10:35:27   5  ,ydate
+10:35:27   6  ,clse
+10:35:27   7  -- Use analytic function to get moving average1:
+10:35:27   8  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING)ma1_6
+10:35:27   9  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 10 PRECEDING AND 1 PRECEDING)ma1_9
+10:35:27  10  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 13 PRECEDING AND 1 PRECEDING)ma1_12
+10:35:27  11  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 19 PRECEDING AND 1 PRECEDING)ma1_18
+10:35:27  12  -- Use analytic function to get moving average2:
+10:35:27  13  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)ma2_6
+10:35:27  14  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 9 PRECEDING AND CURRENT ROW)ma2_9
+10:35:27  15  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12 PRECEDING AND CURRENT ROW)ma2_12
+10:35:27  16  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 18 PRECEDING AND CURRENT ROW)ma2_18
+10:35:27  17  -- Get ydate 6 hours in the future:
+10:35:27  18  ,LEAD(ydate,6,NULL)OVER(PARTITION BY pair ORDER BY ydate) ydate6
+10:35:27  19  -- Get closing price 6 rows (usually 6 hours) in the future:
+10:35:27  20  ,LEAD(clse,6,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse6
+10:35:27  21  FROM hourly
+10:35:27  22  WHERE ydate >'2007-07-01'
+10:35:27  23  -- Prevent divide by zero:
+10:35:27  24  AND clse > 0
+10:35:27  25  ORDER BY ydate
+10:35:27  26  /
+
+View created.
+
+Elapsed: 00:00:00.05
+10:35:27 SQL> 
+10:35:27 SQL> -- rpt
+10:35:27 SQL> SELECT
+10:35:27   2  pair
+10:35:27   3  ,MIN(ydate)
+10:35:27   4  ,COUNT(ydate)
+10:35:27   5  ,MAX(ydate)
+10:35:27   6  FROM v6hma10
+10:35:27   7  GROUP BY pair
+10:35:27   8  ORDER BY pair
+10:35:27   9  /
+
+PAIR		MIN(YDATE)	    COUNT(YDATE) MAX(YDATE)
+--------------- ------------------- ------------ -------------------
+aud_usd 	2007-07-01 21:00:00	   21503 2010-11-26 21:00:00
+eur_usd 	2007-07-01 21:00:00	   21503 2010-11-26 21:00:00
+gbp_usd 	2007-07-01 21:00:00	   21461 2010-11-26 21:00:00
+usd_cad 	2007-07-01 21:00:00	   21503 2010-11-26 21:00:00
+usd_chf 	2007-07-01 21:00:00	   21503 2010-11-26 21:00:00
+usd_jpy 	2007-07-01 21:00:00	   21503 2010-11-26 21:00:00
+
+6 rows selected.
+
+Elapsed: 00:00:01.71
+10:35:29 SQL> 
+10:35:29 SQL> -- I should see 6 x 6:
+10:35:29 SQL> SELECT pair,COUNT(*)FROM v6hma10 WHERE ydate6 IS NULL GROUP BY pair;
+
+PAIR		  COUNT(*)
+--------------- ----------
+eur_usd 		 6
+gbp_usd 		 6
+usd_jpy 		 6
+aud_usd 		 6
+usd_cad 		 6
+usd_chf 		 6
+
+6 rows selected.
+
+Elapsed: 00:00:01.66
+10:35:31 SQL> SELECT pair,COUNT(*)FROM v6hma10 WHERE clse6 IS NULL GROUP BY pair;
+
+PAIR		  COUNT(*)
+--------------- ----------
+eur_usd 		 6
+gbp_usd 		 6
+usd_jpy 		 6
+aud_usd 		 6
+usd_cad 		 6
+usd_chf 		 6
+
+6 rows selected.
+
+Elapsed: 00:00:01.66
+10:35:32 SQL> 
+10:35:32 SQL> -- I derive "normalized" slope of moving-averages.
+10:35:32 SQL> -- Also, I derive normalized gain.
+10:35:32 SQL> -- I normalize to prevent usd_jpy from skewing my results:
+10:35:32 SQL> CREATE OR REPLACE VIEW v6hma12 AS
+10:35:32   2  SELECT
+10:35:32   3  pair
+10:35:32   4  ,ydate
+10:35:32   5  ,(ma2_6 - ma1_6)/ma1_6	ma6_slope
+10:35:32   6  ,(ma2_9 - ma1_9)/ma1_9	ma9_slope
+10:35:32   7  ,(ma2_12 - ma1_12)/ma1_12 ma12_slope
+10:35:32   8  ,(ma2_18 - ma1_18)/ma1_18 ma18_slope
+10:35:32   9  ,ydate6
+10:35:32  10  ,clse6
+10:35:32  11  ,(clse6 - clse)/clse npg
+10:35:32  12  FROM v6hma10
+10:35:32  13  ORDER BY ydate
+10:35:32  14  /
+
+View created.
+
+Elapsed: 00:00:00.04
+10:35:32 SQL> 
+10:35:32 SQL> -- I derive moving-stddev of slope of moving-averages:
+10:35:32 SQL> CREATE OR REPLACE VIEW v6hma14 AS
+10:35:32   2  SELECT
+10:35:32   3  pair
+10:35:32   4  ,ydate
+10:35:32   5  ,ma6_slope
+10:35:32   6  ,ma9_slope
+10:35:32   7  ,ma12_slope
+10:35:32   8  ,ma18_slope
+10:35:32   9  ,ydate6
+10:35:32  10  ,clse6
+10:35:32  11  ,npg
+10:35:32  12  ,STDDEV(ma6_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)stddev6
+10:35:32  13  ,STDDEV(ma9_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)stddev9
+10:35:32  14  ,STDDEV(ma12_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)stddev12
+10:35:32  15  ,STDDEV(ma18_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)stddev18
+10:35:32  16  FROM v6hma12
+10:35:32  17  ORDER BY ydate
+10:35:32  18  /
+
+View created.
+
+Elapsed: 00:00:00.06
+10:35:32 SQL> 
+10:35:32 SQL> -- I derive steepness indicator from stddev:
+10:35:32 SQL> CREATE OR REPLACE VIEW v6hma AS
+10:35:32   2  SELECT
+10:35:32   3  pair
+10:35:32   4  ,ydate
+10:35:32   5  ,ma6_slope
+10:35:32   6  ,ma9_slope
+10:35:32   7  ,ma12_slope
+10:35:32   8  ,ma18_slope
+10:35:32   9  ,ydate6
+10:35:32  10  ,clse6
+10:35:32  11  ,npg
+10:35:32  12  ,stddev6
+10:35:32  13  ,stddev9
+10:35:32  14  ,stddev12
+10:35:32  15  ,stddev18
+10:35:32  16  -- 1 is normal steepness, 3 is very steep (and rare):
+10:35:32  17  ,CASE WHEN ABS(ma6_slope) < stddev6 THEN 1
+10:35:32  18  	    WHEN ABS(ma6_slope)BETWEEN stddev6 AND 2*stddev6 THEN 2
+10:35:32  19  	    WHEN ABS(ma6_slope)>2*stddev6 THEN 3 END steepness
+10:35:32  20  FROM v6hma14
+10:35:32  21  ORDER BY ydate
+10:35:32  22  /
+
+View created.
+
+Elapsed: 00:00:00.07
+10:35:32 SQL> 
+10:35:32 SQL> -- Now I can run some interesting queries:
+10:35:32 SQL> 
+10:35:32 SQL> -- Is ma_slope correlated with npg?
+10:35:32 SQL> SELECT
+10:35:32   2  pair
+10:35:32   3  ,CORR(ma6_slope,npg)
+10:35:32   4  ,COUNT(npg)
+10:35:32   5  FROM v6hma
+10:35:32   6  WHERE steepness > 0
+10:35:32   7  GROUP BY pair
+10:35:32   8  ORDER BY pair
+10:35:32   9  /
+
+PAIR		CORR(MA6_SLOPE,NPG) COUNT(NPG)
+--------------- ------------------- ----------
+aud_usd 		 -.12177776	 21496
+eur_usd 		 -.05866147	 21496
+gbp_usd 		 -.09509634	 21454
+usd_cad 		 -.14049934	 21496
+usd_chf 		 -.19955198	 21496
+usd_jpy 		 -.21821683	 21496
+
+6 rows selected.
+
+Elapsed: 00:00:04.18
+10:35:37 SQL> 
+10:35:37 SQL> -- Does CORR() change as steepness gets large?
+10:35:37 SQL> SELECT
+10:35:37   2  steepness
+10:35:37   3  ,pair
+10:35:37   4  ,CORR(ma6_slope,npg)
+10:35:37   5  ,COUNT(npg)
+10:35:37   6  FROM v6hma
+10:35:37   7  WHERE steepness > 0
+10:35:37   8  GROUP BY steepness,pair
+10:35:37   9  ORDER BY steepness,pair
+10:35:37  10  /
+
+ STEEPNESS PAIR 	   CORR(MA6_SLOPE,NPG) COUNT(NPG)
+---------- --------------- ------------------- ----------
+	 1 aud_usd		    .000684493	    16482
+	 1 eur_usd		    .015269642	    15215
+	 1 gbp_usd		    .003354846	    15328
+	 1 usd_cad		    -.00479342	    16072
+	 1 usd_chf		    -.01226017	    15926
+	 1 usd_jpy		    .004148338	    16391
+	 2 aud_usd		    .008480576	     3827
+	 2 eur_usd		     .00694605	     4444
+	 2 gbp_usd		     .00431562	     4338
+	 2 usd_cad		    -.05428783	     4007
+	 2 usd_chf		    .001372149	     4018
+	 2 usd_jpy		    -.01334937	     3905
+	 3 aud_usd		    -.28980065	     1187
+	 3 eur_usd		    -.18411995	     1837
+	 3 gbp_usd		    -.28537146	     1788
+	 3 usd_cad		     -.3612161	     1417
+	 3 usd_chf		    -.48757778	     1552
+	 3 usd_jpy		    -.52372856	     1200
+
+18 rows selected.
+
+Elapsed: 00:00:04.15
+10:35:41 SQL> 
+10:35:41 SQL> -- When steepness < 3 npg lacks CORR() with slope.
+10:35:41 SQL> -- But, Negative-CORR() seems noticeable when steepness is 3.
+10:35:41 SQL> -- Take a closer look at steepness of 3.
+10:35:41 SQL> -- Sign of slope seems like an obvious place to start:
+10:35:41 SQL> SELECT
+10:35:41   2  pair
+10:35:41   3  ,SIGN(ma6_slope)sgn
+10:35:41   4  ,CORR(ma6_slope,npg)
+10:35:41   5  ,AVG(npg)
+10:35:41   6  ,COUNT(npg)
+10:35:41   7  ,MIN(npg)
+10:35:41   8  ,STDDEV(npg)
+10:35:41   9  ,MAX(npg)
+10:35:41  10  FROM v6hma
+10:35:41  11  WHERE steepness = 3
+10:35:41  12  GROUP BY SIGN(ma6_slope),pair
+10:35:41  13  ORDER BY SIGN(ma6_slope),pair
+10:35:41  14  /
+
+PAIR		       SGN CORR(MA6_SLOPE,NPG)	 AVG(NPG) COUNT(NPG)   MIN(NPG) STDDEV(NPG)   MAX(NPG)
+--------------- ---------- ------------------- ---------- ---------- ---------- ----------- ----------
+aud_usd 		-1	    -.63653898 .000505466	 698 -.06896024  .019273389 .284303534
+eur_usd 		-1	    -.63843932 -.00002485	 932 -.01844185  .007352378 .127316347
+gbp_usd 		-1	    -.09110891 -.00045755	 974  -.0382598  .006280594 .026770157
+usd_cad 		-1	    -.05385055 -.00002231	 663 -.03560642  .005021075 .023034766
+usd_chf 		-1	    -.01316499 -.00024255	 800  -.0268932  .005283773 .029497569
+usd_jpy 		-1	    -.07121535	.00055565	 646 -.04836696  .007186992 .029620724
+aud_usd 		 1	    -.02013641 -.00029666	 489 -.04513526  .010648209 .042253521
+eur_usd 		 1	    -.04680247 .000251453	 905 -.02345202  .005161699  .03039719
+gbp_usd 		 1	    -.69250393 -.00122865	 814 -.12391078  .007665188 .014641995
+usd_cad 		 1	    -.80536544 -.00020405	 754 -.17425839  .010689525  .01985599
+usd_chf 		 1	    -.90198563 -.00082224	 752 -.21914476  .011957021 .018206339
+usd_jpy 		 1	    -.91377949 -.00113675	 554 -.23420449  .015028361 .038140021
+
+12 rows selected.
+
+Elapsed: 00:00:03.90
+10:35:45 SQL> 
+10:35:45 SQL> -- This query shows a subset of the above query but makes it more readable:
+10:35:45 SQL> SELECT
+10:35:45   2  pair
+10:35:45   3  ,ROUND(AVG(npg),4)avg_n_gain
+10:35:45   4  ,ROUND(CORR(ma6_slope,npg),1)Slope_Gain_Correlation
+10:35:45   5  ,COUNT(npg)Rec_count
+10:35:45   6  FROM v6hma
+10:35:45   7  WHERE steepness = 3
+10:35:45   8  AND SIGN(ma6_slope) = 1
+10:35:45   9  GROUP BY pair
+10:35:45  10  ORDER BY pair
+10:35:45  11  /
+
+PAIR		AVG_N_GAIN SLOPE_GAIN_CORRELATION  REC_COUNT
+--------------- ---------- ---------------------- ----------
+aud_usd 	    -.0003			0	 489
+eur_usd 	     .0003			0	 905
+gbp_usd 	    -.0012		      -.7	 814
+usd_cad 	    -.0002		      -.8	 754
+usd_chf 	    -.0008		      -.9	 752
+usd_jpy 	    -.0011		      -.9	 554
+
+6 rows selected.
+
+Elapsed: 00:00:03.86
+10:35:48 SQL> 
+10:35:48 SQL> 
+10:35:48 SQL> 
+10:35:48 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z2:/pt/s/rlk/6hma$ 
