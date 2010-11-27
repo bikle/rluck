@@ -10,7 +10,7 @@
 -- Notice that I pass in ydate on the command line.
 -- Demo: @score1hr.sql  2010-01-01 01:00:00
 
--- I start buy building a view which holds the 1 row I want to score:
+-- I start by building a view which holds the 1 row I want to score:
 CREATE OR REPLACE VIEW sme AS
 SELECT
 'aud_usd'||ydate prdate
