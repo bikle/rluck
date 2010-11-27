@@ -33,14 +33,12 @@ pair
 ,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse4
 ,LEAD(clse,6,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse6
 ,LEAD(clse,8,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse8
-FROM hourly 
+FROM h15c
 WHERE ydate >'2009-01-01'
 -- Prevent divide by zero:
 AND clse > 0
 ORDER BY ydate
 /
-
-
 
 -- I should see 6 x 6:
 SELECT pair,COUNT(*)FROM v468hma10 WHERE ydate6 IS NULL GROUP BY pair;

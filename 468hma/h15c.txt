@@ -1,0 +1,199 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sat Nov 27 20:28:14 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+20:28:14 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+20:28:14 SQL> 20:28:14 SQL> --
+20:28:14 SQL> -- h15c.sql
+20:28:14 SQL> --
+20:28:14 SQL> 
+20:28:14 SQL> -- I use this script to generate prices for 9 additional pairs from my original 6 pairs.
+20:28:14 SQL> -- I know the prices are good because if they were bad,
+20:28:14 SQL> -- traders with fast market connections would make them good using arbitrage trades.
+20:28:14 SQL> 
+20:28:14 SQL> 
+20:28:14 SQL> -- I start by creating h15c with the eur_gbp pair:
+20:28:14 SQL> DROP TABLE h15c;
+
+Table dropped.
+
+Elapsed: 00:00:00.57
+20:28:15 SQL> CREATE TABLE h15c COMPRESS AS
+20:28:15   2  SELECT 'eur_gbp' pair,e.ydate,e.clse/g.clse clse
+20:28:15   3  FROM hourly e, hourly g
+20:28:15   4  WHERE e.pair = 'eur_usd' AND g.pair = 'gbp_usd'
+20:28:15   5  AND e.ydate = g.ydate
+20:28:15   6  /
+
+Table created.
+
+Elapsed: 00:00:00.27
+20:28:15 SQL> 
+20:28:15 SQL> -- rpt
+20:28:15 SQL> SELECT MIN(ydate),COUNT(*),MAX(ydate)FROM hourly WHERE pair = 'eur_usd';
+
+MIN(YDATE)	      COUNT(*) MAX(YDATE)
+------------------- ---------- -------------------
+2007-06-06 06:00:00	 21930 2010-11-26 21:00:00
+
+Elapsed: 00:00:00.01
+20:28:15 SQL> SELECT MIN(ydate),COUNT(*),MAX(ydate)FROM hourly WHERE pair = 'gbp_usd';
+
+MIN(YDATE)	      COUNT(*) MAX(YDATE)
+------------------- ---------- -------------------
+2007-06-06 10:00:00	 21884 2010-11-26 21:00:00
+
+Elapsed: 00:00:00.02
+20:28:15 SQL> SELECT MIN(ydate),COUNT(*),MAX(ydate)FROM h15c;
+
+MIN(YDATE)	      COUNT(*) MAX(YDATE)
+------------------- ---------- -------------------
+2007-06-06 10:00:00	 21884 2010-11-26 21:00:00
+
+Elapsed: 00:00:00.01
+20:28:15 SQL> 
+20:28:15 SQL> -- Mix-in the eur_aud pair:
+20:28:15 SQL> INSERT INTO h15c(pair,ydate,clse)
+20:28:15   2  SELECT 'eur_aud' pair, e.ydate, e.clse/a.clse clse
+20:28:15   3  FROM hourly e, hourly a
+20:28:15   4  WHERE e.pair = 'eur_usd' AND a.pair = 'aud_usd'
+20:28:15   5  AND e.ydate = a.ydate
+20:28:15   6  /
+
+21930 rows created.
+
+Elapsed: 00:00:00.07
+20:28:15 SQL> 
+20:28:15 SQL> -- Mix-in the eur_jpy pair:
+20:28:15 SQL> 
+20:28:15 SQL> INSERT INTO h15c(pair,ydate,clse)
+20:28:15   2  SELECT 'eur_jpy' pair, e.ydate, e.clse*j.clse clse
+20:28:15   3  FROM hourly e, hourly j
+20:28:15   4  WHERE e.pair = 'eur_usd' AND j.pair = 'usd_jpy'
+20:28:15   5  AND e.ydate = j.ydate
+20:28:15   6  /
+
+21930 rows created.
+
+Elapsed: 00:00:00.09
+20:28:15 SQL> 
+20:28:15 SQL> -- Mix-in the eur_cad pair:
+20:28:15 SQL> INSERT INTO h15c(pair,ydate,clse)
+20:28:15   2  SELECT 'eur_cad' pair, e.ydate, e.clse*c.clse clse
+20:28:15   3  FROM hourly e, hourly c
+20:28:15   4  WHERE e.pair = 'eur_usd' AND c.pair = 'usd_cad'
+20:28:15   5  AND e.ydate = c.ydate
+20:28:15   6  /
+
+21930 rows created.
+
+Elapsed: 00:00:00.06
+20:28:15 SQL> 
+20:28:15 SQL> -- Mix-in the eur_chf pair:
+20:28:15 SQL> INSERT INTO h15c(pair,ydate,clse)
+20:28:15   2  SELECT 'eur_chf' pair, e.ydate, e.clse*c.clse clse
+20:28:15   3  FROM hourly e, hourly c
+20:28:15   4  WHERE e.pair = 'eur_usd' AND c.pair = 'usd_chf'
+20:28:15   5  AND e.ydate = c.ydate
+20:28:15   6  /
+
+21930 rows created.
+
+Elapsed: 00:00:00.07
+20:28:15 SQL> 
+20:28:15 SQL> -- Mix-in the gbp_aud pair:
+20:28:15 SQL> INSERT INTO h15c(pair,ydate,clse)
+20:28:15   2  SELECT 'gbp_aud' pair, g.ydate, g.clse/a.clse clse
+20:28:15   3  FROM hourly g, hourly a
+20:28:15   4  WHERE g.pair = 'gbp_usd' AND a.pair = 'aud_usd'
+20:28:15   5  AND g.ydate = a.ydate
+20:28:15   6  /
+
+21884 rows created.
+
+Elapsed: 00:00:00.08
+20:28:15 SQL> 
+20:28:15 SQL> -- Mix-in the gbp_jpy pair:
+20:28:15 SQL> INSERT INTO h15c(pair,ydate,clse)
+20:28:15   2  SELECT 'gbp_jpy' pair, g.ydate, g.clse*j.clse clse
+20:28:15   3  FROM hourly g, hourly j
+20:28:15   4  WHERE g.pair = 'gbp_usd' AND j.pair = 'usd_jpy'
+20:28:15   5  AND g.ydate = j.ydate
+20:28:15   6  /
+
+21884 rows created.
+
+Elapsed: 00:00:00.07
+20:28:15 SQL> 
+20:28:15 SQL> -- Mix-in the gbp_cad pair:
+20:28:15 SQL> INSERT INTO h15c(pair,ydate,clse)
+20:28:15   2  SELECT 'gbp_cad' pair, g.ydate, g.clse*c.clse clse
+20:28:15   3  FROM hourly g, hourly c
+20:28:15   4  WHERE g.pair = 'gbp_usd' AND c.pair = 'usd_cad'
+20:28:15   5  AND g.ydate = c.ydate
+20:28:15   6  /
+
+21884 rows created.
+
+Elapsed: 00:00:00.07
+20:28:15 SQL> 
+20:28:15 SQL> -- Mix-in the gbp_chf pair:
+20:28:15 SQL> INSERT INTO h15c(pair,ydate,clse)
+20:28:15   2  SELECT 'gbp_chf' pair, g.ydate, g.clse*c.clse clse
+20:28:15   3  FROM hourly g, hourly c
+20:28:15   4  WHERE g.pair = 'gbp_usd' AND c.pair = 'usd_chf'
+20:28:15   5  AND g.ydate = c.ydate
+20:28:15   6  /
+
+21884 rows created.
+
+Elapsed: 00:00:00.07
+20:28:15 SQL> 
+20:28:15 SQL> -- Now I need to copy in the source data:
+20:28:15 SQL> INSERT INTO h15c(pair,ydate,clse)
+20:28:15   2  SELECT	       pair,ydate,clse
+20:28:15   3  FROM hourly
+20:28:15   4  /
+
+138247 rows created.
+
+Elapsed: 00:00:00.15
+20:28:16 SQL> 
+20:28:16 SQL> --rpt
+20:28:16 SQL> SELECT pair,MIN(ydate),COUNT(*),MAX(ydate)FROM h15c GROUP BY pair;
+
+PAIR	MIN(YDATE)	      COUNT(*) MAX(YDATE)
+------- ------------------- ---------- -------------------
+gbp_jpy 2007-06-06 10:00:00	 21884 2010-11-26 21:00:00
+eur_aud 2007-06-06 06:00:00	 21930 2010-11-26 21:00:00
+eur_jpy 2007-06-06 06:00:00	 21930 2010-11-26 21:00:00
+usd_cad 2007-02-27 19:00:00	 23596 2010-11-26 21:00:00
+usd_chf 2007-02-28 13:00:00	 23596 2010-11-26 21:00:00
+gbp_usd 2007-06-06 10:00:00	 21884 2010-11-26 21:00:00
+eur_usd 2007-06-06 06:00:00	 21930 2010-11-26 21:00:00
+usd_jpy 2007-02-26 12:00:00	 23645 2010-11-26 21:00:00
+eur_gbp 2007-06-06 10:00:00	 21884 2010-11-26 21:00:00
+gbp_chf 2007-06-06 10:00:00	 21884 2010-11-26 21:00:00
+aud_usd 2007-02-27 19:00:00	 23596 2010-11-26 21:00:00
+gbp_cad 2007-06-06 10:00:00	 21884 2010-11-26 21:00:00
+gbp_aud 2007-06-06 10:00:00	 21884 2010-11-26 21:00:00
+eur_cad 2007-06-06 06:00:00	 21930 2010-11-26 21:00:00
+eur_chf 2007-06-06 06:00:00	 21930 2010-11-26 21:00:00
+
+15 rows selected.
+
+Elapsed: 00:00:00.15
+20:28:16 SQL> 
+20:28:16 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
