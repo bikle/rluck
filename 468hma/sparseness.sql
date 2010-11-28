@@ -2,14 +2,17 @@
 -- sparseness.sql
 --
 
--- I use this query to help me see the frequency of r2m when ma-slope is very steep.
+-- I use this query to help me see the sparseness of r2m when:
+-- ma-slope is very steep
+-- and data is recent
 
+-- stddev4, npg4:
 SELECT
 ydate
 ,pair
 ,npg4
-FROM v468hma14
-WHERE pair IN('aud_usd','eur_gbp')
+FROM v468hma
+WHERE pair LIKE'%jpy'
 AND sgn4 = -1
 AND ABS(ma4_slope) > 2.1*stddev4
 AND ydate > sysdate -66
@@ -20,52 +23,119 @@ SELECT
 pair
 ,SUM(npg4)
 ,AVG(npg4)
-FROM v468hma14
-WHERE pair IN('aud_usd','eur_gbp')
+FROM v468hma
+WHERE pair LIKE'%jpy'
 AND sgn4 = -1
 AND ABS(ma4_slope) > 2.1*stddev4
 AND ydate > sysdate -66
 GROUP BY pair
 /
 
+
+-- stddev6, npg4:
+
 SELECT
 ydate
-,AVG(npg4)
-,SUM(npg4)
-,COUNT(npg4)
-FROM v468hma14
-WHERE pair IN
-('eur_aud','eur_chf','gbp_aud','gbp_cad','gbp_chf','gbp_jpy','gbp_usd','usd_cad','usd_chf','usd_jpy')
-AND sgn4 = 1
-AND ABS(ma4_slope) > 2.1*stddev4
+,pair
+,npg4
+FROM v468hma
+WHERE pair LIKE'%jpy'
+AND sgn6 = -1
+AND ABS(ma6_slope) > 2.1*stddev6
 AND ydate > sysdate -66
-GROUP BY ydate
-ORDER BY ydate
+ORDER BY ydate,pair
 /
 
 SELECT
 pair
 ,SUM(npg4)
 ,AVG(npg4)
-FROM v468hma14
-WHERE pair IN
-('eur_aud','eur_chf','gbp_aud','gbp_cad','gbp_chf','gbp_jpy','gbp_usd','usd_cad','usd_chf','usd_jpy')
-AND sgn4 = 1
-AND ABS(ma4_slope) > 2.1*stddev4
+FROM v468hma
+WHERE pair LIKE'%jpy'
+AND sgn6 = -1
+AND ABS(ma6_slope) > 2.1*stddev6
 AND ydate > sysdate -66
 GROUP BY pair
-ORDER BY pair
+/
+
+
+-- stddev8, npg4:
+
+SELECT
+ydate
+,pair
+,npg4
+FROM v468hma
+WHERE pair LIKE'%jpy'
+AND sgn8 = -1
+AND ABS(ma8_slope) > 2.1*stddev8
+AND ydate > sysdate -66
+ORDER BY ydate,pair
 /
 
 SELECT
-SUM(npg4)
+pair
+,SUM(npg4)
 ,AVG(npg4)
-FROM v468hma14
-WHERE pair IN
-('eur_aud','eur_chf','gbp_aud','gbp_cad','gbp_chf','gbp_jpy','gbp_usd','usd_cad','usd_chf','usd_jpy')
-AND sgn4 = 1
-AND ABS(ma4_slope) > 2.1*stddev4
+FROM v468hma
+WHERE pair LIKE'%jpy'
+AND sgn8 = -1
+AND ABS(ma8_slope) > 2.1*stddev8
 AND ydate > sysdate -66
+GROUP BY pair
+/
+
+-- stddev6, npg6:
+
+SELECT
+ydate
+,pair
+,npg6
+FROM v468hma
+WHERE pair LIKE'%jpy'
+AND sgn6 = -1
+AND ABS(ma6_slope) > 2.1*stddev6
+AND ydate > sysdate -66
+ORDER BY ydate,pair
+/
+
+SELECT
+pair
+,SUM(npg6)
+,AVG(npg6)
+FROM v468hma
+WHERE pair LIKE'%jpy'
+AND sgn6 = -1
+AND ABS(ma6_slope) > 2.1*stddev6
+AND ydate > sysdate -66
+GROUP BY pair
+/
+
+-- stddev8, npg6:
+
+SELECT
+ydate
+,pair
+,npg6
+FROM v468hma
+WHERE pair LIKE'%jpy'
+AND sgn8 = -1
+AND ABS(ma8_slope) > 2.1*stddev8
+AND ydate > sysdate -66
+ORDER BY ydate,pair
+/
+
+SELECT
+pair
+,SUM(npg6)
+,AVG(npg6)
+FROM v468hma
+WHERE pair LIKE'%jpy'
+AND sgn8 = -1
+AND ABS(ma8_slope) > 2.1*stddev8
+AND ydate > sysdate -66
+GROUP BY pair
 /
 
 exit
+
