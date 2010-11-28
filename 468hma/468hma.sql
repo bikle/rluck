@@ -40,13 +40,9 @@ AND clse > 0
 ORDER BY ydate
 /
 
--- I should see 6 x 6:
-SELECT pair,COUNT(*)FROM v468hma10 WHERE ydate6 IS NULL GROUP BY pair;
--- I should see 6 x 6:
-SELECT pair,COUNT(*)FROM v468hma10 WHERE clse6 IS NULL GROUP BY pair;
-
--- I derive "normalized" slope of moving-averages:
-CREATE OR REPLACE VIEW v468hma AS
+-- I derive "normalized" slope of moving-averages.
+-- I normalize them to help me compare JPY pairs to all the other pairs:
+CREATE OR REPLACE VIEW v468hma12 AS
 SELECT
 pair
 ,ydate
@@ -62,12 +58,42 @@ pair
 ,clse4
 ,clse6
 ,clse8
+-- I collect normalized gains too:
 ,(clse4 - clse)/clse npg4
 ,(clse6 - clse)/clse npg6
 ,(clse8 - clse)/clse npg8
 FROM v468hma10
 ORDER BY ydate
 /
+
+-- Now that I have ma-slopes, I calculate stddev of their distributions:
+
+CREATE OR REPLACE VIEW v468hma AS
+SELECT
+pair
+,ydate
+,ma4_slope
+,ma6_slope
+,ma8_slope
+,ma9_slope
+,ma12_slope
+,ma18_slope
+,npg4
+,npg6
+,npg8
+,STDDEV(ma4_slope)OVER(PARTITION BY pair)stddev4
+,STDDEV(ma6_slope)OVER(PARTITION BY pair)stddev6
+,STDDEV(ma8_slope)OVER(PARTITION BY pair)stddev8
+-- Sign of slope is a useful attribute:
+,SIGN(ma4_slope)sgn4
+,SIGN(ma6_slope)sgn6
+,SIGN(ma8_slope)sgn8
+FROM v468hma12
+ORDER BY ydate
+/
+
+-- Now, I have all the data I need.
+-- Start by looking at CORR() between ma-slope and gain:
 
 -- Is ma_slope correlated with npg4?
 COLUMN pair FORMAT A7
@@ -116,226 +142,109 @@ GROUP BY pair
 ORDER BY pair
 /
 
+-- Now look at very steep ma-slopes and associated gains:
 
--- Look at ma4_slope and npg4,6,8:
-SELECT
-pair
-,nt74
-,AVG(ma4_slope)avg_ma4s
-,AVG(npg4)avg_npg4
-,AVG(npg6)avg_npg6
-,AVG(npg8)avg_npg8
-,COUNT(pair)
-,STDDEV(npg4)stddev_npg4
-FROM
+-- stddev4, npg4:
+SELECT * FROM
 (
   SELECT
-  pair
-  ,NTILE(7) OVER (PARTITION BY pair ORDER BY (ma4_slope))nt74
-  ,ma4_slope
-  ,npg4,npg6,npg8
+  sgn4
+  ,pair
+  ,AVG(npg4)avg_npg4
+  ,CORR(ma4_slope,npg4)crr44
+  ,COUNT(ydate)
+  ,MIN(ydate)
+  ,MAX(ydate)
   FROM v468hma
+  WHERE ABS(ma4_slope) > 2.1*stddev4
+  GROUP BY sgn4,pair
+  ORDER BY sgn4,pair
 )
-GROUP BY pair,nt74
-ORDER BY pair,nt74
+WHERE ABS(avg_npg4) > 4 * 0.0002
+AND sgn4 * avg_npg4 * crr44 > 0
+AND crr44 < 0
 /
 
-
--- Look at ma8_slope and npg4,6,8:
-SELECT
-pair
-,nt74
-,AVG(ma8_slope)avg_ma8s
-,AVG(npg4)avg_npg4
-,AVG(npg6)avg_npg6
-,AVG(npg8)avg_npg8
-,COUNT(pair)
-,STDDEV(npg4)stddev_npg4
-FROM
+-- stddev6, npg4:
+SELECT * FROM
 (
   SELECT
-  pair
-  ,NTILE(7) OVER (PARTITION BY pair ORDER BY (ma8_slope))nt74
-  ,ma8_slope
-  ,npg4,npg6,npg8
+  sgn6
+  ,pair
+  ,AVG(npg4)avg_npg4
+  ,CORR(ma6_slope,npg4)crr64
+  ,COUNT(ydate)
+  ,MIN(ydate)
+  ,MAX(ydate)
   FROM v468hma
+  WHERE ABS(ma6_slope) > 2.1*stddev6
+  GROUP BY sgn6,pair
+  ORDER BY sgn6,pair
 )
-GROUP BY pair,nt74
-ORDER BY pair,nt74
+WHERE ABS(avg_npg4) > 4 * 0.0002
+AND sgn6 * avg_npg4 * crr64 > 0
+AND crr64 < 0
 /
 
-
--- Instead of using NTILE() to categorize ma-slope,
--- I use 3 std-deviations ma-slope.
-
-
-CREATE OR REPLACE VIEW v468hma12 AS
-SELECT
-pair
-,ydate
-,(ma2_4 - ma1_4)/ma1_4 ma4_slope
-,(ma2_6 - ma1_6)/ma1_6 ma6_slope
-,(ma2_8 - ma1_8)/ma1_8 ma8_slope
-,(ma2_9 - ma1_9)/ma1_9 ma9_slope
-,(ma2_12 - ma1_12)/ma1_12 ma12_slope
-,(ma2_18 - ma1_18)/ma1_18 ma18_slope
-,ydate4
-,ydate6
-,ydate8
-,clse4
-,clse6
-,clse8
-,(clse4 - clse)/clse npg4
-,(clse6 - clse)/clse npg6
-,(clse8 - clse)/clse npg8
-FROM v468hma10
-ORDER BY ydate
+-- stddev8, npg4:
+SELECT * FROM
+(
+  SELECT
+  sgn8
+  ,pair
+  ,AVG(npg4)avg_npg4
+  ,CORR(ma8_slope,npg4)crr84
+  ,COUNT(ydate)
+  ,MIN(ydate)
+  ,MAX(ydate)
+  FROM v468hma
+  WHERE ABS(ma8_slope) > 2.1*stddev8
+  GROUP BY sgn8,pair
+  ORDER BY sgn8,pair
+)
+WHERE ABS(avg_npg4) > 4 * 0.0002
+AND sgn8 * avg_npg4 * crr84 > 0
+AND crr84 < 0
 /
 
-CREATE OR REPLACE VIEW v468hma14 AS
-SELECT
-pair
-,ydate
-,ma4_slope
-,ma6_slope
-,ma8_slope
-,ma9_slope
-,ma12_slope
-,ma18_slope
-,ydate4
-,ydate6
-,ydate8
-,clse4
-,clse6
-,clse8
-,npg4
-,npg6
-,npg8
-,STDDEV(ma4_slope)OVER(PARTITION BY pair)stddev4
-,STDDEV(ma6_slope)OVER(PARTITION BY pair)stddev6
-,STDDEV(ma8_slope)OVER(PARTITION BY pair)stddev8
-,SIGN(ma4_slope)sgn4
-,SIGN(ma6_slope)sgn6
-,SIGN(ma8_slope)sgn8
-FROM v468hma12
-ORDER BY ydate
+-- stddev6, npg6:
+SELECT * FROM
+(
+  SELECT
+  sgn6
+  ,pair
+  ,AVG(npg6)avg_npg6
+  ,CORR(ma6_slope,npg6)crr66
+  ,COUNT(ydate)
+  ,MIN(ydate)
+  ,MAX(ydate)
+  FROM v468hma
+  WHERE ABS(ma6_slope) > 2.1*stddev6
+  GROUP BY sgn6,pair
+  ORDER BY sgn6,pair
+)
+WHERE ABS(avg_npg6) > 9 * 0.0001
+AND sgn6 * avg_npg6 * crr66 > 0
 /
 
---rpt
--- I should see min as the same as max:
-SELECT
-pair
-,MIN(stddev4),MAX(stddev4)
-,MIN(stddev6),MAX(stddev6)
-,MIN(stddev8),MAX(stddev8)
-FROM v468hma14
-GROUP BY pair
-/
-
--- Look at steep slopes:
-CREATE OR REPLACE VIEW v468hma16 AS
-SELECT
-pair
-,ydate
-,ma4_slope
-,ma6_slope
-,ma8_slope
-,ma9_slope
-,ma12_slope
-,ma18_slope
-,ydate4
-,ydate6
-,ydate8
-,clse4
-,clse6
-,clse8
-,npg4
-,npg6
-,npg8
-,sgn4
-,sgn6
-,sgn8
-,STDDEV(ma4_slope)OVER(PARTITION BY pair)stddev4
-,STDDEV(ma6_slope)OVER(PARTITION BY pair)stddev6
-,STDDEV(ma8_slope)OVER(PARTITION BY pair)stddev8
-FROM v468hma14
-ORDER BY ydate
-/
-
-
--- npg4, stddev4:
-SELECT
-sgn4
-,pair
-,AVG(npg4)
-,CORR(ma4_slope,npg4)crr4
-,COUNT(ydate)
-,MIN(ydate)
-,MAX(ydate)
-FROM v468hma14
-WHERE ABS(ma4_slope) > 2.1*stddev4
-GROUP BY sgn4,pair
-ORDER BY sgn4,pair
-/
-
--- npg4, stddev6:
-SELECT
-sgn6
-,pair
-,AVG(npg4)
-,CORR(ma6_slope,npg4)crr4
-,COUNT(ydate)
-,MIN(ydate)
-,MAX(ydate)
-FROM v468hma14
-WHERE ABS(ma6_slope) > 2.1*stddev6
-GROUP BY sgn6,pair
-ORDER BY sgn6,pair
-/
-
--- npg4, stddev8:
-SELECT
-sgn8
-,pair
-,AVG(npg4)
-,CORR(ma8_slope,npg4)crr4
-,COUNT(ydate)
-,MIN(ydate)
-,MAX(ydate)
-FROM v468hma14
-WHERE ABS(ma8_slope) > 2.1*stddev8
-GROUP BY sgn8,pair
-ORDER BY sgn8,pair
-/
-
--- npg6, stddev6:
-SELECT
-sgn6
-,pair
-,AVG(npg6)
-,CORR(ma6_slope,npg6)crr6
-,COUNT(ydate)
-,MIN(ydate)
-,MAX(ydate)
-FROM v468hma14
-WHERE ABS(ma6_slope) > 2.1*stddev6
-GROUP BY sgn6,pair
-ORDER BY sgn6,pair
-/
-
--- npg6, stddev8:
-SELECT
-sgn8
-,pair
-,AVG(npg6)
-,CORR(ma8_slope,npg6)crr6
-,COUNT(ydate)
-,MIN(ydate)
-,MAX(ydate)
-FROM v468hma14
-WHERE ABS(ma8_slope) > 2.1*stddev8
-GROUP BY sgn8,pair
-ORDER BY sgn8,pair
+-- stddev8, npg6:
+SELECT * FROM
+(
+  SELECT
+  sgn8
+  ,pair
+  ,AVG(npg6)avg_npg6
+  ,CORR(ma8_slope,npg6)crr86
+  ,COUNT(ydate)
+  ,MIN(ydate)
+  ,MAX(ydate)
+  FROM v468hma
+  WHERE ABS(ma8_slope) > 2.1*stddev8
+  GROUP BY sgn8,pair
+  ORDER BY sgn8,pair
+)
+WHERE ABS(avg_npg6) > 9 * 0.0001
+AND sgn8 * avg_npg6 * crr86 > 0
 /
 
 exit
