@@ -1,0 +1,98 @@
+/pt/s/rlk/svm4man/results2010_1128.txt
+
+usd_chf in the report below shows a little bit of promise.
+
+An average 7 pips per 4 hour period would be enough to make me happy.
+
+It has a stddev of 0.016419178 which seems suspicious.
+
+
+23:25:26 SQL> -- score_j_model.sql
+23:25:26 SQL> --
+23:25:26 SQL> 
+23:25:26 SQL> -- I use this script to join the score table with the model source so I can gauge the effectiveness of SVM.
+23:25:26 SQL> 
+23:25:26 SQL> -- See what I have to work with:
+23:25:26 SQL> SELECT MIN(ydate),MAX(ydate), COUNT(npg),AVG(npg)FROM svm4ms;
+
+MIN(YDATE)	    MAX(YDATE)		COUNT(NPG)   AVG(NPG)
+------------------- ------------------- ---------- ----------
+2009-01-01 01:00:00 2010-11-26 21:00:00      71922 .000013322
+
+Elapsed: 00:00:01.50
+23:25:27 SQL> 
+23:25:27 SQL> SELECT COUNT(score),AVG(score)FROM svm4scores;
+
+COUNT(SCORE) AVG(SCORE)
+------------ ----------
+       24948 .314638672
+
+Elapsed: 00:00:00.04
+23:25:27 SQL> 
+23:25:27 SQL> CREATE OR REPLACE VIEW score_j_model AS
+23:25:27   2  SELECT pair,ydate,m.prdate,score,npg FROM svm4scores s, svm4ms m
+23:25:27   3  WHERE s.prdate = m.prdate
+23:25:27   4  /
+
+View created.
+
+Elapsed: 00:00:00.04
+23:25:27 SQL> 
+23:25:27 SQL> SELECT
+23:25:27   2  pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg)
+23:25:27   3  ,MIN(ydate),MAX(ydate)
+23:25:27   4  FROM score_j_model GROUP BY pair;
+
+PAIR		COUNT(SCORE) CORR(SCORE,NPG)   AVG(NPG)   SUM(NPG) MIN(YDATE)	       MAX(YDATE)
+--------------- ------------ --------------- ---------- ---------- ------------------- -------------------
+eur_usd 		4158	  .009588184 -7.193E-06 -.02988094 2010-04-01 01:00:00 2010-11-26 21:00:00
+gbp_usd 		4158	  -.02218545 .000037242 .154704835 2010-04-01 01:00:00 2010-11-26 21:00:00
+usd_jpy 		4158	  .010063197 -.00006206 -.25778329 2010-04-01 01:00:00 2010-11-26 21:00:00
+usd_cad 		4158	   .01842266 .000028995 .120443784 2010-04-01 01:00:00 2010-11-26 21:00:00
+aud_usd 		4158	  .038010101 .000085838 .356571921 2010-04-01 01:00:00 2010-11-26 21:00:00
+usd_chf 		4158	  .008523903 -.00001262 -.05243346 2010-04-01 01:00:00 2010-11-26 21:00:00
+
+6 rows selected.
+
+Elapsed: 00:00:01.64
+23:25:29 SQL> 
+23:25:29 SQL> SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg),MIN(npg),STDDEV(npg),MAX(npg)
+23:25:29   2  FROM score_j_model
+23:25:29   3  WHERE score > 0.5 GROUP BY pair
+23:25:29   4  /
+
+PAIR		COUNT(SCORE) CORR(SCORE,NPG)   AVG(NPG)   SUM(NPG)   MIN(NPG) STDDEV(NPG)   MAX(NPG)
+--------------- ------------ --------------- ---------- ---------- ---------- ----------- ----------
+eur_usd 		 796	  -.04191017  .00022637 .179963853 -.11084958  .008144564  .12847452
+gbp_usd 		 507	   -.0757174 1.2061E-06 .000606644 -.12308873  .009004278 .146312351
+usd_jpy 		 580	  .025000704 .000158834 .092123921 -.23356259  .016332419 .311012263
+usd_cad 		1040	  -.01915544 .000337346 .350165493 -.17417734  .011107069 .212699037
+aud_usd 		1008	  -.02887331 .000686148 .689579139 -.01901268	 .0132325 .283913721
+usd_chf 		 757	  .074576219 -.00016262 -.12261623 -.22573558  .015784661 .288545142
+
+6 rows selected.
+
+Elapsed: 00:00:01.41
+23:25:30 SQL> 
+23:25:30 SQL> SELECT pair,COUNT(score),CORR(score,npg),AVG(npg),SUM(npg),MIN(npg),STDDEV(npg),MAX(npg)
+23:25:30   2  FROM score_j_model
+23:25:30   3  WHERE score > 0.75 GROUP BY pair
+23:25:30   4  /
+
+PAIR		COUNT(SCORE) CORR(SCORE,NPG)   AVG(NPG)   SUM(NPG)   MIN(NPG) STDDEV(NPG)   MAX(NPG)
+--------------- ------------ --------------- ---------- ---------- ---------- ----------- ----------
+eur_usd 		 347	    .0222372 -1.242E-06 -.00043107 -.11084958  .006811221 .018812845
+gbp_usd 		 177	    .0576192 -.00037315 -.06455491 -.01016344  .002519429 .006791495
+usd_jpy 		 213	  .090161709 .000291747 .062142084 -.00682835  .002396526 .008628128
+usd_cad 		 406	  -.00782849 .000167623 .068054791 -.01070684  .002860149 .010648885
+aud_usd 		 466	   .07662633 .000331189 .153340375 -.01901268  .003857536 .013812492
+usd_chf 		 322	  .068320584 .000777312 .247962537 -.01210716  .016419178 .288545142
+
+6 rows selected.
+
+Elapsed: 00:00:01.39
+23:25:32 SQL> 
+23:25:32 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
