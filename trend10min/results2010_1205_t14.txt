@@ -8,15 +8,31 @@ It seems to get a weak boost if the long trend is opposite the short trend.
 
 Here is a screen dump:
 
-00:45:33 SQL> @t14
-00:45:40 SQL> --
-00:45:40 SQL> -- t14.sql
-00:45:40 SQL> --
-00:45:40 SQL> 
-00:45:40 SQL> -- I use this script to look at Forex data which has a 10 minute duration between each datapoint.
-00:45:40 SQL> 
-00:45:40 SQL> SET LINES 66
-00:45:40 SQL> DESC dukas10min
+
+oracle@z2:/pt/s/rlk/trend10min$ sqt @t14
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Dec 5 01:43:05 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+01:43:05 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+01:43:05 SQL> --
+01:43:05 SQL> -- t14.sql
+01:43:05 SQL> --
+01:43:05 SQL> 
+01:43:05 SQL> -- I use this script to look at Forex data which has a 10 minute duration between each datapoint.
+01:43:05 SQL> 
+01:43:05 SQL> SET LINES 66
+01:43:05 SQL> DESC dukas10min
  Name				  Null?    Type
  -------------------------------- -------- -----------------------
  PAIR					   VARCHAR2(8)
@@ -27,17 +43,17 @@ Here is a screen dump:
  MN					   NUMBER
  MX					   NUMBER
 
-00:45:40 SQL> SET LINES 166
-00:45:40 SQL> 
-00:45:40 SQL> SELECT
-00:45:40   2  pair
-00:45:40   3  ,MIN(ydate)
-00:45:40   4  ,COUNT(*)
-00:45:40   5  ,MAX(ydate)
-00:45:40   6  FROM dukas10min
-00:45:40   7  GROUP BY pair
-00:45:40   8  ORDER BY pair
-00:45:40   9  /
+01:43:05 SQL> SET LINES 166
+01:43:05 SQL> 
+01:43:05 SQL> SELECT
+01:43:05   2  pair
+01:43:05   3  ,MIN(ydate)
+01:43:05   4  ,COUNT(*)
+01:43:05   5  ,MAX(ydate)
+01:43:05   6  FROM dukas10min
+01:43:05   7  GROUP BY pair
+01:43:05   8  ORDER BY pair
+01:43:05   9  /
 
 PAIR	 MIN(YDATE)	       COUNT(*) MAX(YDATE)
 -------- ------------------- ---------- -------------------
@@ -50,161 +66,161 @@ usd_jpy  2009-10-07 05:50:01	  43653 2010-12-03 17:50:01
 
 6 rows selected.
 
-Elapsed: 00:00:00.09
-00:45:40 SQL> 
-00:45:40 SQL> 
-00:45:40 SQL> CREATE OR REPLACE VIEW tr10 AS
-00:45:40   2  SELECT
-00:45:40   3  pair
-00:45:40   4  -- ydate is granular down to 10 min:
-00:45:40   5  ,ydate
-00:45:40   6  ,clse
-00:45:40   7  -- Use analytic function to get moving average1:
-00:45:40   8  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 5 PRECEDING AND 1 PRECEDING)ma1_4
-00:45:40   9  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 10 PRECEDING AND 2 PRECEDING)ma1_8
-00:45:40  10  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 20 PRECEDING AND 4 PRECEDING)ma1_16
-00:45:40  11  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 40 PRECEDING AND 8 PRECEDING)ma1_32
-00:45:40  12  -- Use analytic function to get moving average2:
-00:45:40  13  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 4 PRECEDING AND CURRENT ROW)ma2_4
-00:45:40  14  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 8 PRECEDING AND CURRENT ROW)ma2_8
-00:45:40  15  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 16 PRECEDING AND CURRENT ROW)ma2_16
-00:45:40  16  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 32 PRECEDING AND CURRENT ROW)ma2_32
-00:45:40  17  -- Relative to current-row, get future closing prices:
-00:45:40  18  ,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse4
-00:45:40  19  ,LEAD(clse,6,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse6
-00:45:40  20  ,LEAD(clse,8,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse8
-00:45:40  21  FROM dukas10min
-00:45:40  22  -- Prevent divide by zero:
-00:45:40  23  WHERE clse > 0
-00:45:40  24  ORDER BY pair,ydate
-00:45:40  25  /
+Elapsed: 00:00:00.10
+01:43:05 SQL> 
+01:43:05 SQL> 
+01:43:05 SQL> CREATE OR REPLACE VIEW tr10 AS
+01:43:05   2  SELECT
+01:43:05   3  pair
+01:43:05   4  -- ydate is granular down to 10 min:
+01:43:05   5  ,ydate
+01:43:05   6  ,clse
+01:43:05   7  -- Use analytic function to get moving average1:
+01:43:05   8  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 5 PRECEDING AND 1 PRECEDING)ma1_4
+01:43:05   9  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 10 PRECEDING AND 2 PRECEDING)ma1_8
+01:43:05  10  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 20 PRECEDING AND 4 PRECEDING)ma1_16
+01:43:05  11  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 40 PRECEDING AND 8 PRECEDING)ma1_32
+01:43:05  12  -- Use analytic function to get moving average2:
+01:43:05  13  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 4 PRECEDING AND CURRENT ROW)ma2_4
+01:43:05  14  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 8 PRECEDING AND CURRENT ROW)ma2_8
+01:43:05  15  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 16 PRECEDING AND CURRENT ROW)ma2_16
+01:43:05  16  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 32 PRECEDING AND CURRENT ROW)ma2_32
+01:43:05  17  -- Relative to current-row, get future closing prices:
+01:43:05  18  ,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse4
+01:43:05  19  ,LEAD(clse,6,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse6
+01:43:05  20  ,LEAD(clse,8,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse8
+01:43:05  21  FROM dukas10min
+01:43:05  22  -- Prevent divide by zero:
+01:43:05  23  WHERE clse > 0
+01:43:05  24  ORDER BY pair,ydate
+01:43:05  25  /
 
 View created.
 
 Elapsed: 00:00:00.04
-00:45:40 SQL> 
-00:45:40 SQL> -- I derive "normalized" slope of moving-averages.
-00:45:40 SQL> -- I normalize them to help me compare JPY pairs to all the other pairs.
-00:45:40 SQL> -- I collect normalized gains too:
-00:45:40 SQL> 
-00:45:40 SQL> CREATE OR REPLACE VIEW tr12 AS
-00:45:40   2  SELECT
-00:45:40   3  pair
-00:45:40   4  ,ydate
-00:45:40   5  ,clse
-00:45:40   6  -- Derive normalized mvg-avg-slope:
-00:45:40   7  ,(ma2_4 - ma1_4)/ma1_4 ma4_slope
-00:45:40   8  ,(ma2_8 - ma1_8)/ma1_8 ma8_slope
-00:45:40   9  ,(ma2_16 - ma1_16)/ma1_16 ma16_slope
-00:45:40  10  ,(ma2_32 - ma1_32)/ma1_32 ma32_slope
-00:45:40  11  -- I collect normalized gains too:
-00:45:40  12  ,(clse4-clse)/clse npg4
-00:45:40  13  ,(clse6-clse)/clse npg6
-00:45:40  14  ,(clse8-clse)/clse npg8
-00:45:40  15  FROM tr10
-00:45:40  16  -- prevent divide by 0:
-00:45:40  17  WHERE(ma1_4*ma1_8*ma1_16*ma1_32)!=0
-00:45:40  18  ORDER BY pair,ydate
-00:45:40  19  /
+01:43:05 SQL> 
+01:43:05 SQL> -- I derive "normalized" slope of moving-averages.
+01:43:05 SQL> -- I normalize them to help me compare JPY pairs to all the other pairs.
+01:43:05 SQL> -- I collect normalized gains too:
+01:43:05 SQL> 
+01:43:05 SQL> CREATE OR REPLACE VIEW tr12 AS
+01:43:05   2  SELECT
+01:43:05   3  pair
+01:43:05   4  ,ydate
+01:43:05   5  ,clse
+01:43:05   6  -- Derive normalized mvg-avg-slope:
+01:43:05   7  ,(ma2_4 - ma1_4)/ma1_4 ma4_slope
+01:43:05   8  ,(ma2_8 - ma1_8)/ma1_8 ma8_slope
+01:43:05   9  ,(ma2_16 - ma1_16)/ma1_16 ma16_slope
+01:43:05  10  ,(ma2_32 - ma1_32)/ma1_32 ma32_slope
+01:43:05  11  -- I collect normalized gains too:
+01:43:05  12  ,(clse4-clse)/clse npg4
+01:43:05  13  ,(clse6-clse)/clse npg6
+01:43:05  14  ,(clse8-clse)/clse npg8
+01:43:05  15  FROM tr10
+01:43:05  16  -- prevent divide by 0:
+01:43:05  17  WHERE(ma1_4*ma1_8*ma1_16*ma1_32)!=0
+01:43:05  18  ORDER BY pair,ydate
+01:43:05  19  /
 
 View created.
 
-Elapsed: 00:00:00.05
-00:45:40 SQL> 
-00:45:40 SQL> -- Now that I have ma-slopes, I calculate stddev of their distributions.
-00:45:40 SQL> -- Also I get sgn:
-00:45:40 SQL> 
-00:45:40 SQL> DROP TABLE tr14;
+Elapsed: 00:00:00.03
+01:43:05 SQL> 
+01:43:05 SQL> -- Now that I have ma-slopes, I calculate stddev of their distributions.
+01:43:05 SQL> -- Also I get sgn:
+01:43:05 SQL> 
+01:43:05 SQL> DROP TABLE tr14;
 
 Table dropped.
 
 Elapsed: 00:00:00.05
-00:45:40 SQL> PURGE RECYCLEBIN;
+01:43:05 SQL> PURGE RECYCLEBIN;
 
 Recyclebin purged.
 
-Elapsed: 00:00:00.09
-00:45:40 SQL> CREATE TABLE tr14 COMPRESS AS
-00:45:40   2  -- CREATE OR REPLACE VIEW tr14 AS
-00:45:40   3  SELECT
-00:45:40   4  pair
-00:45:40   5  ,ydate
-00:45:40   6  ,clse
-00:45:40   7  ,ma4_slope
-00:45:40   8  ,ma8_slope
-00:45:40   9  ,ma16_slope
-00:45:40  10  ,ma32_slope
-00:45:40  11  ,npg4
-00:45:40  12  ,npg6
-00:45:40  13  ,npg8
-00:45:40  14  ,STDDEV(ma4_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200 PRECEDING AND CURRENT ROW)ma_stddev4
-00:45:40  15  ,STDDEV(ma8_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200 PRECEDING AND CURRENT ROW)ma_stddev8
-00:45:40  16  ,STDDEV(ma16_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200 PRECEDING AND CURRENT ROW)ma_stddev16
-00:45:40  17  ,STDDEV(ma32_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200 PRECEDING AND CURRENT ROW)ma_stddev32
-00:45:40  18  -- Sign of slope is a useful attribute:
-00:45:40  19  ,SIGN(ma4_slope)sgn4
-00:45:40  20  ,SIGN(ma8_slope)sgn8
-00:45:40  21  ,SIGN(ma16_slope)sgn16
-00:45:40  22  ,SIGN(ma32_slope)sgn32
-00:45:40  23  FROM tr12
-00:45:40  24  ORDER BY pair,ydate
-00:45:40  25  /
+Elapsed: 00:00:00.08
+01:43:05 SQL> CREATE TABLE tr14 COMPRESS AS
+01:43:05   2  -- CREATE OR REPLACE VIEW tr14 AS
+01:43:05   3  SELECT
+01:43:05   4  pair
+01:43:05   5  ,ydate
+01:43:05   6  ,clse
+01:43:05   7  ,ma4_slope
+01:43:05   8  ,ma8_slope
+01:43:05   9  ,ma16_slope
+01:43:05  10  ,ma32_slope
+01:43:05  11  ,npg4
+01:43:05  12  ,npg6
+01:43:05  13  ,npg8
+01:43:05  14  ,STDDEV(ma4_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200 PRECEDING AND CURRENT ROW)ma_stddev4
+01:43:05  15  ,STDDEV(ma8_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200 PRECEDING AND CURRENT ROW)ma_stddev8
+01:43:05  16  ,STDDEV(ma16_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200 PRECEDING AND CURRENT ROW)ma_stddev16
+01:43:05  17  ,STDDEV(ma32_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200 PRECEDING AND CURRENT ROW)ma_stddev32
+01:43:05  18  -- Sign of slope is a useful attribute:
+01:43:05  19  ,SIGN(ma4_slope)sgn4
+01:43:05  20  ,SIGN(ma8_slope)sgn8
+01:43:05  21  ,SIGN(ma16_slope)sgn16
+01:43:05  22  ,SIGN(ma32_slope)sgn32
+01:43:05  23  FROM tr12
+01:43:05  24  ORDER BY pair,ydate
+01:43:05  25  /
 
 Table created.
 
-Elapsed: 00:00:11.19
-00:45:51 SQL> 
-00:45:51 SQL> 
-00:45:51 SQL> -- Now get rows with steep slopes.
-00:45:51 SQL> 
-00:45:51 SQL> -- ma4:
-00:45:51 SQL> CREATE OR REPLACE VIEW tr144 AS
-00:45:51   2  SELECT
-00:45:51   3  pair
-00:45:51   4  ,ydate
-00:45:51   5  ,clse
-00:45:51   6  ,ma4_slope
-00:45:51   7  ,ma8_slope
-00:45:51   8  ,ma16_slope
-00:45:51   9  ,ma32_slope
-00:45:51  10  ,npg4
-00:45:51  11  ,npg6
-00:45:51  12  ,npg8
-00:45:51  13  ,ma_stddev4
-00:45:51  14  ,ma_stddev8
-00:45:51  15  ,ma_stddev16
-00:45:51  16  ,ma_stddev32
-00:45:51  17  ,CASE WHEN sgn4=0 THEN 1 ELSE sgn4 END sgn4
-00:45:51  18  ,CASE WHEN sgn8=0 THEN 1 ELSE sgn8 END sgn8
-00:45:51  19  ,CASE WHEN sgn16=0 THEN 1 ELSE sgn16 END sgn16
-00:45:51  20  ,CASE WHEN sgn32=0 THEN 1 ELSE sgn32 END sgn32
-00:45:51  21  FROM tr14
-00:45:51  22  WHERE ABS(ma4_slope) > 2*ma_stddev4
-00:45:51  23  ORDER BY pair,ydate
-00:45:51  24  /
+Elapsed: 00:00:11.09
+01:43:16 SQL> 
+01:43:16 SQL> 
+01:43:16 SQL> -- Now get rows with steep slopes.
+01:43:16 SQL> 
+01:43:16 SQL> -- ma4:
+01:43:16 SQL> CREATE OR REPLACE VIEW tr144 AS
+01:43:16   2  SELECT
+01:43:16   3  pair
+01:43:16   4  ,ydate
+01:43:16   5  ,clse
+01:43:16   6  ,ma4_slope
+01:43:16   7  ,ma8_slope
+01:43:16   8  ,ma16_slope
+01:43:16   9  ,ma32_slope
+01:43:16  10  ,npg4
+01:43:16  11  ,npg6
+01:43:16  12  ,npg8
+01:43:16  13  ,ma_stddev4
+01:43:16  14  ,ma_stddev8
+01:43:16  15  ,ma_stddev16
+01:43:16  16  ,ma_stddev32
+01:43:16  17  ,CASE WHEN sgn4=0 THEN 1 ELSE sgn4 END sgn4
+01:43:16  18  ,CASE WHEN sgn8=0 THEN 1 ELSE sgn8 END sgn8
+01:43:16  19  ,CASE WHEN sgn16=0 THEN 1 ELSE sgn16 END sgn16
+01:43:16  20  ,CASE WHEN sgn32=0 THEN 1 ELSE sgn32 END sgn32
+01:43:16  21  FROM tr14
+01:43:16  22  WHERE ABS(ma4_slope) > 2*ma_stddev4
+01:43:16  23  ORDER BY pair,ydate
+01:43:16  24  /
 
 View created.
 
-Elapsed: 00:00:00.04
-00:45:51 SQL> 
-00:45:51 SQL> -- rpt
-00:45:51 SQL> 
-00:45:51 SQL> SELECT
-00:45:51   2  pair
-00:45:51   3  ,sgn4
-00:45:51   4  ,sgn8
-00:45:51   5  ,ROUND(AVG(npg4),4)avg_npg4
-00:45:51   6  ,COUNT(pair)cnt
-00:45:51   7  FROM tr144
-00:45:51   8  GROUP BY
-00:45:51   9  pair
-00:45:51  10  ,sgn4
-00:45:51  11  ,sgn8
-00:45:51  12  ORDER BY
-00:45:51  13  pair
-00:45:51  14  ,sgn4
-00:45:51  15  ,sgn8
-00:45:51  16  /
+Elapsed: 00:00:00.03
+01:43:16 SQL> 
+01:43:16 SQL> -- rpt
+01:43:16 SQL> 
+01:43:16 SQL> SELECT
+01:43:16   2  pair
+01:43:16   3  ,sgn4
+01:43:16   4  ,sgn8
+01:43:16   5  ,ROUND(AVG(npg4),4)avg_npg4
+01:43:16   6  ,COUNT(pair)cnt
+01:43:16   7  FROM tr144
+01:43:16   8  GROUP BY
+01:43:16   9  pair
+01:43:16  10  ,sgn4
+01:43:16  11  ,sgn8
+01:43:16  12  ORDER BY
+01:43:16  13  pair
+01:43:16  14  ,sgn4
+01:43:16  15  ,sgn8
+01:43:16  16  /
 
 PAIR	       SGN4	  SGN8	 AVG_NPG4	 CNT
 -------- ---------- ---------- ---------- ----------
@@ -235,24 +251,24 @@ usd_jpy 	  1	     1	   -.0001	1125
 
 24 rows selected.
 
-Elapsed: 00:00:00.76
-00:45:52 SQL> 
-00:45:52 SQL> SELECT
-00:45:52   2  pair
-00:45:52   3  ,sgn4
-00:45:52   4  ,sgn16
-00:45:52   5  ,ROUND(AVG(npg4),4)avg_npg4
-00:45:52   6  ,COUNT(pair)cnt
-00:45:52   7  FROM tr144
-00:45:52   8  GROUP BY
-00:45:52   9  pair
-00:45:52  10  ,sgn4
-00:45:52  11  ,sgn16
-00:45:52  12  ORDER BY
-00:45:52  13  pair
-00:45:52  14  ,sgn4
-00:45:52  15  ,sgn16
-00:45:52  16  /
+Elapsed: 00:00:00.72
+01:43:17 SQL> 
+01:43:17 SQL> SELECT
+01:43:17   2  pair
+01:43:17   3  ,sgn4
+01:43:17   4  ,sgn16
+01:43:17   5  ,ROUND(AVG(npg4),4)avg_npg4
+01:43:17   6  ,COUNT(pair)cnt
+01:43:17   7  FROM tr144
+01:43:17   8  GROUP BY
+01:43:17   9  pair
+01:43:17  10  ,sgn4
+01:43:17  11  ,sgn16
+01:43:17  12  ORDER BY
+01:43:17  13  pair
+01:43:17  14  ,sgn4
+01:43:17  15  ,sgn16
+01:43:17  16  /
 
 PAIR	       SGN4	 SGN16	 AVG_NPG4	 CNT
 -------- ---------- ---------- ---------- ----------
@@ -283,24 +299,24 @@ usd_jpy 	  1	     1	   -.0001	 994
 
 24 rows selected.
 
-Elapsed: 00:00:00.19
-00:45:52 SQL> 
-00:45:52 SQL> SELECT
-00:45:52   2  pair
-00:45:52   3  ,sgn4
-00:45:52   4  ,sgn32
-00:45:52   5  ,ROUND(AVG(npg4),4)avg_npg4
-00:45:52   6  ,COUNT(pair)cnt
-00:45:52   7  FROM tr144
-00:45:52   8  GROUP BY
-00:45:52   9  pair
-00:45:52  10  ,sgn4
-00:45:52  11  ,sgn32
-00:45:52  12  ORDER BY
-00:45:52  13  pair
-00:45:52  14  ,sgn4
-00:45:52  15  ,sgn32
-00:45:52  16  /
+Elapsed: 00:00:00.18
+01:43:17 SQL> 
+01:43:17 SQL> SELECT
+01:43:17   2  pair
+01:43:17   3  ,sgn4
+01:43:17   4  ,sgn32
+01:43:17   5  ,ROUND(AVG(npg4),4)avg_npg4
+01:43:17   6  ,COUNT(pair)cnt
+01:43:17   7  FROM tr144
+01:43:17   8  GROUP BY
+01:43:17   9  pair
+01:43:17  10  ,sgn4
+01:43:17  11  ,sgn32
+01:43:17  12  ORDER BY
+01:43:17  13  pair
+01:43:17  14  ,sgn4
+01:43:17  15  ,sgn32
+01:43:17  16  /
 
 PAIR	       SGN4	 SGN32	 AVG_NPG4	 CNT
 -------- ---------- ---------- ---------- ----------
@@ -331,9 +347,323 @@ usd_jpy 	  1	     1	   -.0001	 822
 
 24 rows selected.
 
+Elapsed: 00:00:00.18
+01:43:17 SQL> 
+01:43:17 SQL> 
+01:43:17 SQL> -- ma8:
+01:43:17 SQL> CREATE OR REPLACE VIEW tr148 AS
+01:43:17   2  SELECT
+01:43:17   3  pair
+01:43:17   4  ,ydate
+01:43:17   5  ,clse
+01:43:17   6  ,ma4_slope
+01:43:17   7  ,ma8_slope
+01:43:17   8  ,ma16_slope
+01:43:17   9  ,ma32_slope
+01:43:17  10  ,npg4
+01:43:17  11  ,npg6
+01:43:17  12  ,npg8
+01:43:17  13  ,ma_stddev4
+01:43:17  14  ,ma_stddev8
+01:43:17  15  ,ma_stddev16
+01:43:17  16  ,ma_stddev32
+01:43:17  17  ,CASE WHEN sgn4=0 THEN 1 ELSE sgn4 END sgn4
+01:43:17  18  ,CASE WHEN sgn8=0 THEN 1 ELSE sgn8 END sgn8
+01:43:17  19  ,CASE WHEN sgn16=0 THEN 1 ELSE sgn16 END sgn16
+01:43:17  20  ,CASE WHEN sgn32=0 THEN 1 ELSE sgn32 END sgn32
+01:43:17  21  FROM tr14
+01:43:17  22  WHERE ABS(ma8_slope) > 2*ma_stddev8
+01:43:17  23  ORDER BY pair,ydate
+01:43:17  24  /
+
+View created.
+
+Elapsed: 00:00:00.04
+01:43:18 SQL> 
+01:43:18 SQL> SELECT
+01:43:18   2  pair
+01:43:18   3  ,sgn4
+01:43:18   4  ,sgn8
+01:43:18   5  ,ROUND(AVG(npg4),4)avg_npg4
+01:43:18   6  ,ROUND(AVG(npg6),4)avg_npg6
+01:43:18   7  ,ROUND(AVG(npg8),4)avg_npg8
+01:43:18   8  ,COUNT(pair)cnt
+01:43:18   9  FROM tr148
+01:43:18  10  GROUP BY
+01:43:18  11  pair
+01:43:18  12  ,sgn4
+01:43:18  13  ,sgn8
+01:43:18  14  ORDER BY
+01:43:18  15  pair
+01:43:18  16  ,sgn4
+01:43:18  17  ,sgn8
+01:43:18  18  /
+
+PAIR	       SGN4	  SGN8	 AVG_NPG4   AVG_NPG6   AVG_NPG8        CNT
+-------- ---------- ---------- ---------- ---------- ---------- ----------
+aud_usd 	 -1	    -1		0	   0	      0       1379
+aud_usd 	 -1	     1		0	   0	      0 	91
+aud_usd 	  1	    -1	   -.0002     -.0002	 -.0002        105
+aud_usd 	  1	     1	   -.0001	   0	      0       1177
+eur_usd 	 -1	    -1	   -.0001     -.0001	 -.0002       1459
+eur_usd 	 -1	     1	    .0001      .0002	  .0001 	99
+eur_usd 	  1	    -1		0      .0001	  .0001        119
+eur_usd 	  1	     1	    .0001      .0001	  .0001       1316
+gbp_usd 	 -1	    -1	    .0001      .0001	  .0001       1473
+gbp_usd 	 -1	     1	   -.0001	   0	 -.0002        102
+gbp_usd 	  1	    -1	   -.0001	   0	      0        128
+gbp_usd 	  1	     1	    .0001      .0001	  .0002       1311
+usd_cad 	 -1	    -1	    .0001      .0001	  .0001       1174
+usd_cad 	 -1	     1	   -.0001      .0001	  .0002        113
+usd_cad 	  1	    -1	   -.0001     -.0001	  .0001 	95
+usd_cad 	  1	     1		0	   0	      0       1379
+usd_chf 	 -1	    -1	    .0001      .0001	  .0001       1231
+usd_chf 	 -1	     1	    .0001	   0	  .0002        103
+usd_chf 	  1	    -1	    .0001      .0002	  .0003        122
+usd_chf 	  1	     1	    .0001      .0002	  .0002       1298
+usd_jpy 	 -1	    -1		0	   0	  .0001       1422
+usd_jpy 	 -1	     1	   -.0003     -.0004	 -.0005        102
+usd_jpy 	  1	    -1	   -.0001     -.0001	 -.0001        179
+usd_jpy 	  1	     1		0	   0	      0       1252
+
+24 rows selected.
+
+Elapsed: 00:00:00.19
+01:43:18 SQL> 
+01:43:18 SQL> SELECT
+01:43:18   2  pair
+01:43:18   3  ,sgn8
+01:43:18   4  ,sgn16
+01:43:18   5  ,ROUND(AVG(npg4),4)avg_npg4
+01:43:18   6  ,ROUND(AVG(npg6),4)avg_npg6
+01:43:18   7  ,ROUND(AVG(npg8),4)avg_npg8
+01:43:18   8  ,COUNT(pair)cnt
+01:43:18   9  FROM tr148
+01:43:18  10  GROUP BY
+01:43:18  11  pair
+01:43:18  12  ,sgn8
+01:43:18  13  ,sgn16
+01:43:18  14  ORDER BY
+01:43:18  15  pair
+01:43:18  16  ,sgn8
+01:43:18  17  ,sgn16
+01:43:18  18  /
+
+PAIR	       SGN8	 SGN16	 AVG_NPG4   AVG_NPG6   AVG_NPG8        CNT
+-------- ---------- ---------- ---------- ---------- ---------- ----------
+aud_usd 	 -1	    -1		0	   0	 -.0001       1471
+aud_usd 	 -1	     1		0     -.0003	 -.0005 	13
+aud_usd 	  1	    -1		0      .0001	  .0003 	38
+aud_usd 	  1	     1	   -.0001	   0	      0       1230
+eur_usd 	 -1	    -1	   -.0001     -.0001	 -.0001       1540
+eur_usd 	 -1	     1	    .0002      .0001	      0 	38
+eur_usd 	  1	    -1	    .0004      .0004	  .0003 	35
+eur_usd 	  1	     1	    .0001      .0001	  .0001       1380
+gbp_usd 	 -1	    -1	    .0001      .0001	  .0001       1571
+gbp_usd 	 -1	     1	   -.0003     -.0004	 -.0009 	30
+gbp_usd 	  1	    -1	    .0001      .0003	  .0002 	63
+gbp_usd 	  1	     1	    .0001      .0001	  .0001       1350
+usd_cad 	 -1	    -1	    .0001      .0001	  .0001       1203
+usd_cad 	 -1	     1	    .0002      .0003	  .0004 	66
+usd_cad 	  1	    -1	   -.0003     -.0003	 -.0003 	46
+usd_cad 	  1	     1		0	   0	  .0001       1446
+usd_chf 	 -1	    -1	    .0001      .0001	  .0001       1303
+usd_chf 	 -1	     1	   -.0006     -.0006	 -.0004 	50
+usd_chf 	  1	    -1	    .0001      .0002	  .0002 	51
+usd_chf 	  1	     1	    .0001      .0001	  .0002       1350
+usd_jpy 	 -1	    -1		0	   0	      0       1558
+usd_jpy 	 -1	     1		0      .0002	  .0002 	43
+usd_jpy 	  1	    -1	   -.0001     -.0003	 -.0001 	67
+usd_jpy 	  1	     1		0	   0	      0       1287
+
+24 rows selected.
+
+Elapsed: 00:00:00.18
+01:43:18 SQL> 
+01:43:18 SQL> SELECT
+01:43:18   2  pair
+01:43:18   3  ,sgn8
+01:43:18   4  ,sgn32
+01:43:18   5  ,ROUND(AVG(npg4),4)avg_npg4
+01:43:18   6  ,ROUND(AVG(npg6),4)avg_npg6
+01:43:18   7  ,ROUND(AVG(npg8),4)avg_npg8
+01:43:18   8  ,COUNT(pair)cnt
+01:43:18   9  FROM tr148
+01:43:18  10  GROUP BY
+01:43:18  11  pair
+01:43:18  12  ,sgn8
+01:43:18  13  ,sgn32
+01:43:18  14  ORDER BY
+01:43:18  15  pair
+01:43:18  16  ,sgn8
+01:43:18  17  ,sgn32
+01:43:18  18  /
+
+PAIR	       SGN8	 SGN32	 AVG_NPG4   AVG_NPG6   AVG_NPG8        CNT
+-------- ---------- ---------- ---------- ---------- ---------- ----------
+aud_usd 	 -1	    -1		0	   0	      0       1293
+aud_usd 	 -1	     1	   -.0001     -.0002	 -.0004        191
+aud_usd 	  1	    -1	   -.0003     -.0001	      0        193
+aud_usd 	  1	     1		0	   0	      0       1075
+eur_usd 	 -1	    -1	   -.0001     -.0001	 -.0001       1410
+eur_usd 	 -1	     1		0     -.0001	 -.0001        168
+eur_usd 	  1	    -1	    .0003      .0003	  .0004        196
+eur_usd 	  1	     1	    .0001      .0001	  .0001       1219
+gbp_usd 	 -1	    -1	    .0001      .0001	  .0001       1391
+gbp_usd 	 -1	     1	   -.0001     -.0002	 -.0003        210
+gbp_usd 	  1	    -1	    .0002      .0003	  .0004        221
+gbp_usd 	  1	     1		0      .0001	  .0001       1192
+usd_cad 	 -1	    -1	    .0001      .0001	  .0001       1054
+usd_cad 	 -1	     1	    .0003      .0002	  .0002        215
+usd_cad 	  1	    -1	   -.0001     -.0001	 -.0002        240
+usd_cad 	  1	     1		0	   0	  .0001       1252
+usd_chf 	 -1	    -1	    .0001      .0002	  .0002       1161
+usd_chf 	 -1	     1	   -.0003     -.0004	 -.0003        192
+usd_chf 	  1	    -1	    .0002      .0002	  .0003        201
+usd_chf 	  1	     1	    .0001      .0001	  .0002       1200
+usd_jpy 	 -1	    -1		0	   0	      0       1381
+usd_jpy 	 -1	     1	    .0002      .0002	  .0002        220
+usd_jpy 	  1	    -1	   -.0002     -.0002	 -.0003        220
+usd_jpy 	  1	     1		0	   0	      0       1134
+
+24 rows selected.
+
 Elapsed: 00:00:00.17
-00:45:53 SQL> 
-00:45:53 SQL> EXIT
+01:43:18 SQL> 
+01:43:18 SQL> 
+01:43:18 SQL> -- ma16:
+01:43:18 SQL> CREATE OR REPLACE VIEW tr1416 AS
+01:43:18   2  SELECT
+01:43:18   3  pair
+01:43:18   4  ,ydate
+01:43:18   5  ,clse
+01:43:18   6  ,ma4_slope
+01:43:18   7  ,ma8_slope
+01:43:18   8  ,ma16_slope
+01:43:18   9  ,ma32_slope
+01:43:18  10  ,npg4
+01:43:18  11  ,npg6
+01:43:18  12  ,npg8
+01:43:18  13  ,ma_stddev4
+01:43:18  14  ,ma_stddev8
+01:43:18  15  ,ma_stddev16
+01:43:18  16  ,ma_stddev32
+01:43:18  17  ,CASE WHEN sgn4=0 THEN 1 ELSE sgn4 END sgn4
+01:43:18  18  ,CASE WHEN sgn8=0 THEN 1 ELSE sgn8 END sgn8
+01:43:18  19  ,CASE WHEN sgn16=0 THEN 1 ELSE sgn16 END sgn16
+01:43:18  20  ,CASE WHEN sgn32=0 THEN 1 ELSE sgn32 END sgn32
+01:43:18  21  FROM tr14
+01:43:18  22  WHERE ABS(ma16_slope) > 2*ma_stddev16
+01:43:18  23  ORDER BY pair,ydate
+01:43:18  24  /
+
+View created.
+
+Elapsed: 00:00:00.12
+01:43:18 SQL> 
+01:43:18 SQL> SELECT
+01:43:18   2  pair
+01:43:18   3  ,sgn16
+01:43:18   4  ,sgn8
+01:43:18   5  ,ROUND(AVG(npg4),4)avg_npg4
+01:43:18   6  ,ROUND(AVG(npg6),4)avg_npg6
+01:43:18   7  ,ROUND(AVG(npg8),4)avg_npg8
+01:43:18   8  ,COUNT(pair)cnt
+01:43:18   9  FROM tr1416
+01:43:18  10  GROUP BY
+01:43:18  11  pair
+01:43:18  12  ,sgn16
+01:43:18  13  ,sgn8
+01:43:18  14  ORDER BY
+01:43:18  15  pair
+01:43:18  16  ,sgn16
+01:43:18  17  ,sgn8
+01:43:18  18  /
+
+PAIR	      SGN16	  SGN8	 AVG_NPG4   AVG_NPG6   AVG_NPG8        CNT
+-------- ---------- ---------- ---------- ---------- ---------- ----------
+aud_usd 	 -1	    -1		0	   0	      0       1583
+aud_usd 	 -1	     1	   -.0003     -.0003	 -.0002        116
+aud_usd 	  1	    -1	    .0005      .0006	  .0006 	99
+aud_usd 	  1	     1		0	   0	      0       1387
+eur_usd 	 -1	    -1		0	   0	      0       1685
+eur_usd 	 -1	     1		0      .0001	      0        108
+eur_usd 	  1	    -1	   -.0001     -.0002	 -.0001        135
+eur_usd 	  1	     1		0	   0	      0       1555
+gbp_usd 	 -1	    -1		0	   0	      0       1741
+gbp_usd 	 -1	     1	    .0001	   0	 -.0001        147
+gbp_usd 	  1	    -1	   -.0001     -.0001	 -.0001        114
+gbp_usd 	  1	     1		0	   0	      0       1558
+usd_cad 	 -1	    -1		0	   0	  .0001       1308
+usd_cad 	 -1	     1		0      .0001	      0        135
+usd_cad 	  1	    -1	    .0001      .0002	  .0004        116
+usd_cad 	  1	     1		0      .0001	  .0001       1640
+usd_chf 	 -1	    -1	    .0001      .0001	  .0002       1518
+usd_chf 	 -1	     1	    .0003      .0002	  .0001        152
+usd_chf 	  1	    -1		0      .0001	  .0002        115
+usd_chf 	  1	     1	    .0001      .0001	  .0001       1603
+usd_jpy 	 -1	    -1		0	   0	      0       1732
+usd_jpy 	 -1	     1	   -.0003     -.0001	 -.0001        190
+usd_jpy 	  1	    -1	   -.0002     -.0003	 -.0004        132
+usd_jpy 	  1	     1		0	   0	      0       1450
+
+24 rows selected.
+
+Elapsed: 00:00:00.19
+01:43:18 SQL> 
+01:43:18 SQL> SELECT
+01:43:18   2  pair
+01:43:18   3  ,sgn16
+01:43:18   4  ,sgn32
+01:43:18   5  ,ROUND(AVG(npg4),4)avg_npg4
+01:43:18   6  ,ROUND(AVG(npg6),4)avg_npg6
+01:43:18   7  ,ROUND(AVG(npg8),4)avg_npg8
+01:43:18   8  ,COUNT(pair)cnt
+01:43:18   9  FROM tr1416
+01:43:18  10  GROUP BY
+01:43:18  11  pair
+01:43:18  12  ,sgn16
+01:43:18  13  ,sgn32
+01:43:18  14  ORDER BY
+01:43:18  15  pair
+01:43:18  16  ,sgn16
+01:43:18  17  ,sgn32
+01:43:18  18  /
+
+PAIR	      SGN16	 SGN32	 AVG_NPG4   AVG_NPG6   AVG_NPG8        CNT
+-------- ---------- ---------- ---------- ---------- ---------- ----------
+aud_usd 	 -1	    -1		0	   0	 -.0001       1677
+aud_usd 	 -1	     1		0	   0	  .0003 	22
+aud_usd 	  1	    -1	   -.0001     -.0001	 -.0002 	56
+aud_usd 	  1	     1		0	   0	      0       1430
+eur_usd 	 -1	    -1		0	   0	      0       1771
+eur_usd 	 -1	     1	   -.0008     -.0007	 -.0004 	22
+eur_usd 	  1	    -1	    .0002      .0001	  .0001 	44
+eur_usd 	  1	     1		0	   0	      0       1646
+gbp_usd 	 -1	    -1		0	   0	      0       1847
+gbp_usd 	 -1	     1	   -.0001     -.0004	 -.0006 	41
+gbp_usd 	  1	    -1	   -.0002     -.0001	  .0001 	45
+gbp_usd 	  1	     1		0	   0	      0       1627
+usd_cad 	 -1	    -1		0	   0	  .0001       1404
+usd_cad 	 -1	     1	    .0001      .0001	  .0002 	39
+usd_cad 	  1	    -1	   -.0001     -.0001	      0 	50
+usd_cad 	  1	     1		0      .0001	  .0001       1706
+usd_chf 	 -1	    -1	    .0001      .0001	  .0002       1626
+usd_chf 	 -1	     1	   -.0003     -.0005	 -.0001 	44
+usd_chf 	  1	    -1	    .0005      .0007	  .0008 	51
+usd_chf 	  1	     1		0      .0001	  .0001       1667
+usd_jpy 	 -1	    -1		0	   0	      0       1842
+usd_jpy 	 -1	     1	    .0002      .0001	 -.0001 	80
+usd_jpy 	  1	    -1	   -.0004     -.0003	 -.0004 	62
+usd_jpy 	  1	     1		0     -.0001	      0       1520
+
+24 rows selected.
+
+Elapsed: 00:00:00.21
+01:43:19 SQL> 
+01:43:19 SQL> 
+01:43:19 SQL> EXIT
 Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 oracle@z2:/pt/s/rlk/trend10min$ 
+

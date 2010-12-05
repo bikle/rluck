@@ -1,5 +1,5 @@
 --
--- t14.sql
+-- t16.sql
 --
 
 -- I use this script to look at Forex data which has a 10 minute duration between each datapoint.
@@ -100,236 +100,75 @@ FROM tr12
 ORDER BY pair,ydate
 /
 
+-- Now get rows with steep slopes for ma32:
 
--- Now get rows with steep slopes.
-
--- ma4:
-CREATE OR REPLACE VIEW tr144 AS
+CREATE OR REPLACE VIEW tr16 AS
 SELECT
 pair
 ,ydate
 ,clse
-,ma4_slope
-,ma8_slope
-,ma16_slope
 ,ma32_slope
 ,npg4
 ,npg6
 ,npg8
-,ma_stddev4
-,ma_stddev8
-,ma_stddev16
 ,ma_stddev32
-,CASE WHEN sgn4=0 THEN 1 ELSE sgn4 END sgn4
-,CASE WHEN sgn8=0 THEN 1 ELSE sgn8 END sgn8
-,CASE WHEN sgn16=0 THEN 1 ELSE sgn16 END sgn16
-,CASE WHEN sgn32=0 THEN 1 ELSE sgn32 END sgn32
+,sgn32
 FROM tr14
-WHERE ABS(ma4_slope) > 2*ma_stddev4
+-- I want steep slopes:
+WHERE ABS(ma32_slope) > 2*ma_stddev32
 ORDER BY pair,ydate
 /
 
--- rpt
+-- Now get future rows:
 
-SELECT
-pair
-,sgn4
-,sgn8
-,ROUND(AVG(npg4),4)avg_npg4
-,COUNT(pair)cnt
-FROM tr144
-GROUP BY
-pair
-,sgn4
-,sgn8
-ORDER BY
-pair
-,sgn4
-,sgn8
-/
-
-SELECT
-pair
-,sgn4
-,sgn16
-,ROUND(AVG(npg4),4)avg_npg4
-,COUNT(pair)cnt
-FROM tr144
-GROUP BY
-pair
-,sgn4
-,sgn16
-ORDER BY
-pair
-,sgn4
-,sgn16
-/
-
-SELECT
-pair
-,sgn4
-,sgn32
-,ROUND(AVG(npg4),4)avg_npg4
-,COUNT(pair)cnt
-FROM tr144
-GROUP BY
-pair
-,sgn4
-,sgn32
-ORDER BY
-pair
-,sgn4
-,sgn32
-/
-
-
--- ma8:
-CREATE OR REPLACE VIEW tr148 AS
+CREATE OR REPLACE VIEW tr162 AS
 SELECT
 pair
 ,ydate
 ,clse
-,ma4_slope
-,ma8_slope
-,ma16_slope
 ,ma32_slope
 ,npg4
 ,npg6
 ,npg8
-,ma_stddev4
-,ma_stddev8
-,ma_stddev16
 ,ma_stddev32
-,CASE WHEN sgn4=0 THEN 1 ELSE sgn4 END sgn4
-,CASE WHEN sgn8=0 THEN 1 ELSE sgn8 END sgn8
-,CASE WHEN sgn16=0 THEN 1 ELSE sgn16 END sgn16
-,CASE WHEN sgn32=0 THEN 1 ELSE sgn32 END sgn32
-FROM tr14
-WHERE ABS(ma8_slope) > 2*ma_stddev8
+,sgn32
+,LEAD(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)ydate_ld
+,LEAD(npg4,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg4_ld
+,LEAD(npg6,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg6_ld
+,LEAD(npg8,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg8_ld
+FROM tr16
 ORDER BY pair,ydate
 /
 
-SELECT
-pair
-,sgn4
-,sgn8
-,ROUND(AVG(npg4),4)avg_npg4
-,ROUND(AVG(npg6),4)avg_npg6
-,ROUND(AVG(npg8),4)avg_npg8
-,COUNT(pair)cnt
-FROM tr148
-GROUP BY
-pair
-,sgn4
-,sgn8
-ORDER BY
-pair
-,sgn4
-,sgn8
-/
-
-SELECT
-pair
-,sgn8
-,sgn16
-,ROUND(AVG(npg4),4)avg_npg4
-,ROUND(AVG(npg6),4)avg_npg6
-,ROUND(AVG(npg8),4)avg_npg8
-,COUNT(pair)cnt
-FROM tr148
-GROUP BY
-pair
-,sgn8
-,sgn16
-ORDER BY
-pair
-,sgn8
-,sgn16
-/
-
-SELECT
-pair
-,sgn8
-,sgn32
-,ROUND(AVG(npg4),4)avg_npg4
-,ROUND(AVG(npg6),4)avg_npg6
-,ROUND(AVG(npg8),4)avg_npg8
-,COUNT(pair)cnt
-FROM tr148
-GROUP BY
-pair
-,sgn8
-,sgn32
-ORDER BY
-pair
-,sgn8
-,sgn32
-/
-
-
--- ma16:
-CREATE OR REPLACE VIEW tr1416 AS
+-- Look at npg4 :
+CREATE OR REPLACE VIEW tr164 AS
 SELECT
 pair
 ,ydate
-,clse
-,ma4_slope
-,ma8_slope
-,ma16_slope
-,ma32_slope
 ,npg4
 ,npg6
 ,npg8
-,ma_stddev4
-,ma_stddev8
-,ma_stddev16
-,ma_stddev32
-,CASE WHEN sgn4=0 THEN 1 ELSE sgn4 END sgn4
-,CASE WHEN sgn8=0 THEN 1 ELSE sgn8 END sgn8
-,CASE WHEN sgn16=0 THEN 1 ELSE sgn16 END sgn16
-,CASE WHEN sgn32=0 THEN 1 ELSE sgn32 END sgn32
-FROM tr14
-WHERE ABS(ma16_slope) > 2*ma_stddev16
+,sgn32
+,ydate_ld
+,npg4_ld
+,npg6_ld
+,npg8_ld
+FROM tr162
+WHERE ydate_ld BETWEEN ydate + 40/60/24 AND ydate + 400/60/24
 ORDER BY pair,ydate
 /
 
-SELECT
-pair
-,sgn16
-,sgn8
-,ROUND(AVG(npg4),4)avg_npg4
-,ROUND(AVG(npg6),4)avg_npg6
-,ROUND(AVG(npg8),4)avg_npg8
-,COUNT(pair)cnt
-FROM tr1416
-GROUP BY
-pair
-,sgn16
-,sgn8
-ORDER BY
-pair
-,sgn16
-,sgn8
-/
+-- Look for CORR() tween large npg4 and npg4_ld
 
 SELECT
 pair
-,sgn16
 ,sgn32
-,ROUND(AVG(npg4),4)avg_npg4
-,ROUND(AVG(npg6),4)avg_npg6
-,ROUND(AVG(npg8),4)avg_npg8
-,COUNT(pair)cnt
-FROM tr1416
-GROUP BY
-pair
-,sgn16
-,sgn32
-ORDER BY
-pair
-,sgn16
-,sgn32
+,sgn32 * AVG(npg4)
+,sgn32 * AVG(npg4_ld)
+FROM tr164
+WHERE sgn32 * npg4 < -0.0004
+GROUP BY pair,sgn32
+ORDER BY pair,sgn32
 /
-
 
 EXIT
