@@ -195,7 +195,7 @@ pair
 ,sgn32
 ,npg8_ld
 FROM tr162
-WHERE ydate_ld BETWEEN ydate + 90/60/24 AND ydate + 800/60/24
+WHERE ydate_ld BETWEEN ydate + 90/60/24 AND ydate + 900/60/24
 ORDER BY pair,ydate
 /
 
@@ -285,7 +285,7 @@ pair
 ,sgn16
 ,npg6_ld
 FROM tr182
-WHERE ydate_ld BETWEEN ydate + 70/60/24 AND ydate + 400/60/24
+WHERE ydate_ld BETWEEN ydate + 70/60/24 AND ydate + 600/60/24
 ORDER BY pair,ydate
 /
 
@@ -312,7 +312,7 @@ pair
 ,sgn16
 ,npg8_ld
 FROM tr182
-WHERE ydate_ld BETWEEN ydate + 90/60/24 AND ydate + 400/60/24
+WHERE ydate_ld BETWEEN ydate + 90/60/24 AND ydate + 900/60/24
 ORDER BY pair,ydate
 /
 
@@ -345,5 +345,111 @@ FROM tr14
 WHERE ABS(ma8_slope) > 2*ma_stddev8
 ORDER BY pair,ydate
 /
+
+
+-- Now get future rows:
+
+CREATE OR REPLACE VIEW tr202 AS
+SELECT
+pair
+,ydate
+,npg4
+,npg6
+,npg8
+,sgn8
+,LEAD(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)ydate_ld
+,LEAD(npg4,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg4_ld
+,LEAD(npg6,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg6_ld
+,LEAD(npg8,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg8_ld
+FROM tr20
+ORDER BY pair,ydate
+/
+
+-- Look at npg4 :
+
+CREATE OR REPLACE VIEW tr204 AS
+SELECT
+pair
+,npg4
+,sgn8
+,npg4_ld
+FROM tr202
+WHERE ydate_ld BETWEEN ydate + 50/60/24 AND ydate + 400/60/24
+ORDER BY pair,ydate
+/
+
+-- Look for CORR() tween large npg4 and npg4_ld
+
+SELECT
+pair
+,sgn8
+,ROUND(sgn8 * AVG(npg4),4)sgn8_x_npg4
+,ROUND(sgn8 * AVG(npg4_ld),4)sgn8_x_npg4_ld
+,COUNT(pair)cnt
+FROM tr204
+WHERE sgn8 * npg4 < -0.0004
+GROUP BY pair,sgn8
+ORDER BY pair,sgn8
+/
+
+-- Look at npg6 :
+
+CREATE OR REPLACE VIEW tr206 AS
+SELECT
+pair
+,npg6
+,sgn8
+,npg6_ld
+FROM tr202
+WHERE ydate_ld BETWEEN ydate + 70/60/24 AND ydate + 600/60/24
+ORDER BY pair,ydate
+/
+
+-- Look for CORR() tween large npg6 and npg6_ld
+
+SELECT
+pair
+,sgn8
+,ROUND(sgn8 * AVG(npg6),4)sgn8_x_npg6
+,ROUND(sgn8 * AVG(npg6_ld),4)sgn8_x_npg6_ld
+,COUNT(pair)cnt
+FROM tr206
+WHERE sgn8 * npg6 < -0.0006
+GROUP BY pair,sgn8
+ORDER BY pair,sgn8
+/
+
+
+
+
+-- Look at npg8 :
+
+CREATE OR REPLACE VIEW tr208 AS
+SELECT
+pair
+,npg8
+,sgn8
+,npg8_ld
+FROM tr202
+WHERE ydate_ld BETWEEN ydate + 90/60/24 AND ydate + 900/60/24
+ORDER BY pair,ydate
+/
+
+-- Look for CORR() tween large npg8 and npg8_ld
+
+SELECT
+pair
+,sgn8
+,ROUND(sgn8 * AVG(npg8),4)sgn8_x_npg8
+,ROUND(sgn8 * AVG(npg8_ld),4)sgn8_x_npg8_ld
+,COUNT(pair)cnt
+FROM tr208
+WHERE sgn8 * npg8 < -0.0008
+GROUP BY pair,sgn8
+ORDER BY pair,sgn8
+/
+
+
+
 
 EXIT
