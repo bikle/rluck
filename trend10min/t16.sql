@@ -106,12 +106,9 @@ CREATE OR REPLACE VIEW tr16 AS
 SELECT
 pair
 ,ydate
-,clse
-,ma32_slope
 ,npg4
 ,npg6
 ,npg8
-,ma_stddev32
 ,sgn32
 FROM tr14
 -- I want steep slopes:
@@ -125,12 +122,9 @@ CREATE OR REPLACE VIEW tr162 AS
 SELECT
 pair
 ,ydate
-,clse
-,ma32_slope
 ,npg4
 ,npg6
 ,npg8
-,ma_stddev32
 ,sgn32
 ,LEAD(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)ydate_ld
 ,LEAD(npg4,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg4_ld
@@ -144,17 +138,11 @@ ORDER BY pair,ydate
 CREATE OR REPLACE VIEW tr164 AS
 SELECT
 pair
-,ydate
 ,npg4
-,npg6
-,npg8
 ,sgn32
-,ydate_ld
 ,npg4_ld
-,npg6_ld
-,npg8_ld
 FROM tr162
-WHERE ydate_ld BETWEEN ydate + 40/60/24 AND ydate + 400/60/24
+WHERE ydate_ld BETWEEN ydate + 50/60/24 AND ydate + 400/60/24
 ORDER BY pair,ydate
 /
 
@@ -163,12 +151,199 @@ ORDER BY pair,ydate
 SELECT
 pair
 ,sgn32
-,sgn32 * AVG(npg4)
-,sgn32 * AVG(npg4_ld)
+,ROUND(sgn32 * AVG(npg4),4)sgn32_x_npg4
+,ROUND(sgn32 * AVG(npg4_ld),4)sgn32_x_npg4_ld
+,COUNT(pair)cnt
 FROM tr164
 WHERE sgn32 * npg4 < -0.0004
 GROUP BY pair,sgn32
 ORDER BY pair,sgn32
+/
+
+-- Look at npg6 :
+CREATE OR REPLACE VIEW tr166 AS
+SELECT
+pair
+,npg6
+,sgn32
+,npg6_ld
+FROM tr162
+WHERE ydate_ld BETWEEN ydate + 70/60/24 AND ydate + 600/60/24
+ORDER BY pair,ydate
+/
+
+
+-- Look for CORR() tween large npg6 and npg6_ld
+
+SELECT
+pair
+,sgn32
+,ROUND(sgn32 * AVG(npg6),4)sgn32_x_npg6
+,ROUND(sgn32 * AVG(npg6_ld),4)sgn32_x_npg6_ld
+,COUNT(pair)cnt
+FROM tr166
+WHERE sgn32 * npg6 < -0.0006
+GROUP BY pair,sgn32
+ORDER BY pair,sgn32
+/
+
+-- Look at npg8 :
+CREATE OR REPLACE VIEW tr168 AS
+SELECT
+pair
+,npg8
+,sgn32
+,npg8_ld
+FROM tr162
+WHERE ydate_ld BETWEEN ydate + 90/60/24 AND ydate + 800/60/24
+ORDER BY pair,ydate
+/
+
+-- Look for CORR() tween large npg8 and npg8_ld
+
+SELECT
+pair
+,sgn32
+,ROUND(sgn32 * AVG(npg8),4)sgn32_x_npg8
+,ROUND(sgn32 * AVG(npg8_ld),4)sgn32_x_npg8_ld
+,COUNT(pair)cnt
+FROM tr168
+WHERE sgn32 * npg8 < -0.0008
+GROUP BY pair,sgn32
+ORDER BY pair,sgn32
+/
+
+
+-- Now get rows with steep slopes for ma16:
+
+CREATE OR REPLACE VIEW tr18 AS
+SELECT
+pair
+,ydate
+,npg4
+,npg6
+,npg8
+,sgn16
+FROM tr14
+-- I want steep slopes:
+WHERE ABS(ma16_slope) > 2*ma_stddev16
+ORDER BY pair,ydate
+/
+
+-- Now get future rows:
+
+CREATE OR REPLACE VIEW tr182 AS
+SELECT
+pair
+,ydate
+,npg4
+,npg6
+,npg8
+,sgn16
+,LEAD(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)ydate_ld
+,LEAD(npg4,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg4_ld
+,LEAD(npg6,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg6_ld
+,LEAD(npg8,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg8_ld
+FROM tr18
+ORDER BY pair,ydate
+/
+
+-- Look at npg4 :
+
+CREATE OR REPLACE VIEW tr184 AS
+SELECT
+pair
+,npg4
+,sgn16
+,npg4_ld
+FROM tr182
+WHERE ydate_ld BETWEEN ydate + 50/60/24 AND ydate + 400/60/24
+ORDER BY pair,ydate
+/
+
+-- Look for CORR() tween large npg4 and npg4_ld
+
+SELECT
+pair
+,sgn16
+,ROUND(sgn16 * AVG(npg4),4)sgn16_x_npg4
+,ROUND(sgn16 * AVG(npg4_ld),4)sgn16_x_npg4_ld
+,COUNT(pair)cnt
+FROM tr184
+WHERE sgn16 * npg4 < -0.0004
+GROUP BY pair,sgn16
+ORDER BY pair,sgn16
+/
+
+
+-- Look at npg6 :
+
+CREATE OR REPLACE VIEW tr186 AS
+SELECT
+pair
+,npg6
+,sgn16
+,npg6_ld
+FROM tr182
+WHERE ydate_ld BETWEEN ydate + 70/60/24 AND ydate + 400/60/24
+ORDER BY pair,ydate
+/
+
+-- Look for CORR() tween large npg6 and npg6_ld
+
+SELECT
+pair
+,sgn16
+,ROUND(sgn16 * AVG(npg6),4)sgn16_x_npg6
+,ROUND(sgn16 * AVG(npg6_ld),4)sgn16_x_npg6_ld
+,COUNT(pair)cnt
+FROM tr186
+WHERE sgn16 * npg6 < -0.0006
+GROUP BY pair,sgn16
+ORDER BY pair,sgn16
+/
+
+-- Look at npg8 :
+
+CREATE OR REPLACE VIEW tr186 AS
+SELECT
+pair
+,npg8
+,sgn16
+,npg8_ld
+FROM tr182
+WHERE ydate_ld BETWEEN ydate + 90/60/24 AND ydate + 400/60/24
+ORDER BY pair,ydate
+/
+
+-- Look for CORR() tween large npg8 and npg8_ld
+
+SELECT
+pair
+,sgn16
+,ROUND(sgn16 * AVG(npg8),4)sgn16_x_npg8
+,ROUND(sgn16 * AVG(npg8_ld),4)sgn16_x_npg8_ld
+,COUNT(pair)cnt
+FROM tr186
+WHERE sgn16 * npg8 < -0.0008
+GROUP BY pair,sgn16
+ORDER BY pair,sgn16
+/
+
+-- Now get rows with steep slopes for ma8:
+
+CREATE OR REPLACE VIEW tr20 AS
+SELECT
+pair
+,ydate
+,npg4
+,npg6
+,npg8
+,sgn8
+FROM tr14
+-- I want steep slopes:
+WHERE ABS(ma8_slope) > 2*ma_stddev8
+ORDER BY pair,ydate
 /
 
 EXIT
