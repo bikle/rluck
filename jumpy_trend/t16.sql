@@ -214,6 +214,9 @@ ORDER BY pair,sgn32
 /
 
 
+-- That wraps up my look for jumpy-trends where the mvg-avg is over 32 rows (320 minutes).
+
+-- Now I look at 16 rows.
 -- Now get rows with steep slopes for ma16:
 
 CREATE OR REPLACE VIEW tr18 AS
@@ -419,9 +422,6 @@ GROUP BY pair,sgn8
 ORDER BY pair,sgn8
 /
 
-
-
-
 -- Look at npg8 :
 
 CREATE OR REPLACE VIEW tr208 AS
@@ -448,8 +448,5 @@ WHERE sgn8 * npg8 < -0.0008
 GROUP BY pair,sgn8
 ORDER BY pair,sgn8
 /
-
-
-
 
 EXIT

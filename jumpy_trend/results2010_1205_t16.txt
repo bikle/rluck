@@ -1,0 +1,859 @@
+/pt/s/rlk/jumpy_trend/results2010_1205_t16.txt
+
+The idea behind t16.sql is to look for evidence that r2m behavior is something which "trends".
+
+The way I describe this with a simple adjective is to say that a pair
+is "jumpy" for a period of time and then becomes calm.
+
+I list below some output related to jumpy pairs:
+
+
+PAIR          SGN32 SGN32_X_NPG4 SGN32_X_NPG4_LD        CNT
+-------- ---------- ------------ --------------- ----------
+aud_usd          -1       -.0014          -.0008         19
+aud_usd           1        -.002          -.0005         15
+eur_usd          -1       -.0013          -.0001         12
+eur_usd           1       -.0012          -.0005         16
+usd_cad          -1       -.0022          -.0005         17
+usd_cad           1       -.0016          -.0001         23
+
+PAIR          SGN32 SGN32_X_NPG6 SGN32_X_NPG6_LD        CNT
+-------- ---------- ------------ --------------- ----------
+eur_usd          -1       -.0017          -.0004         13
+eur_usd           1       -.0017          -.0011         12
+
+
+PAIR          SGN32 SGN32_X_NPG8 SGN32_X_NPG8_LD        CNT
+-------- ---------- ------------ --------------- ----------
+aud_usd          -1       -.0024          -.0006         30
+aud_usd           1       -.0024          -.0004         25
+eur_usd          -1       -.0025          -.0004         15
+eur_usd           1        -.002           -.001         15
+
+
+PAIR          SGN16 SGN16_X_NPG4 SGN16_X_NPG4_LD        CNT
+-------- ---------- ------------ --------------- ----------
+eur_usd          -1       -.0017          -.0004         30
+eur_usd           1       -.0012          -.0004         29
+
+
+These pairs are jumpy but not jumpy enough to be lucrative:
+
+PAIR          SGN16 SGN16_X_NPG6 SGN16_X_NPG6_LD        CNT
+-------- ---------- ------------ --------------- ----------
+aud_usd          -1       -.0021          -.0001         54
+aud_usd           1       -.0018          -.0002         35
+eur_usd          -1       -.0018          -.0003         37
+eur_usd           1       -.0015          -.0001         37
+usd_cad          -1       -.0019          -.0002         29
+usd_cad           1       -.0022          -.0004         44
+usd_chf          -1       -.0018          -.0001         40
+usd_chf           1        -.002          -.0004         31
+
+PAIR          SGN16 SGN16_X_NPG8 SGN16_X_NPG8_LD        CNT
+-------- ---------- ------------ --------------- ----------
+aud_usd          -1       -.0025          -.0002         61
+aud_usd           1       -.0022          -.0003         37
+usd_cad          -1       -.0025          -.0005         26
+usd_cad           1       -.0022          -.0003         43
+usd_chf          -1       -.0021          -.0002         41
+usd_chf           1        -.002          -.0003         31
+
+PAIR           SGN8 SGN8_X_NPG8 SGN8_X_NPG8_LD        CNT
+-------- ---------- ----------- -------------- ----------
+gbp_usd          -1      -.0018         -.0001         71
+gbp_usd           1      -.0017         -.0005         58
+
+
+
+So, how do I use the above data to trade?
+
+First, pick a pair-duration which exhibits jumpy-trend-behavior.
+
+For example the last one in the above list (which is actually not very jumpy):
+
+
+PAIR           SGN8 SGN8_X_NPG8 SGN8_X_NPG8_LD        CNT
+-------- ---------- ----------- -------------- ----------
+gbp_usd          -1      -.0018         -.0001         71
+gbp_usd           1      -.0017         -.0005         58
+
+
+Next, collect the price of gbp_usd every 10 minutes.
+
+Then, compute the 8-row-moving-avg-slope of its price.
+(This should be an 80 minute moving average since each row holds 10 minutes of data)
+
+Next, if abs(slope) is > 2 x the std-deviation of 8-row-moving-avg-slope,
+wait 80 minutes and note the normalized-gain (npg).
+
+If npg reverts to mean by more than 8 pips,
+then label the pair as "in-jumpy-trend-until-900-minutes".
+
+Then, return to collecting the price of gbp_usd every 10 minutes.
+
+And, compute the 8-row-moving-avg-slope of its price.
+
+Next, if abs(slope) is > 2 x the std-deviation of 8-row-moving-avg-slope,
+and if 900 minutes have not yet passed since I labeled the pair,
+then open a position in gbp_usd which is contrary to the current trend.
+I'm expecting gbp_usd to revert-to-mean
+(since I've observed it to be jumpy less than 900 minutes ago).
+
+Then, wait 80 minutes and close the gbp_usd position.
+
+
+
+
+A screen dump of the sql I used to find the jumpy pairs is displayed below.
+Notice that I have a significant amount of data, over 40,000 rows per currency pair:
+
+
+oracle@z2:/pt/s/rlk/jumpy_trend$ sqt @t16
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Dec 5 07:07:10 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+07:07:10 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+07:07:10 SQL> --
+07:07:10 SQL> -- t16.sql
+07:07:10 SQL> --
+07:07:10 SQL> 
+07:07:10 SQL> -- I use this script to look at Forex data which has a 10 minute duration between each datapoint.
+07:07:10 SQL> 
+07:07:10 SQL> SET LINES 66
+07:07:10 SQL> DESC dukas10min
+ Name                             Null?    Type
+ -------------------------------- -------- -----------------------
+ PAIR                                      VARCHAR2(8)
+ YDATE                                     DATE
+ VOL                                       NUMBER
+ OPN                                       NUMBER
+ CLSE                                      NUMBER
+ MN                                        NUMBER
+ MX                                        NUMBER
+
+07:07:10 SQL> SET LINES 166
+07:07:10 SQL> 
+07:07:10 SQL> SELECT
+07:07:10   2  pair
+07:07:10   3  ,MIN(ydate)
+07:07:10   4  ,COUNT(*)
+07:07:10   5  ,MAX(ydate)
+07:07:10   6  FROM dukas10min
+07:07:10   7  GROUP BY pair
+07:07:10   8  ORDER BY pair
+07:07:10   9  /
+
+PAIR     MIN(YDATE)            COUNT(*) MAX(YDATE)
+-------- ------------------- ---------- -------------------
+aud_usd  2009-10-07 05:50:01      43653 2010-12-03 17:50:01
+eur_usd  2009-10-07 05:50:01      43653 2010-12-03 17:50:01
+gbp_usd  2009-10-07 05:50:01      43653 2010-12-03 17:50:01
+usd_cad  2009-10-26 04:50:01      41769 2010-12-03 17:50:01
+usd_chf  2009-10-26 04:50:01      41769 2010-12-03 17:50:01
+usd_jpy  2009-10-07 05:50:01      43653 2010-12-03 17:50:01
+
+6 rows selected.
+
+Elapsed: 00:00:00.12
+07:07:10 SQL> 
+07:07:10 SQL> 
+07:07:10 SQL> CREATE OR REPLACE VIEW tr10 AS
+07:07:10   2  SELECT
+07:07:10   3  pair
+07:07:10   4  -- ydate is granular down to 10 min:
+07:07:10   5  ,ydate
+07:07:10   6  ,clse
+07:07:10   7  -- Use analytic function to get moving average1:
+07:07:10   8  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 5 PRECEDING AND 1 PRECEDING)ma1_4
+07:07:10   9  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 10 PRECEDING AND 2 PRECEDING)ma1_8
+07:07:10  10  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 20 PRECEDING AND 4 PRECEDING)ma1_16
+07:07:10  11  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 40 PRECEDING AND 8 PRECEDING)ma1_32
+07:07:10  12  -- Use analytic function to get moving average2:
+07:07:10  13  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 4 PRECEDING AND CURRENT ROW)ma2_4
+07:07:10  14  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 8 PRECEDING AND CURRENT ROW)ma2_8
+07:07:10  15  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 16 PRECEDING AND CURRENT ROW)ma2_16
+07:07:10  16  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 32 PRECEDING AND CURRENT ROW)ma2_32
+07:07:10  17  -- Relative to current-row, get future closing prices:
+07:07:10  18  ,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse4
+07:07:10  19  ,LEAD(clse,6,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse6
+07:07:10  20  ,LEAD(clse,8,NULL)OVER(PARTITION BY pair ORDER BY ydate) clse8
+07:07:10  21  FROM dukas10min
+07:07:10  22  -- Prevent divide by zero:
+07:07:10  23  WHERE clse > 0
+07:07:10  24  ORDER BY pair,ydate
+07:07:10  25  /
+
+View created.
+
+Elapsed: 00:00:00.06
+07:07:10 SQL> 
+07:07:10 SQL> -- I derive "normalized" slope of moving-averages.
+07:07:10 SQL> -- I normalize them to help me compare JPY pairs to all the other pairs.
+07:07:10 SQL> -- I collect normalized gains too:
+07:07:10 SQL> 
+07:07:10 SQL> CREATE OR REPLACE VIEW tr12 AS
+07:07:10   2  SELECT
+07:07:10   3  pair
+07:07:10   4  ,ydate
+07:07:10   5  ,clse
+07:07:10   6  -- Derive normalized mvg-avg-slope:
+07:07:10   7  ,(ma2_4 - ma1_4)/ma1_4 ma4_slope
+07:07:10   8  ,(ma2_8 - ma1_8)/ma1_8 ma8_slope
+07:07:10   9  ,(ma2_16 - ma1_16)/ma1_16 ma16_slope
+07:07:10  10  ,(ma2_32 - ma1_32)/ma1_32 ma32_slope
+07:07:10  11  -- I collect normalized gains too:
+07:07:10  12  ,(clse4-clse)/clse npg4
+07:07:10  13  ,(clse6-clse)/clse npg6
+07:07:10  14  ,(clse8-clse)/clse npg8
+07:07:10  15  FROM tr10
+07:07:10  16  -- prevent divide by 0:
+07:07:10  17  WHERE(ma1_4*ma1_8*ma1_16*ma1_32)!=0
+07:07:10  18  ORDER BY pair,ydate
+07:07:10  19  /
+
+View created.
+
+Elapsed: 00:00:00.04
+07:07:11 SQL> 
+07:07:11 SQL> -- Now that I have ma-slopes, I calculate stddev of their distributions.
+07:07:11 SQL> -- Also I get sgn:
+07:07:11 SQL> 
+07:07:11 SQL> DROP TABLE tr14;
+
+Table dropped.
+
+Elapsed: 00:00:00.08
+07:07:11 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.09
+07:07:11 SQL> CREATE TABLE tr14 COMPRESS AS
+07:07:11   2  -- CREATE OR REPLACE VIEW tr14 AS
+07:07:11   3  SELECT
+07:07:11   4  pair
+07:07:11   5  ,ydate
+07:07:11   6  ,clse
+07:07:11   7  ,ma4_slope
+07:07:11   8  ,ma8_slope
+07:07:11   9  ,ma16_slope
+07:07:11  10  ,ma32_slope
+07:07:11  11  ,npg4
+07:07:11  12  ,npg6
+07:07:11  13  ,npg8
+07:07:11  14  ,STDDEV(ma4_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200 PRECEDING AND CURRENT ROW)ma_stddev4
+07:07:11  15  ,STDDEV(ma8_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200 PRECEDING AND CURRENT ROW)ma_stddev8
+07:07:11  16  ,STDDEV(ma16_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200 PRECEDING AND CURRENT ROW)ma_stddev16
+07:07:11  17  ,STDDEV(ma32_slope)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200 PRECEDING AND CURRENT ROW)ma_stddev32
+07:07:11  18  -- Sign of slope is a useful attribute:
+07:07:11  19  ,SIGN(ma4_slope)sgn4
+07:07:11  20  ,SIGN(ma8_slope)sgn8
+07:07:11  21  ,SIGN(ma16_slope)sgn16
+07:07:11  22  ,SIGN(ma32_slope)sgn32
+07:07:11  23  FROM tr12
+07:07:11  24  ORDER BY pair,ydate
+07:07:11  25  /
+
+Table created.
+
+Elapsed: 00:00:11.04
+07:07:22 SQL> 
+07:07:22 SQL> -- Now get rows with steep slopes for ma32:
+07:07:22 SQL> 
+07:07:22 SQL> CREATE OR REPLACE VIEW tr16 AS
+07:07:22   2  SELECT
+07:07:22   3  pair
+07:07:22   4  ,ydate
+07:07:22   5  ,npg4
+07:07:22   6  ,npg6
+07:07:22   7  ,npg8
+07:07:22   8  ,sgn32
+07:07:22   9  FROM tr14
+07:07:22  10  -- I want steep slopes:
+07:07:22  11  WHERE ABS(ma32_slope) > 2*ma_stddev32
+07:07:22  12  ORDER BY pair,ydate
+07:07:22  13  /
+
+View created.
+
+Elapsed: 00:00:00.03
+07:07:22 SQL> 
+07:07:22 SQL> -- Now get future rows:
+07:07:22 SQL> 
+07:07:22 SQL> CREATE OR REPLACE VIEW tr162 AS
+07:07:22   2  SELECT
+07:07:22   3  pair
+07:07:22   4  ,ydate
+07:07:22   5  ,npg4
+07:07:22   6  ,npg6
+07:07:22   7  ,npg8
+07:07:22   8  ,sgn32
+07:07:22   9  ,LEAD(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)ydate_ld
+07:07:22  10  ,LEAD(npg4,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg4_ld
+07:07:22  11  ,LEAD(npg6,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg6_ld
+07:07:22  12  ,LEAD(npg8,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg8_ld
+07:07:22  13  FROM tr16
+07:07:22  14  ORDER BY pair,ydate
+07:07:22  15  /
+
+View created.
+
+Elapsed: 00:00:00.04
+07:07:22 SQL> 
+07:07:22 SQL> -- Look at npg4 :
+07:07:22 SQL> CREATE OR REPLACE VIEW tr164 AS
+07:07:22   2  SELECT
+07:07:22   3  pair
+07:07:22   4  ,npg4
+07:07:22   5  ,sgn32
+07:07:22   6  ,npg4_ld
+07:07:22   7  FROM tr162
+07:07:22   8  WHERE ydate_ld BETWEEN ydate + 50/60/24 AND ydate + 400/60/24
+07:07:22   9  ORDER BY pair,ydate
+07:07:22  10  /
+
+View created.
+
+Elapsed: 00:00:00.05
+07:07:22 SQL> 
+07:07:22 SQL> -- Look for CORR() tween large npg4 and npg4_ld
+07:07:22 SQL> 
+07:07:22 SQL> SELECT
+07:07:22   2  pair
+07:07:22   3  ,sgn32
+07:07:22   4  ,ROUND(sgn32 * AVG(npg4),4)sgn32_x_npg4
+07:07:22   5  ,ROUND(sgn32 * AVG(npg4_ld),4)sgn32_x_npg4_ld
+07:07:22   6  ,COUNT(pair)cnt
+07:07:22   7  FROM tr164
+07:07:22   8  WHERE sgn32 * npg4 < -0.0004
+07:07:22   9  GROUP BY pair,sgn32
+07:07:22  10  ORDER BY pair,sgn32
+07:07:22  11  /
+
+PAIR          SGN32 SGN32_X_NPG4 SGN32_X_NPG4_LD        CNT
+-------- ---------- ------------ --------------- ----------
+aud_usd          -1       -.0014          -.0008         19
+aud_usd           1        -.002          -.0005         15
+eur_usd          -1       -.0013          -.0001         12
+eur_usd           1       -.0012          -.0005         16
+gbp_usd          -1       -.0012           .0006         18
+gbp_usd           1       -.0023          -.0002         18
+usd_cad          -1       -.0022          -.0005         17
+usd_cad           1       -.0016          -.0001         23
+usd_chf          -1       -.0013               0         19
+usd_chf           1       -.0017           .0001         12
+usd_jpy          -1       -.0012           .0003         19
+usd_jpy           1       -.0012          -.0002         14
+
+12 rows selected.
+
+Elapsed: 00:00:00.81
+07:07:23 SQL> 
+07:07:23 SQL> -- Look at npg6 :
+07:07:23 SQL> CREATE OR REPLACE VIEW tr166 AS
+07:07:23   2  SELECT
+07:07:23   3  pair
+07:07:23   4  ,npg6
+07:07:23   5  ,sgn32
+07:07:23   6  ,npg6_ld
+07:07:23   7  FROM tr162
+07:07:23   8  WHERE ydate_ld BETWEEN ydate + 70/60/24 AND ydate + 600/60/24
+07:07:23   9  ORDER BY pair,ydate
+07:07:23  10  /
+
+View created.
+
+Elapsed: 00:00:00.06
+07:07:23 SQL> 
+07:07:23 SQL> 
+07:07:23 SQL> -- Look for CORR() tween large npg6 and npg6_ld
+07:07:23 SQL> 
+07:07:23 SQL> SELECT
+07:07:23   2  pair
+07:07:23   3  ,sgn32
+07:07:23   4  ,ROUND(sgn32 * AVG(npg6),4)sgn32_x_npg6
+07:07:23   5  ,ROUND(sgn32 * AVG(npg6_ld),4)sgn32_x_npg6_ld
+07:07:23   6  ,COUNT(pair)cnt
+07:07:23   7  FROM tr166
+07:07:23   8  WHERE sgn32 * npg6 < -0.0006
+07:07:23   9  GROUP BY pair,sgn32
+07:07:23  10  ORDER BY pair,sgn32
+07:07:23  11  /
+
+PAIR          SGN32 SGN32_X_NPG6 SGN32_X_NPG6_LD        CNT
+-------- ---------- ------------ --------------- ----------
+aud_usd          -1        -.002          -.0002         21
+aud_usd           1       -.0022               0         19
+eur_usd          -1       -.0017          -.0004         13
+eur_usd           1       -.0017          -.0011         12
+gbp_usd          -1        -.002           .0006         11
+gbp_usd           1       -.0027          -.0004         17
+usd_cad          -1       -.0025          -.0003         21
+usd_cad           1       -.0017               0         16
+usd_chf          -1       -.0019           .0003         19
+usd_chf           1       -.0023           .0001         16
+usd_jpy          -1       -.0016           .0004         24
+usd_jpy           1       -.0014           .0001         15
+
+12 rows selected.
+
+Elapsed: 00:00:00.25
+07:07:23 SQL> 
+07:07:23 SQL> -- Look at npg8 :
+07:07:23 SQL> CREATE OR REPLACE VIEW tr168 AS
+07:07:23   2  SELECT
+07:07:23   3  pair
+07:07:23   4  ,npg8
+07:07:23   5  ,sgn32
+07:07:23   6  ,npg8_ld
+07:07:23   7  FROM tr162
+07:07:23   8  WHERE ydate_ld BETWEEN ydate + 90/60/24 AND ydate + 900/60/24
+07:07:23   9  ORDER BY pair,ydate
+07:07:23  10  /
+
+View created.
+
+Elapsed: 00:00:00.03
+07:07:23 SQL> 
+07:07:23 SQL> -- Look for CORR() tween large npg8 and npg8_ld
+07:07:23 SQL> 
+07:07:23 SQL> SELECT
+07:07:23   2  pair
+07:07:23   3  ,sgn32
+07:07:23   4  ,ROUND(sgn32 * AVG(npg8),4)sgn32_x_npg8
+07:07:23   5  ,ROUND(sgn32 * AVG(npg8_ld),4)sgn32_x_npg8_ld
+07:07:23   6  ,COUNT(pair)cnt
+07:07:23   7  FROM tr168
+07:07:23   8  WHERE sgn32 * npg8 < -0.0008
+07:07:23   9  GROUP BY pair,sgn32
+07:07:23  10  ORDER BY pair,sgn32
+07:07:23  11  /
+
+PAIR          SGN32 SGN32_X_NPG8 SGN32_X_NPG8_LD        CNT
+-------- ---------- ------------ --------------- ----------
+aud_usd          -1       -.0024          -.0006         30
+aud_usd           1       -.0024          -.0004         25
+eur_usd          -1       -.0025          -.0004         15
+eur_usd           1        -.002           -.001         15
+gbp_usd          -1        -.002           .0004         14
+gbp_usd           1       -.0029          -.0005         19
+usd_cad          -1       -.0025           .0001         18
+usd_cad           1       -.0023          -.0001         12
+usd_chf          -1       -.0019          -.0001         19
+usd_chf           1       -.0024           .0002         16
+usd_jpy          -1       -.0019           .0004         20
+usd_jpy           1       -.0018          -.0005         21
+
+12 rows selected.
+
+Elapsed: 00:00:00.25
+07:07:23 SQL> 
+07:07:23 SQL> 
+07:07:23 SQL> -- That wraps up my look for jumpy-trends where the mvg-avg is over 32 rows (320 minutes).
+07:07:23 SQL> 
+07:07:23 SQL> -- Now I look at 16 rows.
+07:07:23 SQL> -- Now get rows with steep slopes for ma16:
+07:07:23 SQL> 
+07:07:23 SQL> CREATE OR REPLACE VIEW tr18 AS
+07:07:23   2  SELECT
+07:07:23   3  pair
+07:07:23   4  ,ydate
+07:07:23   5  ,npg4
+07:07:23   6  ,npg6
+07:07:23   7  ,npg8
+07:07:23   8  ,sgn16
+07:07:23   9  FROM tr14
+07:07:23  10  -- I want steep slopes:
+07:07:23  11  WHERE ABS(ma16_slope) > 2*ma_stddev16
+07:07:23  12  ORDER BY pair,ydate
+07:07:23  13  /
+
+View created.
+
+Elapsed: 00:00:00.04
+07:07:23 SQL> 
+07:07:23 SQL> -- Now get future rows:
+07:07:23 SQL> 
+07:07:23 SQL> CREATE OR REPLACE VIEW tr182 AS
+07:07:23   2  SELECT
+07:07:23   3  pair
+07:07:23   4  ,ydate
+07:07:23   5  ,npg4
+07:07:23   6  ,npg6
+07:07:23   7  ,npg8
+07:07:23   8  ,sgn16
+07:07:23   9  ,LEAD(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)ydate_ld
+07:07:23  10  ,LEAD(npg4,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg4_ld
+07:07:23  11  ,LEAD(npg6,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg6_ld
+07:07:23  12  ,LEAD(npg8,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg8_ld
+07:07:23  13  FROM tr18
+07:07:23  14  ORDER BY pair,ydate
+07:07:23  15  /
+
+View created.
+
+Elapsed: 00:00:00.05
+07:07:23 SQL> 
+07:07:23 SQL> -- Look at npg4 :
+07:07:23 SQL> 
+07:07:23 SQL> CREATE OR REPLACE VIEW tr184 AS
+07:07:23   2  SELECT
+07:07:23   3  pair
+07:07:23   4  ,npg4
+07:07:23   5  ,sgn16
+07:07:23   6  ,npg4_ld
+07:07:23   7  FROM tr182
+07:07:23   8  WHERE ydate_ld BETWEEN ydate + 50/60/24 AND ydate + 400/60/24
+07:07:23   9  ORDER BY pair,ydate
+07:07:23  10  /
+
+View created.
+
+Elapsed: 00:00:00.03
+07:07:23 SQL> 
+07:07:23 SQL> -- Look for CORR() tween large npg4 and npg4_ld
+07:07:23 SQL> 
+07:07:23 SQL> SELECT
+07:07:23   2  pair
+07:07:23   3  ,sgn16
+07:07:23   4  ,ROUND(sgn16 * AVG(npg4),4)sgn16_x_npg4
+07:07:23   5  ,ROUND(sgn16 * AVG(npg4_ld),4)sgn16_x_npg4_ld
+07:07:23   6  ,COUNT(pair)cnt
+07:07:23   7  FROM tr184
+07:07:23   8  WHERE sgn16 * npg4 < -0.0004
+07:07:23   9  GROUP BY pair,sgn16
+07:07:23  10  ORDER BY pair,sgn16
+07:07:23  11  /
+
+PAIR          SGN16 SGN16_X_NPG4 SGN16_X_NPG4_LD        CNT
+-------- ---------- ------------ --------------- ----------
+aud_usd          -1       -.0017               0         45
+aud_usd           1       -.0017           .0002         33
+eur_usd          -1       -.0017          -.0004         30
+eur_usd           1       -.0012          -.0004         29
+gbp_usd          -1       -.0013           .0001         49
+gbp_usd           1       -.0014          -.0003         30
+usd_cad          -1       -.0018           .0002         29
+usd_cad           1       -.0018          -.0003         46
+usd_chf          -1       -.0015          -.0002         45
+usd_chf           1       -.0015           .0001         33
+usd_jpy          -1       -.0014               0         47
+usd_jpy           1       -.0011           .0002         38
+
+12 rows selected.
+
+Elapsed: 00:00:00.25
+07:07:24 SQL> 
+07:07:24 SQL> 
+07:07:24 SQL> -- Look at npg6 :
+07:07:24 SQL> 
+07:07:24 SQL> CREATE OR REPLACE VIEW tr186 AS
+07:07:24   2  SELECT
+07:07:24   3  pair
+07:07:24   4  ,npg6
+07:07:24   5  ,sgn16
+07:07:24   6  ,npg6_ld
+07:07:24   7  FROM tr182
+07:07:24   8  WHERE ydate_ld BETWEEN ydate + 70/60/24 AND ydate + 600/60/24
+07:07:24   9  ORDER BY pair,ydate
+07:07:24  10  /
+
+View created.
+
+Elapsed: 00:00:00.04
+07:07:24 SQL> 
+07:07:24 SQL> -- Look for CORR() tween large npg6 and npg6_ld
+07:07:24 SQL> 
+07:07:24 SQL> SELECT
+07:07:24   2  pair
+07:07:24   3  ,sgn16
+07:07:24   4  ,ROUND(sgn16 * AVG(npg6),4)sgn16_x_npg6
+07:07:24   5  ,ROUND(sgn16 * AVG(npg6_ld),4)sgn16_x_npg6_ld
+07:07:24   6  ,COUNT(pair)cnt
+07:07:24   7  FROM tr186
+07:07:24   8  WHERE sgn16 * npg6 < -0.0006
+07:07:24   9  GROUP BY pair,sgn16
+07:07:24  10  ORDER BY pair,sgn16
+07:07:24  11  /
+
+PAIR          SGN16 SGN16_X_NPG6 SGN16_X_NPG6_LD        CNT
+-------- ---------- ------------ --------------- ----------
+aud_usd          -1       -.0021          -.0001         54
+aud_usd           1       -.0018          -.0002         35
+eur_usd          -1       -.0018          -.0003         37
+eur_usd           1       -.0015          -.0001         37
+gbp_usd          -1       -.0019           .0004         43
+gbp_usd           1       -.0017          -.0003         38
+usd_cad          -1       -.0019          -.0002         29
+usd_cad           1       -.0022          -.0004         44
+usd_chf          -1       -.0018          -.0001         40
+usd_chf           1        -.002          -.0004         31
+usd_jpy          -1        -.002          -.0001         44
+usd_jpy           1       -.0013           .0002         31
+
+12 rows selected.
+
+Elapsed: 00:00:00.24
+07:07:24 SQL> 
+07:07:24 SQL> -- Look at npg8 :
+07:07:24 SQL> 
+07:07:24 SQL> CREATE OR REPLACE VIEW tr186 AS
+07:07:24   2  SELECT
+07:07:24   3  pair
+07:07:24   4  ,npg8
+07:07:24   5  ,sgn16
+07:07:24   6  ,npg8_ld
+07:07:24   7  FROM tr182
+07:07:24   8  WHERE ydate_ld BETWEEN ydate + 90/60/24 AND ydate + 900/60/24
+07:07:24   9  ORDER BY pair,ydate
+07:07:24  10  /
+
+View created.
+
+Elapsed: 00:00:00.04
+07:07:24 SQL> 
+07:07:24 SQL> -- Look for CORR() tween large npg8 and npg8_ld
+07:07:24 SQL> 
+07:07:24 SQL> SELECT
+07:07:24   2  pair
+07:07:24   3  ,sgn16
+07:07:24   4  ,ROUND(sgn16 * AVG(npg8),4)sgn16_x_npg8
+07:07:24   5  ,ROUND(sgn16 * AVG(npg8_ld),4)sgn16_x_npg8_ld
+07:07:24   6  ,COUNT(pair)cnt
+07:07:24   7  FROM tr186
+07:07:24   8  WHERE sgn16 * npg8 < -0.0008
+07:07:24   9  GROUP BY pair,sgn16
+07:07:24  10  ORDER BY pair,sgn16
+07:07:24  11  /
+
+PAIR          SGN16 SGN16_X_NPG8 SGN16_X_NPG8_LD        CNT
+-------- ---------- ------------ --------------- ----------
+aud_usd          -1       -.0025          -.0002         61
+aud_usd           1       -.0022          -.0003         37
+eur_usd          -1       -.0019           .0002         42
+eur_usd           1       -.0023           .0005         29
+gbp_usd          -1       -.0022           .0002         42
+gbp_usd           1       -.0023          -.0005         31
+usd_cad          -1       -.0025          -.0005         26
+usd_cad           1       -.0022          -.0003         43
+usd_chf          -1       -.0021          -.0002         41
+usd_chf           1        -.002          -.0003         31
+usd_jpy          -1       -.0019           .0003         47
+usd_jpy           1       -.0017           .0002         36
+
+12 rows selected.
+
+Elapsed: 00:00:00.25
+07:07:24 SQL> 
+07:07:24 SQL> -- Now get rows with steep slopes for ma8:
+07:07:24 SQL> 
+07:07:24 SQL> CREATE OR REPLACE VIEW tr20 AS
+07:07:24   2  SELECT
+07:07:24   3  pair
+07:07:24   4  ,ydate
+07:07:24   5  ,npg4
+07:07:24   6  ,npg6
+07:07:24   7  ,npg8
+07:07:24   8  ,sgn8
+07:07:24   9  FROM tr14
+07:07:24  10  -- I want steep slopes:
+07:07:24  11  WHERE ABS(ma8_slope) > 2*ma_stddev8
+07:07:24  12  ORDER BY pair,ydate
+07:07:24  13  /
+
+View created.
+
+Elapsed: 00:00:00.04
+07:07:24 SQL> 
+07:07:24 SQL> 
+07:07:24 SQL> -- Now get future rows:
+07:07:24 SQL> 
+07:07:24 SQL> CREATE OR REPLACE VIEW tr202 AS
+07:07:24   2  SELECT
+07:07:24   3  pair
+07:07:24   4  ,ydate
+07:07:24   5  ,npg4
+07:07:24   6  ,npg6
+07:07:24   7  ,npg8
+07:07:24   8  ,sgn8
+07:07:24   9  ,LEAD(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)ydate_ld
+07:07:24  10  ,LEAD(npg4,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg4_ld
+07:07:24  11  ,LEAD(npg6,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg6_ld
+07:07:24  12  ,LEAD(npg8,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg8_ld
+07:07:24  13  FROM tr20
+07:07:24  14  ORDER BY pair,ydate
+07:07:24  15  /
+
+View created.
+
+Elapsed: 00:00:00.05
+07:07:24 SQL> 
+07:07:24 SQL> -- Look at npg4 :
+07:07:24 SQL> 
+07:07:24 SQL> CREATE OR REPLACE VIEW tr204 AS
+07:07:24   2  SELECT
+07:07:24   3  pair
+07:07:24   4  ,npg4
+07:07:24   5  ,sgn8
+07:07:24   6  ,npg4_ld
+07:07:24   7  FROM tr202
+07:07:24   8  WHERE ydate_ld BETWEEN ydate + 50/60/24 AND ydate + 400/60/24
+07:07:24   9  ORDER BY pair,ydate
+07:07:24  10  /
+
+View created.
+
+Elapsed: 00:00:00.04
+07:07:24 SQL> 
+07:07:24 SQL> -- Look for CORR() tween large npg4 and npg4_ld
+07:07:24 SQL> 
+07:07:24 SQL> SELECT
+07:07:24   2  pair
+07:07:24   3  ,sgn8
+07:07:24   4  ,ROUND(sgn8 * AVG(npg4),4)sgn8_x_npg4
+07:07:24   5  ,ROUND(sgn8 * AVG(npg4_ld),4)sgn8_x_npg4_ld
+07:07:24   6  ,COUNT(pair)cnt
+07:07:24   7  FROM tr204
+07:07:24   8  WHERE sgn8 * npg4 < -0.0004
+07:07:24   9  GROUP BY pair,sgn8
+07:07:24  10  ORDER BY pair,sgn8
+07:07:24  11  /
+
+PAIR           SGN8 SGN8_X_NPG4 SGN8_X_NPG4_LD        CNT
+-------- ---------- ----------- -------------- ----------
+aud_usd          -1      -.0017          .0004         88
+aud_usd           1      -.0016         -.0001         62
+eur_usd          -1      -.0013         -.0003         73
+eur_usd           1      -.0013          .0002         74
+gbp_usd          -1      -.0014         -.0001        101
+gbp_usd           1      -.0015              0         67
+usd_cad          -1      -.0015          .0002         90
+usd_cad           1      -.0017              0        102
+usd_chf          -1      -.0016         -.0001         76
+usd_chf           1      -.0014         -.0001         72
+usd_jpy          -1      -.0014         -.0001         82
+usd_jpy           1      -.0012              0         66
+
+12 rows selected.
+
+Elapsed: 00:00:00.25
+07:07:25 SQL> 
+07:07:25 SQL> -- Look at npg6 :
+07:07:25 SQL> 
+07:07:25 SQL> CREATE OR REPLACE VIEW tr206 AS
+07:07:25   2  SELECT
+07:07:25   3  pair
+07:07:25   4  ,npg6
+07:07:25   5  ,sgn8
+07:07:25   6  ,npg6_ld
+07:07:25   7  FROM tr202
+07:07:25   8  WHERE ydate_ld BETWEEN ydate + 70/60/24 AND ydate + 600/60/24
+07:07:25   9  ORDER BY pair,ydate
+07:07:25  10  /
+
+View created.
+
+Elapsed: 00:00:00.12
+07:07:25 SQL> 
+07:07:25 SQL> -- Look for CORR() tween large npg6 and npg6_ld
+07:07:25 SQL> 
+07:07:25 SQL> SELECT
+07:07:25   2  pair
+07:07:25   3  ,sgn8
+07:07:25   4  ,ROUND(sgn8 * AVG(npg6),4)sgn8_x_npg6
+07:07:25   5  ,ROUND(sgn8 * AVG(npg6_ld),4)sgn8_x_npg6_ld
+07:07:25   6  ,COUNT(pair)cnt
+07:07:25   7  FROM tr206
+07:07:25   8  WHERE sgn8 * npg6 < -0.0006
+07:07:25   9  GROUP BY pair,sgn8
+07:07:25  10  ORDER BY pair,sgn8
+07:07:25  11  /
+
+PAIR           SGN8 SGN8_X_NPG6 SGN8_X_NPG6_LD        CNT
+-------- ---------- ----------- -------------- ----------
+aud_usd          -1      -.0019          .0001         95
+aud_usd           1       -.002         -.0003         64
+eur_usd          -1      -.0016         -.0001         80
+eur_usd           1      -.0017          .0001         73
+gbp_usd          -1      -.0016              0         80
+gbp_usd           1      -.0015         -.0002         77
+usd_cad          -1      -.0017          .0001         73
+usd_cad           1       -.002              0         73
+usd_chf          -1      -.0018              0         77
+usd_chf           1      -.0017          .0001         62
+usd_jpy          -1      -.0016         -.0001         74
+usd_jpy           1      -.0015         -.0001         64
+
+12 rows selected.
+
+Elapsed: 00:00:00.22
+07:07:25 SQL> 
+07:07:25 SQL> -- Look at npg8 :
+07:07:25 SQL> 
+07:07:25 SQL> CREATE OR REPLACE VIEW tr208 AS
+07:07:25   2  SELECT
+07:07:25   3  pair
+07:07:25   4  ,npg8
+07:07:25   5  ,sgn8
+07:07:25   6  ,npg8_ld
+07:07:25   7  FROM tr202
+07:07:25   8  WHERE ydate_ld BETWEEN ydate + 90/60/24 AND ydate + 900/60/24
+07:07:25   9  ORDER BY pair,ydate
+07:07:25  10  /
+
+View created.
+
+Elapsed: 00:00:00.05
+07:07:25 SQL> 
+07:07:25 SQL> -- Look for CORR() tween large npg8 and npg8_ld
+07:07:25 SQL> 
+07:07:25 SQL> SELECT
+07:07:25   2  pair
+07:07:25   3  ,sgn8
+07:07:25   4  ,ROUND(sgn8 * AVG(npg8),4)sgn8_x_npg8
+07:07:25   5  ,ROUND(sgn8 * AVG(npg8_ld),4)sgn8_x_npg8_ld
+07:07:25   6  ,COUNT(pair)cnt
+07:07:25   7  FROM tr208
+07:07:25   8  WHERE sgn8 * npg8 < -0.0008
+07:07:25   9  GROUP BY pair,sgn8
+07:07:25  10  ORDER BY pair,sgn8
+07:07:25  11  /
+
+PAIR           SGN8 SGN8_X_NPG8 SGN8_X_NPG8_LD        CNT
+-------- ---------- ----------- -------------- ----------
+aud_usd          -1       -.002          .0001         97
+aud_usd           1      -.0018         -.0003         61
+eur_usd          -1      -.0017              0         79
+eur_usd           1      -.0017         -.0001         54
+gbp_usd          -1      -.0018         -.0001         71
+gbp_usd           1      -.0017         -.0005         58
+usd_cad          -1      -.0019         -.0001         57
+usd_cad           1      -.0022          .0004         57
+usd_chf          -1      -.0018         -.0002         63
+usd_chf           1      -.0017          .0003         59
+usd_jpy          -1      -.0019         -.0001         72
+usd_jpy           1      -.0016          .0001         58
+
+12 rows selected.
+
+Elapsed: 00:00:00.21
+07:07:25 SQL> 
+07:07:25 SQL> EXIT
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z2:/pt/s/rlk/jumpy_trend$ 
+oracle@z2:/pt/s/rlk/jumpy_trend$ 
+oracle@z2:/pt/s/rlk/jumpy_trend$ 
+
