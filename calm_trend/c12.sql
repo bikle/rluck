@@ -127,29 +127,34 @@ WHERE ABS(ma48_slope)BETWEEN 0.5*ma_stddev48 AND 1.2*ma_stddev48
 ORDER BY pair,ydate
 /
 
--- Now get future rows:
+-- Now get future rows for sgn48:
 
 CREATE OR REPLACE VIEW tr162 AS
 SELECT
-pair
+sgn48
+,pair
 ,ydate
 ,npg24
 ,npg48
 ,npg72
-,sgn48
 ,LEAD(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)ydate_ld
-,LEAD(npg24,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg24_ld
-,LEAD(npg48,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg48_ld
-,LEAD(npg72,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg72_ld
+,LEAD(npg24,25,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg24_ld
+,LEAD(npg48,49,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg48_ld
+,LEAD(npg72,73,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg72_ld
+
+,LEAD(sgn48,25,NULL)OVER(PARTITION BY pair ORDER BY ydate)sgn4824_ld
+,LEAD(sgn48,49,NULL)OVER(PARTITION BY pair ORDER BY ydate)sgn4848_ld
+,LEAD(sgn48,73,NULL)OVER(PARTITION BY pair ORDER BY ydate)sgn4872_ld
+
 FROM tr16
 ORDER BY pair,ydate
 /
 
--- Look at both npg24 and npg24_ld
+-- Look at both npgX and npgX_ld
 
 SELECT
-pair
-,sgn48
+sgn48
+,pair
 ,ROUND(sgn48 * AVG(npg24),4)sgn48_x_npg24
 ,ROUND(sgn48 * AVG(npg24_ld),4)sgn48_x_npg24_ld
 ,COUNT(pair)cnt
