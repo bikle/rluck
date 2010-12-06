@@ -80,7 +80,7 @@ ORDER BY pair,ydate
 /
 
 -- Now that I have ma-slopes, I calculate stddev of their distributions.
--- Also I get sgn:
+-- Also I get sgn.
 
 DROP TABLE tr14;
 PURGE RECYCLEBIN;
@@ -137,39 +137,39 @@ sgn48
 ,npg24
 ,npg48
 ,npg72
-,LEAD(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)ydate_ld
-,LEAD(npg24,25,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg24_ld
-,LEAD(npg48,49,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg48_ld
-,LEAD(npg72,73,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg72_ld
-
-,LEAD(sgn48,25,NULL)OVER(PARTITION BY pair ORDER BY ydate)sgn4824_ld
-,LEAD(sgn48,49,NULL)OVER(PARTITION BY pair ORDER BY ydate)sgn4848_ld
-,LEAD(sgn48,73,NULL)OVER(PARTITION BY pair ORDER BY ydate)sgn4872_ld
-
+-- Get 2nd round of future npgXY:
+,LEAD(npg24,25,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg242
+,LEAD(npg48,49,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg482
+,LEAD(npg72,73,NULL)OVER(PARTITION BY pair ORDER BY ydate)npg722
+-- Get 2nd round of sgn48:
+,LEAD(sgn48,25,NULL)OVER(PARTITION BY pair ORDER BY ydate)sgn4824
+,LEAD(sgn48,49,NULL)OVER(PARTITION BY pair ORDER BY ydate)sgn4848
+,LEAD(sgn48,73,NULL)OVER(PARTITION BY pair ORDER BY ydate)sgn4872
 FROM tr16
 ORDER BY pair,ydate
 /
 
--- Look at both npgX and npgX_ld
+-- Look at both ngXY and ngXY2.
 
 SELECT
 sgn48
 ,pair
-,ROUND(sgn48 * AVG(npg24),4)sgn48_x_npg24
-,ROUND(sgn48 * AVG(npg24_ld),4)sgn48_x_npg24_ld
+,ROUND(AVG(ng24),4)ng24
+,ROUND(AVG(ng242),4)ng242
 ,COUNT(pair)cnt
 FROM
 (
   SELECT
-  pair
-  ,npg24
-  ,sgn48
-  ,npg24_ld
+  sgn48
+  ,pair
+  -- Get the 1st gain from npgXY:
+  ,sgn48*npg24 ng24
+  -- Jump XY rows ahead of npgXY and get 2nd gain:
+  ,sgn4824*npg242 ng242
   FROM tr162
-  -- I want future npg24 between 4 hr ahead and 8 hr ahead:
-  WHERE ydate_ld BETWEEN ydate + 4.2/24 AND ydate + 8.2/24
 )
-WHERE sgn48 * npg24 > 0.0010
+-- I want some momentum:
+WHERE ng24 > 0.0030
 GROUP BY pair,sgn48
 ORDER BY pair,sgn48
 /
