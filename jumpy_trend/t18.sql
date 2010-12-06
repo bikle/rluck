@@ -124,18 +124,159 @@ ORDER BY pair,ydate
 
 ANALYZE TABLE tr14 ESTIMATE STATISTICS SAMPLE 9 PERCENT;
 
--- rpt
+-- Look at CORR() between t1 and t2:
+
 SELECT
 nt1
 ,pair
 ,COUNT(pair)
-,ROUND(CORR(npg1,npg21),2)crr1hr
-,ROUND(AVG(npg1),4)avg_npg1
-,ROUND(AVG(npg21),4)avg_npg21
+,ROUND(CORR(npg1 ,npg21 ),2)crr1hr ,ROUND(AVG(npg1 ),4)avg_npg1 ,ROUND(AVG(npg21 ),4)avg_npg21 
 FROM tr14
 GROUP BY nt1,pair
 ORDER BY nt1,pair
 /
 
+SELECT
+nt2
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg2 ,npg22 ),2)crr2hr ,ROUND(AVG(npg2 ),4)avg_npg2 ,ROUND(AVG(npg22 ),4)avg_npg22 
+FROM tr14
+GROUP BY nt2,pair
+ORDER BY nt2,pair
+/
+
+SELECT
+nt3
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg3 ,npg23 ),2)crr3hr ,ROUND(AVG(npg3 ),4)avg_npg3 ,ROUND(AVG(npg23 ),4)avg_npg23 
+FROM tr14
+GROUP BY nt3,pair
+ORDER BY nt3,pair
+/
+
+SELECT
+nt4
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg4 ,npg24 ),2)crr4hr ,ROUND(AVG(npg4 ),4)avg_npg4 ,ROUND(AVG(npg24 ),4)avg_npg24 
+FROM tr14
+GROUP BY nt4,pair
+ORDER BY nt4,pair
+/
+
+SELECT
+nt6
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg6 ,npg26 ),2)crr6hr ,ROUND(AVG(npg6 ),4)avg_npg6 ,ROUND(AVG(npg26 ),4)avg_npg26 
+FROM tr14
+GROUP BY nt6,pair
+ORDER BY nt6,pair
+/
+
+
+SELECT
+nt8
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg8 ,npg28 ),2)crr8hr ,ROUND(AVG(npg8 ),4)avg_npg8 ,ROUND(AVG(npg28 ),4)avg_npg28 
+FROM tr14
+GROUP BY nt8,pair
+ORDER BY nt8,pair
+/
+
+
+SELECT
+nt12
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg12 ,npg212 ),2)crr12hr ,ROUND(AVG(npg12 ),4)avg_npg12 ,ROUND(AVG(npg212 ),4)avg_npg212 
+FROM tr14
+GROUP BY nt12,pair
+ORDER BY nt12,pair
+/
+
+
+-- Look at CORR() between t1 and t2.
+-- Use STDDEV() instead of NTILE():
+
+SELECT
+nt1
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg1 ,npg21 ),2)crr1hr ,ROUND(AVG(npg1 ),4)avg_npg1 ,ROUND(AVG(npg21 ),4)avg_npg21 
+FROM tr14
+WHERE ABS(npg1)> 4*std1 AND nt1 IN(1,5)
+GROUP BY nt1,pair
+ORDER BY nt1,pair
+/
+
+SELECT
+nt2
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg2 ,npg22 ),2)crr2hr ,ROUND(AVG(npg2 ),4)avg_npg2 ,ROUND(AVG(npg22 ),4)avg_npg22 
+FROM tr14
+WHERE ABS(npg2)> 4*std2 AND nt2 IN(1,5)
+GROUP BY nt2,pair
+ORDER BY nt2,pair
+/
+
+SELECT
+nt3
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg3 ,npg23 ),2)crr3hr ,ROUND(AVG(npg3 ),4)avg_npg3 ,ROUND(AVG(npg23 ),4)avg_npg23 
+FROM tr14
+WHERE ABS(npg3)> 4*std3 AND nt3 IN(1,5)
+GROUP BY nt3,pair
+ORDER BY nt3,pair
+/
+
+SELECT
+nt4
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg4 ,npg24 ),2)crr4hr ,ROUND(AVG(npg4 ),4)avg_npg4 ,ROUND(AVG(npg24 ),4)avg_npg24 
+FROM tr14
+WHERE ABS(npg4)> 4*std4 AND nt4 IN(1,5)
+GROUP BY nt4,pair
+ORDER BY nt4,pair
+/
+
+SELECT
+nt6
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg6 ,npg26 ),2)crr6hr ,ROUND(AVG(npg6 ),4)avg_npg6 ,ROUND(AVG(npg26 ),4)avg_npg26 
+FROM tr14
+WHERE ABS(npg6)> 4*std6 AND nt6 IN(1,5)
+GROUP BY nt6,pair
+ORDER BY nt6,pair
+/
+
+SELECT
+nt8
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg8 ,npg28 ),2)crr8hr ,ROUND(AVG(npg8 ),4)avg_npg8 ,ROUND(AVG(npg28 ),4)avg_npg28 
+FROM tr14
+WHERE ABS(npg8)> 4*std8 AND nt8 IN(1,5)
+GROUP BY nt8,pair
+ORDER BY nt8,pair
+/
+
+SELECT
+nt12
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg12 ,npg212 ),2)crr12hr ,ROUND(AVG(npg12 ),4)avg_npg12 ,ROUND(AVG(npg212 ),4)avg_npg212 
+FROM tr14
+WHERE ABS(npg12)> 3*std12 AND nt12 IN(1,5)
+GROUP BY nt12,pair
+ORDER BY nt12,pair
+/
 
 EXIT
