@@ -1,6 +1,21 @@
 /pt/s/rlk/jumpy_trend/results2010_1206_t22.txt
 
-The script, t22.sql, does show me some decent lucrative-r2m behavior.
+The script, t22.sql, does show me some historical revert-to-mean
+behavior which appears lucrative.
+
+One general piece of information which jumps out at me is that the
+shorter duration strategies favor the trading of these pairs:
+
+  - aud_usd
+  - usd_cad
+  - usd_chf  
+
+And I see that the longer duration strategies favor the trading of these pairs:
+
+  - eur_usd
+  - usd_jpy
+
+
 
 Here is strategy summary to describe how to trade these results.
 
@@ -223,13 +238,412 @@ I want to see large values for AVG_NPG1510 which have an opposite sign of AVG_NP
 12 rows selected.
 
 
+
+
 Name: 12 hr strategy
 
+I watch aud_usd, eur_usd, usd_cad, usd_chf, usd_jpy and wait for 12-hour-npg to move more than 4 x std12.
+I then open a position for 6 hours which is contrary to the trend.
 
-Screen dump:
+I like this strategy because data supporting it has:
+  - Nice balanced negative CORR() for eur_usd, usd_chf
+  - High counts for usd_jpy
+  - Nice balanced AVG_NPG1812 for usd_cad, usd_chf
+  - Low values for usd_chf under STDDV_NPG1510
+
+I dislike this strategy because data supporting it has:
+  - Very low counts
+  - Lack of good general negative CORR()
+
+Here is a report snippet which supports this strategy.
+I want to see large negative values for CRR12HR.
+A value of -1.0 would be perfection.
+I want to see large values for AVG_NPG1812 which have an opposite sign of AVG_NPG12:
+
+19:37:09  10  WHERE ABS(npg12)> 4*std12 AND nt12 IN(1,3)
+19:37:09  11  GROUP BY nt12,pair
+19:37:09  12  ORDER BY nt12,pair
+19:37:09  13  /
+     TREND PAIR     COUNT(PAIR)    CRR12HR  AVG_NPG12 AVG_NPG1812 STDDV_NPG1812
+---------- -------- ----------- ---------- ---------- ----------- -------------
+        -1 aud_usd           51        .05     -.0273      -.0042         .0088
+        -1 eur_usd           27       -.33     -.0205      -.0002         .0029
+        -1 gbp_usd           45       -.14     -.0201       .0008         .0051
+        -1 usd_cad            1                -.0215      -.0049             0
+        -1 usd_chf            4         -1     -.0188       .0017         .0003
+        -1 usd_jpy          123       -.76     -.0253       .0079         .0077
+         1 aud_usd            1                 .0287       .0004             0
+         1 eur_usd           63       -.47      .0215      -.0028         .0068
+         1 gbp_usd            3        .76      .0193       .0014         .0031
+         1 usd_cad           66       -.29      .0226      -.0011         .0045
+         1 usd_chf           13       -.44      .0194      -.0024         .0011
+         1 usd_jpy          150          0      .0237       .0005         .0048
+12 rows selected.
 
 
-oracle@z2:/pt/s/rlk/jumpy_trend$ sqt @t22
+Name: 12 hr strategy (3.5 x std12)
+
+I watch eur_usd, usd_cad, usd_chf, usd_jpy and wait for 12-hour-npg to move more than 3.5 x std12.
+I then open a position for 6 hours which is contrary to the trend.
+
+I like this strategy because data supporting it has:
+  - Nice balanced negative CORR() for eur_usd
+  - High counts for eur_usd, usd_jpy
+  - Nice balanced AVG_NPG1812 for eur_usd
+  - Low values for usd_chf under STDDV_NPG1812
+
+I dislike this strategy because data supporting it has:
+  - Lack of good general negative CORR()
+
+
+Here is a report snippet which supports this strategy.
+I want to see large negative values for CRR12HR.
+A value of -1.0 would be perfection.
+I want to see large values for AVG_NPG1812 which have an opposite sign of AVG_NPG12:
+
+
+oracle@z2:/pt/s/rlk/jumpy_trend$ sqt @t22_12hr_3x_std12.sql
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Dec 6 21:38:35 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+21:38:36 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+21:38:36 SQL> --
+21:38:36 SQL> -- t22_12hr_3x_std12.sql
+21:38:36 SQL> --
+21:38:36 SQL> 
+21:38:36 SQL> -- I use this to boost the row count from tr14 for npg12.
+21:38:36 SQL> 
+21:38:36 SQL> SELECT
+21:38:36   2  nt12-2 trend
+21:38:36   3  ,pair
+21:38:36   4  ,COUNT(pair)
+21:38:36   5  ,ROUND(CORR(npg12,npg1812),2)crr12hr
+21:38:36   6  ,ROUND(AVG(npg12),4)         avg_npg12
+21:38:36   7  ,ROUND(AVG(npg1812),4)       avg_npg1812
+21:38:36   8  ,ROUND(STDDEV(npg1812),4)    stddv_npg1812
+21:38:36   9  FROM tr14
+21:38:36  10  WHERE ABS(npg12)> 3*std12 AND nt12 IN(1,3)
+21:38:36  11  GROUP BY nt12,pair
+21:38:36  12  ORDER BY nt12,pair
+21:38:36  13  /
+
+     TREND PAIR     COUNT(PAIR)    CRR12HR  AVG_NPG12 AVG_NPG1812 STDDV_NPG1812
+---------- -------- ----------- ---------- ---------- ----------- -------------
+        -1 aud_usd          278        .23     -.0225      -.0003         .0087
+        -1 eur_usd          194        .16     -.0172      -.0005         .0033
+        -1 gbp_usd          252        .04     -.0167       .0008         .0045
+        -1 usd_cad           67       -.17     -.0169      -.0006         .0027
+        -1 usd_chf          199        .05     -.0154       .0002          .002
+        -1 usd_jpy          245       -.67     -.0209       .0043         .0081
+         1 aud_usd          225       -.18      .0209       .0012         .0052
+         1 eur_usd          211       -.31      .0183      -.0002          .006
+         1 gbp_usd          102        .13      .0156      -.0006         .0036
+         1 usd_cad          312       -.03      .0185      -.0006         .0037
+         1 usd_chf          133       -.07      .0162      -.0015         .0025
+         1 usd_jpy          273       -.02      .0203       .0006         .0053
+
+12 rows selected.
+
+Elapsed: 00:00:00.35
+21:38:36 SQL> 
+21:38:36 SQL> SELECT
+21:38:36   2  nt12-2 trend
+21:38:36   3  ,pair
+21:38:36   4  ,COUNT(pair)
+21:38:36   5  ,ROUND(CORR(npg12,npg1812),2)crr12hr
+21:38:36   6  ,ROUND(AVG(npg12),4)         avg_npg12
+21:38:36   7  ,ROUND(AVG(npg1812),4)       avg_npg1812
+21:38:36   8  ,ROUND(STDDEV(npg1812),4)    stddv_npg1812
+21:38:36   9  FROM tr14
+21:38:36  10  -- Boost npg12 from 3.0 to 3.5:
+21:38:36  11  WHERE ABS(npg12)> 3.5*std12 AND nt12 IN(1,3)
+21:38:36  12  GROUP BY nt12,pair
+21:38:36  13  ORDER BY nt12,pair
+21:38:36  14  /
+
+     TREND PAIR     COUNT(PAIR)    CRR12HR  AVG_NPG12 AVG_NPG1812 STDDV_NPG1812
+---------- -------- ----------- ---------- ---------- ----------- -------------
+        -1 aud_usd          129        .17      -.025      -.0023         .0081
+        -1 eur_usd           94       -.24     -.0188      -.0012          .003
+        -1 gbp_usd          111       -.09     -.0186       .0003         .0046
+        -1 usd_cad           10        .34     -.0193       .0017         .0038
+        -1 usd_chf           46       -.09     -.0171      -.0002         .0023
+        -1 usd_jpy          174       -.72     -.0232       .0059         .0083
+         1 aud_usd           47       -.13      .0232      -.0003         .0055
+         1 eur_usd          132       -.43        .02      -.0008         .0066
+         1 gbp_usd           28         .2      .0175       .0002         .0017
+         1 usd_cad          136       -.28      .0209      -.0002         .0041
+         1 usd_chf           73       -.44      .0175      -.0016         .0011
+         1 usd_jpy          197        .03      .0223       .0003         .0052
+
+12 rows selected.
+
+Elapsed: 00:00:00.25
+21:38:36 SQL> 
+21:38:36 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z2:/pt/s/rlk/jumpy_trend$ 
+
+
+
+
+
+Name: 14 hr strategy
+
+I watch usd_jpy and wait for 14-hour-npg to move more than 4 x std14.
+I then open a position for 7 hours which is contrary to the trend.
+
+
+I like this strategy because data supporting it has:
+  - High counts for usd_jpy
+
+I dislike this strategy because data supporting it has:
+  - Lack of good general negative CORR()
+
+
+Here is a report snippet which supports this strategy.
+I want to see large negative values for CRR14HR.
+A value of -1.0 would be perfection.
+I want to see large values for AVG_NPG2114 which have an opposite sign of AVG_NPG14:
+
+19:37:10  10  WHERE ABS(npg14)> 4*std14 AND nt14 IN(1,3)
+19:37:10  11  GROUP BY nt14,pair
+19:37:10  12  ORDER BY nt14,pair
+19:37:10  13  /
+
+     TREND PAIR     COUNT(PAIR)    CRR14HR  AVG_NPG14 AVG_NPG2114 STDDV_NPG2114
+---------- -------- ----------- ---------- ---------- ----------- -------------
+        -1 aud_usd           49       -.29     -.0302      -.0027         .0082
+        -1 eur_usd           16        .35     -.0222      -.0018         .0029
+        -1 gbp_usd           21       -.35     -.0217       .0023         .0059
+        -1 usd_cad            1                -.0252      -.0041             0
+        -1 usd_jpy           98       -.83     -.0273       .0093         .0085
+         1 aud_usd            9       -.71      .0284       .0011         .0012
+         1 eur_usd           61       -.43      .0238      -.0043         .0079
+         1 usd_cad           42       -.74       .024      -.0012         .0041
+         1 usd_chf            1                  .021      -.0053             0
+         1 usd_jpy          148        .02      .0252      -.0005         .0052
+10 rows selected.
+
+
+Here is a snippet showing the result when I relax the predicate a bit:
+
+21:57:42 SQL> --
+21:57:42 SQL> -- t22_14hr_3x_std14.sql
+21:57:42 SQL> --
+21:57:42 SQL> 
+21:57:42 SQL> -- I use this to boost the row count from tr14 for npg14.
+21:57:42 SQL> 
+21:57:42 SQL> SELECT
+21:57:42   2  nt14-2 trend
+21:57:42   3  ,pair
+21:57:42   4  ,COUNT(pair)
+21:57:42   5  ,ROUND(CORR(npg14,npg2114),2)crr14hr
+21:57:42   6  ,ROUND(AVG(npg14),4)         avg_npg14
+21:57:42   7  ,ROUND(AVG(npg2114),4)       avg_npg2114
+21:57:42   8  ,ROUND(STDDEV(npg2114),4)    stddv_npg2114
+21:57:42   9  FROM tr14
+21:57:42  10  WHERE ABS(npg14)> 3*std14 AND nt14 IN(1,3)
+21:57:42  11  GROUP BY nt14,pair
+21:57:42  12  ORDER BY nt14,pair
+21:57:42  13  /
+
+     TREND PAIR     COUNT(PAIR)    CRR14HR  AVG_NPG14 AVG_NPG2114 STDDV_NPG2114
+---------- -------- ----------- ---------- ---------- ----------- -------------
+        -1 aud_usd          266       -.02     -.0246      -.0016         .0093
+        -1 eur_usd          169        .11     -.0182      -.0008         .0033
+        -1 gbp_usd          247       -.07     -.0178       .0001         .0055
+        -1 usd_cad           54        .12     -.0185      -.0002         .0034
+        -1 usd_chf          142       -.07     -.0163      -.0001         .0016
+        -1 usd_jpy          233       -.74     -.0219       .0055         .0076
+         1 aud_usd          185       -.05      .0227       .0013         .0052
+         1 eur_usd          225       -.33      .0196      -.0022         .0061
+         1 gbp_usd           65       -.06      .0169      -.0005         .0031
+         1 usd_cad          298       -.12      .0198      -.0005         .0042
+         1 usd_chf          138       -.35      .0164      -.0005         .0024
+         1 usd_jpy          275       -.03      .0218      -.0006         .0052
+
+12 rows selected.
+
+Elapsed: 00:00:00.28
+21:57:42 SQL> 
+21:57:42 SQL> SELECT
+21:57:42   2  nt14-2 trend
+21:57:42   3  ,pair
+21:57:42   4  ,COUNT(pair)
+21:57:42   5  ,ROUND(CORR(npg14,npg2114),2)crr14hr
+21:57:42   6  ,ROUND(AVG(npg14),4)         avg_npg14
+21:57:42   7  ,ROUND(AVG(npg2114),4)       avg_npg2114
+21:57:42   8  ,ROUND(STDDEV(npg2114),4)    stddv_npg2114
+21:57:42   9  FROM tr14
+21:57:42  10  WHERE ABS(npg14)> 3.5*std14 AND nt14 IN(1,3)
+21:57:42  11  GROUP BY nt14,pair
+21:57:42  12  ORDER BY nt14,pair
+21:57:42  13  /
+
+     TREND PAIR     COUNT(PAIR)    CRR14HR  AVG_NPG14 AVG_NPG2114 STDDV_NPG2114
+---------- -------- ----------- ---------- ---------- ----------- -------------
+        -1 aud_usd          148        .06     -.0268      -.0009         .0098
+        -1 eur_usd           55        .33     -.0204      -.0008         .0027
+        -1 gbp_usd          109        -.2     -.0195       .0002         .0053
+        -1 usd_cad           11        .43     -.0209      -.0005         .0033
+        -1 usd_chf           32         .1     -.0182       .0001         .0012
+        -1 usd_jpy          175        -.8     -.0237       .0068         .0074
+         1 aud_usd           49        .06      .0257       .0004         .0032
+         1 eur_usd          122       -.26      .0217      -.0035         .0072
+         1 gbp_usd           18        .08      .0184      -.0014         .0043
+         1 usd_cad          146       -.39      .0217      -.0004         .0034
+         1 usd_chf           22       -.35      .0186      -.0018         .0019
+         1 usd_jpy          209        .07      .0234      -.0009         .0053
+
+12 rows selected.
+
+Elapsed: 00:00:00.25
+21:57:42 SQL> 
+21:57:42 SQL> 
+21:57:42 SQL> exit
+
+
+
+
+Name: 16 hr strategy
+
+I watch eur_usd, usd_cad, usd_chf, usd_jpy and wait for 16-hour-npg to move more than 4 x std16.
+I then open a position for 8 hours which is contrary to the trend.
+
+
+I like this strategy because data supporting it has:
+  - High counts for usd_jpy
+
+I dislike this strategy because data supporting it has:
+  - Lack of good general negative CORR()
+
+
+Here is a report snippet which supports this strategy.
+I want to see large negative values for CRR16HR.
+A value of -1.0 would be perfection.
+I want to see large values for AVG_NPG2416 which have an opposite sign of AVG_NPG16:
+
+19:37:10  10  WHERE ABS(npg16)> 4*std16 AND nt16 IN(1,3)
+19:37:10  11  GROUP BY nt16,pair
+19:37:10  12  ORDER BY nt16,pair
+19:37:10  13  /
+     TREND PAIR     COUNT(PAIR)    CRR16HR  AVG_NPG16 AVG_NPG2416 STDDV_NPG2416
+---------- -------- ----------- ---------- ---------- ----------- -------------
+        -1 aud_usd           52       -.01     -.0335       .0015         .0074
+        -1 eur_usd           12       -.51     -.0234       .0025         .0032
+        -1 gbp_usd           30       -.36      -.024       .0041         .0068
+        -1 usd_chf            7       -.93     -.0219       .0013         .0004
+        -1 usd_jpy           77       -.93     -.0291       .0117         .0088
+         1 aud_usd           15       -.05      .0309       .0021         .0012
+         1 eur_usd           51       -.27      .0248      -.0073          .008
+         1 gbp_usd            2          1      .0225       .0068         .0004
+         1 usd_cad           35       -.79      .0265      -.0038         .0053
+         1 usd_jpy          131       -.01      .0268      -.0018         .0056
+10 rows selected.
+
+
+Here is a snippet showing the result when I relax the predicate a bit:
+
+22:07:01 SQL> --
+22:07:01 SQL> -- t22_16hr_3x_std16.sql
+22:07:01 SQL> --
+22:07:01 SQL> 
+22:07:01 SQL> -- I use this to boost the row count from tr14 for npg16.
+22:07:01 SQL> 
+22:07:01 SQL> SELECT
+22:07:01   2  nt16-2 trend
+22:07:01   3  ,pair
+22:07:01   4  ,COUNT(pair)
+22:07:01   5  ,ROUND(CORR(npg16,npg2416),2)crr16hr
+22:07:01   6  ,ROUND(AVG(npg16),4)         avg_npg16
+22:07:01   7  ,ROUND(AVG(npg2416),4)       avg_npg2416
+22:07:01   8  ,ROUND(STDDEV(npg2416),4)    stddv_npg2416
+22:07:01   9  FROM tr14
+22:07:01  10  WHERE ABS(npg16)> 3*std16 AND nt16 IN(1,3)
+22:07:01  11  GROUP BY nt16,pair
+22:07:01  12  ORDER BY nt16,pair
+22:07:01  13  /
+
+     TREND PAIR     COUNT(PAIR)    CRR16HR  AVG_NPG16 AVG_NPG2416 STDDV_NPG2416
+---------- -------- ----------- ---------- ---------- ----------- -------------
+        -1 aud_usd          278        -.1     -.0262      -.0002         .0097
+        -1 eur_usd          179       -.02     -.0191       .0004         .0045
+        -1 gbp_usd          235       -.35     -.0194      -.0002         .0052
+        -1 usd_cad           46        .22     -.0198      -.0004          .003
+        -1 usd_chf          102       -.21     -.0173       .0002         .0017
+        -1 usd_jpy          247       -.85     -.0222       .0061          .007
+         1 aud_usd          142        .05       .025       .0016         .0043
+         1 eur_usd          229       -.35      .0205      -.0035         .0062
+         1 gbp_usd           67         .3      .0176       .0005         .0027
+         1 usd_cad          292       -.34       .021      -.0012         .0044
+         1 usd_chf          104       -.34      .0169      -.0009         .0031
+         1 usd_jpy          290       -.19      .0223      -.0007         .0048
+
+12 rows selected.
+
+Elapsed: 00:00:00.29
+22:07:01 SQL> 
+22:07:01 SQL> SELECT
+22:07:01   2  nt16-2 trend
+22:07:01   3  ,pair
+22:07:01   4  ,COUNT(pair)
+22:07:01   5  ,ROUND(CORR(npg16,npg2416),2)crr16hr
+22:07:01   6  ,ROUND(AVG(npg16),4)         avg_npg16
+22:07:01   7  ,ROUND(AVG(npg2416),4)       avg_npg2416
+22:07:01   8  ,ROUND(STDDEV(npg2416),4)    stddv_npg2416
+22:07:01   9  FROM tr14
+22:07:01  10  WHERE ABS(npg16)> 3.5*std16 AND nt16 IN(1,3)
+22:07:01  11  GROUP BY nt16,pair
+22:07:01  12  ORDER BY nt16,pair
+22:07:01  13  /
+
+     TREND PAIR     COUNT(PAIR)    CRR16HR  AVG_NPG16 AVG_NPG2416 STDDV_NPG2416
+---------- -------- ----------- ---------- ---------- ----------- -------------
+        -1 aud_usd          127       -.02     -.0297       .0014         .0092
+        -1 eur_usd           53       -.31     -.0215       .0001         .0044
+        -1 gbp_usd          109       -.45     -.0213       .0011         .0052
+        -1 usd_cad            8        .43      -.022      -.0018         .0031
+        -1 usd_chf           14       -.51     -.0206       .0011         .0005
+        -1 usd_jpy          167       -.89     -.0243       .0079         .0073
+         1 aud_usd           47        .02      .0284       .0017         .0024
+         1 eur_usd          106       -.28      .0229      -.0053         .0074
+         1 gbp_usd            3        .96      .0216       .0041         .0047
+         1 usd_cad          111       -.52      .0235      -.0023         .0045
+         1 usd_chf            7       -.41       .019      -.0037         .0034
+         1 usd_jpy          193       -.17      .0247       -.001         .0054
+
+12 rows selected.
+
+Elapsed: 00:00:00.28
+22:07:01 SQL> 
+22:07:01 SQL> 
+22:07:01 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z2:/pt/s/rlk/jumpy_trend$ 
+
+
+
+
+
+
+Here is a screen dump of me running t22.sql:
+
+
+oracle@z2:/pt/s/rlk/jumpy_trend$ sqt @t22.sql
 
 SQL*Plus: Release 11.2.0.1.0 Production on Mon Dec 6 19:34:43 2010
 
