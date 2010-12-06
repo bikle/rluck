@@ -100,19 +100,35 @@ pair
 ,NTILE(3)OVER(PARTITION BY pair ORDER BY npg12)nt12
 ,NTILE(3)OVER(PARTITION BY pair ORDER BY npg14)nt14
 ,NTILE(3)OVER(PARTITION BY pair ORDER BY npg16)nt16
-,STDDEV(npg2 )OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200*2  PRECEDING AND CURRENT ROW)std2 
-,STDDEV(npg4 )OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200*4  PRECEDING AND CURRENT ROW)std4 
-,STDDEV(npg6 )OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200*6  PRECEDING AND CURRENT ROW)std6 
-,STDDEV(npg8 )OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200*8  PRECEDING AND CURRENT ROW)std8 
-,STDDEV(npg10)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200*10 PRECEDING AND CURRENT ROW)std10
-,STDDEV(npg12)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200*12 PRECEDING AND CURRENT ROW)std12
-,STDDEV(npg14)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200*14 PRECEDING AND CURRENT ROW)std14
-,STDDEV(npg16)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 200*16 PRECEDING AND CURRENT ROW)std16
+,STDDEV(npg2 )OVER(PARTITION BY pair)std2 
+,STDDEV(npg4 )OVER(PARTITION BY pair)std4 
+,STDDEV(npg6 )OVER(PARTITION BY pair)std6 
+,STDDEV(npg8 )OVER(PARTITION BY pair)std8 
+,STDDEV(npg10)OVER(PARTITION BY pair)std10
+,STDDEV(npg12)OVER(PARTITION BY pair)std12
+,STDDEV(npg14)OVER(PARTITION BY pair)std14
+,STDDEV(npg16)OVER(PARTITION BY pair)std16
 FROM tr12
 ORDER BY pair,ydate
 /
 
 ANALYZE TABLE tr14 ESTIMATE STATISTICS SAMPLE 9 PERCENT;
+
+-- Display the standard deviation distribution for later reference:
+SELECT
+pair
+,ROUND(STDDEV(npg2 ),4)std2
+,ROUND(STDDEV(npg4 ),4)std4
+,ROUND(STDDEV(npg6 ),4)std6
+,ROUND(STDDEV(npg8 ),4)std8
+,ROUND(STDDEV(npg10),4)std10
+,ROUND(STDDEV(npg12),4)std12
+,ROUND(STDDEV(npg14),4)std14
+,ROUND(STDDEV(npg16),4)std16
+FROM tr12
+GROUP BY pair
+ORDER BY pair
+/
 
 -- Look at CORR() between t1 and t2.
 
@@ -130,8 +146,6 @@ GROUP BY nt2,pair
 ORDER BY nt2,pair
 /
 
-exit
-
 SELECT
 nt4-2 trend
 ,pair
@@ -145,8 +159,6 @@ WHERE ABS(npg4)> 4*std4 AND nt4 IN(1,3)
 GROUP BY nt4,pair
 ORDER BY nt4,pair
 /
-
-exit
 
 SELECT
 nt6-2 trend
@@ -177,23 +189,58 @@ ORDER BY nt8,pair
 /
 
 SELECT
-nt12
+nt10-2 trend
 ,pair
 ,COUNT(pair)
-,ROUND(CORR(npg12,npg1612),2)crr12hr,ROUND(AVG(npg12),4)avg_npg12,ROUND(AVG(npg1612),4)avg_npg1612 
+,ROUND(CORR(npg10,npg1510),2)crr10hr
+,ROUND(AVG(npg10),4)         avg_npg10
+,ROUND(AVG(npg1510),4)       avg_npg1510 
+,ROUND(STDDEV(npg1510),4)    stddv_npg1510
 FROM tr14
-WHERE ABS(npg12)> 3.5*std12 AND nt12 IN(1,3)
+WHERE ABS(npg10)> 4*std10 AND nt10 IN(1,3)
+GROUP BY nt10,pair
+ORDER BY nt10,pair
+/
+
+
+SELECT
+nt12-2 trend
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg12,npg1812),2)crr12hr
+,ROUND(AVG(npg12),4)         avg_npg12
+,ROUND(AVG(npg1812),4)       avg_npg1812 
+,ROUND(STDDEV(npg1812),4)    stddv_npg1812
+FROM tr14
+WHERE ABS(npg12)> 4*std12 AND nt12 IN(1,3)
 GROUP BY nt12,pair
 ORDER BY nt12,pair
 /
 
 SELECT
-nt16
+nt14-2 trend
 ,pair
 ,COUNT(pair)
-,ROUND(CORR(npg16,npg2416),2)crr16hr,ROUND(AVG(npg16),4)avg_npg16,ROUND(AVG(npg2416),4)avg_npg2416
+,ROUND(CORR(npg14,npg2114),2)crr14hr
+,ROUND(AVG(npg14),4)         avg_npg14
+,ROUND(AVG(npg2114),4)       avg_npg2114 
+,ROUND(STDDEV(npg2114),4)    stddv_npg2114
 FROM tr14
-WHERE ABS(npg12)> 3.5*std12 AND nt12 IN(1,3)
+WHERE ABS(npg14)> 4*std14 AND nt14 IN(1,3)
+GROUP BY nt14,pair
+ORDER BY nt14,pair
+/
+
+SELECT
+nt16-2 trend
+,pair
+,COUNT(pair)
+,ROUND(CORR(npg16,npg2416),2)crr16hr
+,ROUND(AVG(npg16),4)         avg_npg16
+,ROUND(AVG(npg2416),4)       avg_npg2416 
+,ROUND(STDDEV(npg2416),4)    stddv_npg2416
+FROM tr14
+WHERE ABS(npg16)> 4*std16 AND nt16 IN(1,3)
 GROUP BY nt16,pair
 ORDER BY nt16,pair
 /
