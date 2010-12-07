@@ -18,7 +18,6 @@ GROUP BY pair
 ORDER BY pair
 /
 
-
 CREATE OR REPLACE VIEW tr10 AS
 SELECT
 pair
@@ -26,6 +25,7 @@ pair
 ,ydate
 ,clse
 -- Relative to current-row, get past closing prices.
+-- They are separated by 2 hours apart:
 -- 2 hr:
 ,LAG(clse,2*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse2
 -- 4 hr:
@@ -37,6 +37,7 @@ pair
 ,LAG(clse,14*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse14
 ,LAG(clse,16*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse16
 -- Relative to current-row, get future closing prices.
+-- They are separated by 1 hour apart:
 -- 1hr:
 ,LEAD(clse,1*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse1
 -- 2 hr:
@@ -65,10 +66,10 @@ pair
 ,clse
 -- I collect normalized gains.
 -- I match t1 and         t2:
-,(clse-lgclse2)/clse lg2,(clse1-clse)/clse npg2    
-,(clse-lgclse4)/clse lg4,(clse2-clse)/clse npg4   
-,(clse-lgclse6)/clse lg6,(clse3-clse)/clse npg6   
-,(clse-lgclse8)/clse lg8,(clse4-clse)/clse npg8   
+,(clse-lgclse2)/clse  lg2,(clse1-clse)/clse  npg2    
+,(clse-lgclse4)/clse  lg4,(clse2-clse)/clse  npg4   
+,(clse-lgclse6)/clse  lg6,(clse3-clse)/clse  npg6   
+,(clse-lgclse8)/clse  lg8,(clse4-clse)/clse  npg8   
 ,(clse-lgclse10)/clse lg10,(clse5-clse)/clse npg10
 ,(clse-lgclse12)/clse lg12,(clse6-clse)/clse npg12
 ,(clse-lgclse14)/clse lg14,(clse7-clse)/clse npg14
@@ -77,10 +78,8 @@ FROM tr10
 ORDER BY pair,ydate
 /
 
-exit
-
 -- Collect everything into a table which should help query performance.
--- Additionally, collect rolling-STDDEV() of npgX:
+-- Additionally, collect STDDEV() of lgX:
 
 DROP TABLE tr14;
 PURGE RECYCLEBIN;
@@ -89,32 +88,32 @@ SELECT
 pair
 ,ydate
 ,clse
---t1,  t2:
-,npg2, npg32
-,npg4, npg64
-,npg6, npg96
-,npg8, npg128
-,npg10, npg1510
-,npg12, npg1812
-,npg14, npg2114
-,npg16, npg2416
--- I use ntX to help me separate positive npgX from negative npgX:
-,NTILE(3)OVER(PARTITION BY pair ORDER BY npg2 )nt2 
-,NTILE(3)OVER(PARTITION BY pair ORDER BY npg4 )nt4 
-,NTILE(3)OVER(PARTITION BY pair ORDER BY npg6 )nt6 
-,NTILE(3)OVER(PARTITION BY pair ORDER BY npg8 )nt8 
-,NTILE(3)OVER(PARTITION BY pair ORDER BY npg10)nt10
-,NTILE(3)OVER(PARTITION BY pair ORDER BY npg12)nt12
-,NTILE(3)OVER(PARTITION BY pair ORDER BY npg14)nt14
-,NTILE(3)OVER(PARTITION BY pair ORDER BY npg16)nt16
-,STDDEV(npg2 )OVER(PARTITION BY pair)std2 
-,STDDEV(npg4 )OVER(PARTITION BY pair)std4 
-,STDDEV(npg6 )OVER(PARTITION BY pair)std6 
-,STDDEV(npg8 )OVER(PARTITION BY pair)std8 
-,STDDEV(npg10)OVER(PARTITION BY pair)std10
-,STDDEV(npg12)OVER(PARTITION BY pair)std12
-,STDDEV(npg14)OVER(PARTITION BY pair)std14
-,STDDEV(npg16)OVER(PARTITION BY pair)std16
+--b4,  after:
+,lg2,  npg2    
+,lg4,  npg4   
+,lg6,  npg6   
+,lg8,  npg8   
+,lg10, npg10
+,lg12, npg12
+,lg14, npg14
+,lg16, npg16
+-- I use ntX to help me separate positive lgX from negative lgX:
+,NTILE(3)OVER(PARTITION BY pair ORDER BY lg2 )nt2 
+,NTILE(3)OVER(PARTITION BY pair ORDER BY lg4 )nt4 
+,NTILE(3)OVER(PARTITION BY pair ORDER BY lg6 )nt6 
+,NTILE(3)OVER(PARTITION BY pair ORDER BY lg8 )nt8 
+,NTILE(3)OVER(PARTITION BY pair ORDER BY lg10)nt10
+,NTILE(3)OVER(PARTITION BY pair ORDER BY lg12)nt12
+,NTILE(3)OVER(PARTITION BY pair ORDER BY lg14)nt14
+,NTILE(3)OVER(PARTITION BY pair ORDER BY lg16)nt16
+,STDDEV(lg2 )OVER(PARTITION BY pair)std2 
+,STDDEV(lg4 )OVER(PARTITION BY pair)std4 
+,STDDEV(lg6 )OVER(PARTITION BY pair)std6 
+,STDDEV(lg8 )OVER(PARTITION BY pair)std8 
+,STDDEV(lg10)OVER(PARTITION BY pair)std10
+,STDDEV(lg12)OVER(PARTITION BY pair)std12
+,STDDEV(lg14)OVER(PARTITION BY pair)std14
+,STDDEV(lg16)OVER(PARTITION BY pair)std16
 FROM tr12
 ORDER BY pair,ydate
 /
@@ -124,14 +123,14 @@ ANALYZE TABLE tr14 ESTIMATE STATISTICS SAMPLE 9 PERCENT;
 -- Display the standard deviation distribution for later reference:
 SELECT
 pair
-,ROUND(STDDEV(npg2 ),4)std2
-,ROUND(STDDEV(npg4 ),4)std4
-,ROUND(STDDEV(npg6 ),4)std6
-,ROUND(STDDEV(npg8 ),4)std8
-,ROUND(STDDEV(npg10),4)std10
-,ROUND(STDDEV(npg12),4)std12
-,ROUND(STDDEV(npg14),4)std14
-,ROUND(STDDEV(npg16),4)std16
+,ROUND(STDDEV(lg2 ),4)std2
+,ROUND(STDDEV(lg4 ),4)std4
+,ROUND(STDDEV(lg6 ),4)std6
+,ROUND(STDDEV(lg8 ),4)std8
+,ROUND(STDDEV(lg10),4)std10
+,ROUND(STDDEV(lg12),4)std12
+,ROUND(STDDEV(lg14),4)std14
+,ROUND(STDDEV(lg16),4)std16
 FROM tr12
 GROUP BY pair
 ORDER BY pair
@@ -143,26 +142,27 @@ SELECT
 nt2-2 trend
 ,pair
 ,COUNT(pair)
-,ROUND(CORR(npg2,npg32),2)crr2hr
-,ROUND(AVG(npg2),4)       avg_npg2
-,ROUND(AVG(npg32),4)      avg_npg32
-,ROUND(STDDEV(npg32),4)   stddv_npg32
+,ROUND(CORR(lg2,npg2),2)crr2hr
+,ROUND(AVG(lg2),4)       avg_lg2
+,ROUND(AVG(npg2),4)      avg_npg2
+,ROUND(STDDEV(npg2),4)   stddv_npg2
 FROM tr14
-WHERE ABS(npg2)> 4*std2 AND nt2 IN(1,3)
+WHERE ABS(lg2)> 4*std2 AND nt2 IN(1,3)
 GROUP BY nt2,pair
 ORDER BY nt2,pair
 /
+
 
 SELECT
 nt4-2 trend
 ,pair
 ,COUNT(pair)
-,ROUND(CORR(npg4,npg64),2)crr4hr
-,ROUND(AVG(npg4),4)       avg_npg4
-,ROUND(AVG(npg64),4)      avg_npg64
-,ROUND(STDDEV(npg64),4)   stddv_npg64
+,ROUND(CORR(lg4,npg4),2)crr4hr
+,ROUND(AVG(lg4),4)       avg_lg4
+,ROUND(AVG(npg4),4)      avg_npg4
+,ROUND(STDDEV(npg4),4)   stddv_npg4
 FROM tr14
-WHERE ABS(npg4)> 4*std4 AND nt4 IN(1,3)
+WHERE ABS(lg4)> 4*std4 AND nt4 IN(1,3)
 GROUP BY nt4,pair
 ORDER BY nt4,pair
 /
@@ -180,6 +180,8 @@ WHERE ABS(npg6)> 4*std6 AND nt6 IN(1,3)
 GROUP BY nt6,pair
 ORDER BY nt6,pair
 /
+
+exit
 
 SELECT
 nt8-2 trend
