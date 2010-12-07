@@ -25,23 +25,28 @@ pair
 -- ydate is granular down to 10 min:
 ,ydate
 ,clse
--- Relative to current-row, get future closing prices.
+-- Relative to current-row, get past closing prices.
 -- 2 hr:
-,LEAD(clse,12,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse2
--- 3 hr:
-,LEAD(clse,3 *6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse3
-,LEAD(clse,4 *6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse4
-,LEAD(clse,6 *6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse6
-,LEAD(clse,8 *6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse8
-,LEAD(clse,9 *6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse9
-,LEAD(clse,10*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse10
-,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse12
-,LEAD(clse,14*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse14
-,LEAD(clse,15*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse15
-,LEAD(clse,16*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse16
-,LEAD(clse,18*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse18
-,LEAD(clse,21*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse21
-,LEAD(clse,24*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse24
+,LAG(clse,2*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse2
+-- 4 hr:
+,LAG(clse,4*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse4
+,LAG(clse,6*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse6
+,LAG(clse,8*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse8
+,LAG(clse,10*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse10
+,LAG(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse12
+,LAG(clse,14*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse14
+,LAG(clse,16*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse16
+-- Relative to current-row, get future closing prices.
+-- 1hr:
+,LEAD(clse,1*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse1
+-- 2 hr:
+,LEAD(clse,2*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse2
+,LEAD(clse,3*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse3
+,LEAD(clse,4*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse4
+,LEAD(clse,5*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse5
+,LEAD(clse,6*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse6
+,LEAD(clse,7*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse7
+,LEAD(clse,8*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse8
 FROM dukas10min
 -- Prevent divide by zero:
 WHERE clse > 0
@@ -60,17 +65,19 @@ pair
 ,clse
 -- I collect normalized gains.
 -- I match t1 and         t2:
-,(clse2-clse)/clse  npg2,(clse3-clse2)/clse    npg32
-,(clse4-clse)/clse  npg4,(clse6-clse4)/clse    npg64
-,(clse6-clse)/clse  npg6,(clse9-clse6)/clse    npg96
-,(clse8-clse)/clse  npg8,(clse12-clse8)/clse   npg128
-,(clse10-clse)/clse npg10,(clse15-clse10)/clse npg1510
-,(clse12-clse)/clse npg12,(clse18-clse12)/clse npg1812
-,(clse14-clse)/clse npg14,(clse21-clse14)/clse npg2114
-,(clse16-clse)/clse npg16,(clse24-clse16)/clse npg2416
+,(clse-lgclse2)/clse lg2,(clse1-clse)/clse npg2    
+,(clse-lgclse4)/clse lg4,(clse2-clse)/clse npg4   
+,(clse-lgclse6)/clse lg6,(clse3-clse)/clse npg6   
+,(clse-lgclse8)/clse lg8,(clse4-clse)/clse npg8   
+,(clse-lgclse10)/clse lg10,(clse5-clse)/clse npg10
+,(clse-lgclse12)/clse lg12,(clse6-clse)/clse npg12
+,(clse-lgclse14)/clse lg14,(clse7-clse)/clse npg14
+,(clse-lgclse16)/clse lg16,(clse8-clse)/clse npg16
 FROM tr10
 ORDER BY pair,ydate
 /
+
+exit
 
 -- Collect everything into a table which should help query performance.
 -- Additionally, collect rolling-STDDEV() of npgX:
