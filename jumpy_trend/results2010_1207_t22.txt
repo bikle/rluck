@@ -1,0 +1,488 @@
+/pt/s/rlk/jumpy_trend/results2010_1207_t22.txt
+
+I enhanced t22.sql so that I can borrow syntax from it to use in my trading scripts.
+
+I show a screen dump below:
+
+
+oracle@z2:/pt/s/rlk/jumpy_trend$ sqt @t22
+
+SQL*Plus: Release 11.2.0.1.0 Production on Tue Dec 7 06:56:02 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+06:56:02 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+06:56:02 SQL> --
+06:56:02 SQL> -- t22.sql
+06:56:02 SQL> --
+06:56:02 SQL> 
+06:56:02 SQL> -- I use this script to look at Forex data which has a 10 minute duration between each datapoint.
+06:56:02 SQL> 
+06:56:02 SQL> SET LINES 66
+06:56:02 SQL> DESC dukas10min
+ Name                             Null?    Type
+ -------------------------------- -------- -----------------------
+ PAIR                                      VARCHAR2(8)
+ YDATE                                     DATE
+ VOL                                       NUMBER
+ OPN                                       NUMBER
+ CLSE                                      NUMBER
+ MN                                        NUMBER
+ MX                                        NUMBER
+
+06:56:02 SQL> SET LINES 166
+06:56:02 SQL> 
+06:56:02 SQL> SELECT
+06:56:02   2  pair
+06:56:02   3  ,MIN(ydate)
+06:56:02   4  ,COUNT(*)
+06:56:02   5  ,MAX(ydate)
+06:56:02   6  FROM dukas10min
+06:56:02   7  GROUP BY pair
+06:56:02   8  ORDER BY pair
+06:56:02   9  /
+
+PAIR     MIN(YDATE)            COUNT(*) MAX(YDATE)
+-------- ------------------- ---------- -------------------
+aud_usd  2009-09-18 05:50:01      45543 2010-12-03 17:50:01
+eur_usd  2009-09-18 05:50:01      45543 2010-12-03 17:50:01
+gbp_usd  2009-09-18 05:50:01      45543 2010-12-03 17:50:01
+usd_cad  2009-09-18 05:50:01      45543 2010-12-03 17:50:01
+usd_chf  2009-09-18 05:50:01      45543 2010-12-03 17:50:01
+usd_jpy  2009-09-18 05:50:01      45543 2010-12-03 17:50:01
+
+6 rows selected.
+
+Elapsed: 00:00:00.21
+06:56:02 SQL> 
+06:56:02 SQL> CREATE OR REPLACE VIEW tr10 AS
+06:56:02   2  SELECT
+06:56:02   3  pair
+06:56:02   4  -- ydate is granular down to 10 min:
+06:56:02   5  ,ydate
+06:56:02   6  ,clse
+06:56:02   7  -- Relative to current-row, get past closing prices.
+06:56:02   8  -- They are separated by 2 hours apart:
+06:56:02   9  -- 2 hr:
+06:56:02  10  ,LAG(clse,2*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse2
+06:56:02  11  -- 4 hr:
+06:56:02  12  ,LAG(clse,4*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse4
+06:56:02  13  ,LAG(clse,6*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse6
+06:56:02  14  ,LAG(clse,8*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse8
+06:56:02  15  ,LAG(clse,10*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse10
+06:56:02  16  ,LAG(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse12
+06:56:02  17  ,LAG(clse,14*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse14
+06:56:02  18  ,LAG(clse,16*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)lgclse16
+06:56:02  19  -- Relative to current-row, get future closing prices.
+06:56:02  20  -- They are separated by 1 hour apart:
+06:56:02  21  -- 1hr:
+06:56:02  22  ,LEAD(clse,1*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse1
+06:56:02  23  -- 2 hr:
+06:56:02  24  ,LEAD(clse,2*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse2
+06:56:02  25  ,LEAD(clse,3*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse3
+06:56:02  26  ,LEAD(clse,4*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse4
+06:56:02  27  ,LEAD(clse,5*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse5
+06:56:02  28  ,LEAD(clse,6*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse6
+06:56:02  29  ,LEAD(clse,7*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse7
+06:56:02  30  ,LEAD(clse,8*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)clse8
+06:56:02  31  FROM dukas10min
+06:56:02  32  -- Prevent divide by zero:
+06:56:02  33  WHERE clse > 0
+06:56:02  34  ORDER BY pair,ydate
+06:56:02  35  /
+
+View created.
+
+Elapsed: 00:00:00.06
+06:56:03 SQL> 
+06:56:03 SQL> -- I collect normalized gains.
+06:56:03 SQL> -- I normalize the gains so I can compare JPY to AUD, CHF, CAD:
+06:56:03 SQL> -- usd_jpy is near 85.
+06:56:03 SQL> -- aud_usd, usd_cad, usd_chf are near 1.
+06:56:03 SQL> 
+06:56:03 SQL> CREATE OR REPLACE VIEW tr12 AS
+06:56:03   2  SELECT
+06:56:03   3  pair
+06:56:03   4  ,ydate
+06:56:03   5  ,clse
+06:56:03   6  -- I collect normalized gains.
+06:56:03   7  -- I match t1 and         t2:
+06:56:03   8  ,(clse-lgclse2)/clse  lg2,(clse1-clse)/clse  npg2
+06:56:03   9  ,(clse-lgclse4)/clse  lg4,(clse2-clse)/clse  npg4
+06:56:03  10  ,(clse-lgclse6)/clse  lg6,(clse3-clse)/clse  npg6
+06:56:03  11  ,(clse-lgclse8)/clse  lg8,(clse4-clse)/clse  npg8
+06:56:03  12  ,(clse-lgclse10)/clse lg10,(clse5-clse)/clse npg10
+06:56:03  13  ,(clse-lgclse12)/clse lg12,(clse6-clse)/clse npg12
+06:56:03  14  ,(clse-lgclse14)/clse lg14,(clse7-clse)/clse npg14
+06:56:03  15  ,(clse-lgclse16)/clse lg16,(clse8-clse)/clse npg16
+06:56:03  16  FROM tr10
+06:56:03  17  ORDER BY pair,ydate
+06:56:03  18  /
+
+View created.
+
+Elapsed: 00:00:00.05
+06:56:03 SQL> 
+06:56:03 SQL> -- Collect everything into a table which should help query performance.
+06:56:03 SQL> -- Additionally, collect STDDEV() of lgX:
+06:56:03 SQL> 
+06:56:03 SQL> DROP TABLE tr14;
+
+Table dropped.
+
+Elapsed: 00:00:00.16
+06:56:03 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:01.12
+06:56:04 SQL> CREATE TABLE tr14 COMPRESS AS
+06:56:04   2  SELECT
+06:56:04   3  pair
+06:56:04   4  ,ydate
+06:56:04   5  ,clse
+06:56:04   6  --b4,  after:
+06:56:04   7  ,lg2,  npg2
+06:56:04   8  ,lg4,  npg4
+06:56:04   9  ,lg6,  npg6
+06:56:04  10  ,lg8,  npg8
+06:56:04  11  ,lg10, npg10
+06:56:04  12  ,lg12, npg12
+06:56:04  13  ,lg14, npg14
+06:56:04  14  ,lg16, npg16
+06:56:04  15  -- I use ntX to help me separate positive lgX from negative lgX:
+06:56:04  16  ,NTILE(3)OVER(PARTITION BY pair ORDER BY lg2 )nt2
+06:56:04  17  ,NTILE(3)OVER(PARTITION BY pair ORDER BY lg4 )nt4
+06:56:04  18  ,NTILE(3)OVER(PARTITION BY pair ORDER BY lg6 )nt6
+06:56:04  19  ,NTILE(3)OVER(PARTITION BY pair ORDER BY lg8 )nt8
+06:56:04  20  ,NTILE(3)OVER(PARTITION BY pair ORDER BY lg10)nt10
+06:56:04  21  ,NTILE(3)OVER(PARTITION BY pair ORDER BY lg12)nt12
+06:56:04  22  ,NTILE(3)OVER(PARTITION BY pair ORDER BY lg14)nt14
+06:56:04  23  ,NTILE(3)OVER(PARTITION BY pair ORDER BY lg16)nt16
+06:56:04  24  ,STDDEV(lg2 )OVER(PARTITION BY pair)std2
+06:56:04  25  ,STDDEV(lg4 )OVER(PARTITION BY pair)std4
+06:56:04  26  ,STDDEV(lg6 )OVER(PARTITION BY pair)std6
+06:56:04  27  ,STDDEV(lg8 )OVER(PARTITION BY pair)std8
+06:56:04  28  ,STDDEV(lg10)OVER(PARTITION BY pair)std10
+06:56:04  29  ,STDDEV(lg12)OVER(PARTITION BY pair)std12
+06:56:04  30  ,STDDEV(lg14)OVER(PARTITION BY pair)std14
+06:56:04  31  ,STDDEV(lg16)OVER(PARTITION BY pair)std16
+06:56:04  32  FROM tr12
+06:56:04  33  ORDER BY pair,ydate
+06:56:04  34  /
+
+Table created.
+
+Elapsed: 00:02:18.25
+06:58:22 SQL> 
+06:58:22 SQL> ANALYZE TABLE tr14 ESTIMATE STATISTICS SAMPLE 9 PERCENT;
+
+Table analyzed.
+
+Elapsed: 00:00:03.33
+06:58:25 SQL> 
+06:58:25 SQL> -- Display the standard deviation distribution for later reference:
+06:58:25 SQL> SELECT
+06:58:25   2  pair
+06:58:25   3  ,ROUND(STDDEV(lg2 ),4)std2
+06:58:25   4  ,ROUND(STDDEV(lg4 ),4)std4
+06:58:25   5  ,ROUND(STDDEV(lg6 ),4)std6
+06:58:25   6  ,ROUND(STDDEV(lg8 ),4)std8
+06:58:25   7  ,ROUND(STDDEV(lg10),4)std10
+06:58:25   8  ,ROUND(STDDEV(lg12),4)std12
+06:58:25   9  ,ROUND(STDDEV(lg14),4)std14
+06:58:25  10  ,ROUND(STDDEV(lg16),4)std16
+06:58:25  11  FROM tr12
+06:58:25  12  GROUP BY pair
+06:58:25  13  ORDER BY pair
+06:58:25  14  /
+
+PAIR           STD2       STD4       STD6       STD8      STD10      STD12      STD14      STD16
+-------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+aud_usd       .0026      .0036      .0044      .0051      .0057      .0063      .0068      .0073
+eur_usd        .002      .0028      .0035       .004      .0045      .0049      .0053      .0057
+gbp_usd        .002      .0028      .0034      .0039      .0043      .0047      .0051      .0055
+usd_cad       .0022       .003      .0037      .0042      .0047      .0052      .0056       .006
+usd_chf        .002      .0028      .0033      .0038      .0042      .0046       .005      .0053
+usd_jpy        .002      .0028      .0034      .0039      .0044      .0048      .0051      .0054
+
+6 rows selected.
+
+Elapsed: 00:00:06.69
+06:58:32 SQL> 
+06:58:32 SQL> -- Look at CORR() between t1 and t2.
+06:58:32 SQL> 
+06:58:32 SQL> SELECT
+06:58:32   2  nt2-2 trend
+06:58:32   3  ,pair
+06:58:32   4  ,COUNT(pair)
+06:58:32   5  ,ROUND(CORR(lg2,npg2),2)crr2hr
+06:58:32   6  ,ROUND(AVG(lg2),4)         avg_lg2
+06:58:32   7  ,ROUND(AVG(npg2),4)        avg_npg2
+06:58:32   8  ,ROUND(STDDEV(npg2),4)     stddv_npg2
+06:58:32   9  FROM tr14
+06:58:32  10  WHERE ABS(lg2)> 4*std2 AND nt2 IN(1,3)
+06:58:32  11  GROUP BY nt2,pair
+06:58:32  12  ORDER BY nt2,pair
+06:58:32  13  /
+
+     TREND PAIR     COUNT(PAIR)     CRR2HR    AVG_LG2   AVG_NPG2 STDDV_NPG2
+---------- -------- ----------- ---------- ---------- ---------- ----------
+        -1 aud_usd          106       -.04     -.0126      .0005      .0041
+        -1 eur_usd           84       -.16      -.009     -.0002      .0019
+        -1 gbp_usd          121       -.17     -.0102      .0004      .0034
+        -1 usd_cad          103        -.2     -.0105      .0002      .0022
+        -1 usd_chf          106        .04     -.0103     -.0003      .0023
+        -1 usd_jpy          134       -.28     -.0122      .0006      .0052
+         1 aud_usd           69       -.18      .0117     -.0007      .0037
+         1 eur_usd          109       -.49        .01          0      .0023
+         1 gbp_usd           62        .12       .009     -.0006       .002
+         1 usd_cad          120       -.37      .0107     -.0008      .0029
+         1 usd_chf          134       -.29      .0093      .0001      .0021
+         1 usd_jpy           99        .28       .011      .0009       .003
+
+12 rows selected.
+
+Elapsed: 00:00:00.23
+06:58:32 SQL> 
+06:58:32 SQL> 
+06:58:32 SQL> SELECT
+06:58:32   2  nt4-2 trend
+06:58:32   3  ,pair
+06:58:32   4  ,COUNT(pair)
+06:58:32   5  ,ROUND(CORR(lg4,npg4),2)crr4hr
+06:58:32   6  ,ROUND(AVG(lg4),4)         avg_lg4
+06:58:32   7  ,ROUND(AVG(npg4),4)        avg_npg4
+06:58:32   8  ,ROUND(STDDEV(npg4),4)     stddv_npg4
+06:58:32   9  FROM tr14
+06:58:32  10  WHERE ABS(lg4)> 4*std4 AND nt4 IN(1,3)
+06:58:32  11  GROUP BY nt4,pair
+06:58:32  12  ORDER BY nt4,pair
+06:58:32  13  /
+
+     TREND PAIR     COUNT(PAIR)     CRR4HR    AVG_LG4   AVG_NPG4 STDDV_NPG4
+---------- -------- ----------- ---------- ---------- ---------- ----------
+        -1 aud_usd           91       -.43     -.0173      .0024      .0047
+        -1 eur_usd           75       -.01     -.0124     -.0006      .0027
+        -1 gbp_usd           92       -.38      -.014      .0005      .0027
+        -1 usd_cad           86       -.24     -.0137      .0014      .0035
+        -1 usd_chf          103       -.19     -.0134      .0001      .0018
+        -1 usd_jpy          129       -.23     -.0171     -.0005      .0089
+         1 aud_usd           29         .2      .0167     -.0025      .0059
+         1 eur_usd           84       -.58       .013     -.0014      .0026
+         1 gbp_usd           49        .12      .0123     -.0004      .0031
+         1 usd_cad           99       -.42      .0146     -.0012       .003
+         1 usd_chf          107       -.04      .0125     -.0006      .0024
+         1 usd_jpy           99        .03      .0156      .0015      .0041
+
+12 rows selected.
+
+Elapsed: 00:00:00.21
+06:58:33 SQL> 
+06:58:33 SQL> SELECT
+06:58:33   2  nt6-2 trend
+06:58:33   3  ,pair
+06:58:33   4  ,COUNT(pair)
+06:58:33   5  ,ROUND(CORR(lg6,npg6),2)crr6hr
+06:58:33   6  ,ROUND(AVG(lg6),4)         avg_lg6
+06:58:33   7  ,ROUND(AVG(npg6),4)        avg_npg6
+06:58:33   8  ,ROUND(STDDEV(npg6),4)     stddv_npg6
+06:58:33   9  FROM tr14
+06:58:33  10  WHERE ABS(lg6)> 4*std6 AND nt6 IN(1,3)
+06:58:33  11  GROUP BY nt6,pair
+06:58:33  12  ORDER BY nt6,pair
+06:58:33  13  /
+
+     TREND PAIR     COUNT(PAIR)     CRR6HR    AVG_LG6   AVG_NPG6 STDDV_NPG6
+---------- -------- ----------- ---------- ---------- ---------- ----------
+        -1 aud_usd           60       -.24     -.0199     -.0003      .0057
+        -1 eur_usd           75        .13     -.0155     -.0013      .0019
+        -1 gbp_usd          100       -.31     -.0159      .0013      .0048
+        -1 usd_cad           31       -.39     -.0157      .0023      .0034
+        -1 usd_chf           77       -.04     -.0149      .0005      .0021
+        -1 usd_jpy          137       -.34       -.02      .0006      .0097
+         1 aud_usd           22        -.5      .0208     -.0044      .0042
+         1 eur_usd           42       -.67      .0151      -.001      .0041
+         1 gbp_usd           39       -.03      .0148     -.0016      .0019
+         1 usd_cad           73       -.59      .0173     -.0014      .0026
+         1 usd_chf           69       -.04      .0147     -.0005      .0031
+         1 usd_jpy          115        .17      .0189      .0022      .0045
+
+12 rows selected.
+
+Elapsed: 00:00:00.24
+06:58:33 SQL> 
+06:58:33 SQL> SELECT
+06:58:33   2  nt8-2 trend
+06:58:33   3  ,pair
+06:58:33   4  ,COUNT(pair)
+06:58:33   5  ,ROUND(CORR(lg8,npg8),2) crr8hr
+06:58:33   6  ,ROUND(AVG(lg8),4)         avg_lg8
+06:58:33   7  ,ROUND(AVG(npg8),4)        avg_npg8
+06:58:33   8  ,ROUND(STDDEV(npg8),4)     stddv_npg8
+06:58:33   9  FROM tr14
+06:58:33  10  WHERE ABS(lg8)> 4*std8 AND nt8 IN(1,3)
+06:58:33  11  GROUP BY nt8,pair
+06:58:33  12  ORDER BY nt8,pair
+06:58:33  13  /
+
+     TREND PAIR     COUNT(PAIR)     CRR8HR    AVG_LG8   AVG_NPG8 STDDV_NPG8
+---------- -------- ----------- ---------- ---------- ---------- ----------
+        -1 aud_usd           63       -.35     -.0234     -.0005       .005
+        -1 eur_usd           54       -.21     -.0179      -.001      .0022
+        -1 gbp_usd           84       -.28     -.0177      .0022      .0044
+        -1 usd_cad            8       -.46     -.0181      .0012      .0038
+        -1 usd_chf           39       -.15     -.0164       .001      .0028
+        -1 usd_jpy          119       -.56     -.0231      .0041       .008
+         1 aud_usd           16        .29      .0219     -.0031      .0038
+         1 eur_usd           38        -.4      .0182      .0003       .004
+         1 gbp_usd            9        .11      .0164     -.0018      .0026
+         1 usd_cad           69       -.64      .0191     -.0011      .0032
+         1 usd_chf           41       -.37      .0169     -.0005       .002
+         1 usd_jpy          112       -.56       .022      .0017      .0043
+
+12 rows selected.
+
+Elapsed: 00:00:00.21
+06:58:33 SQL> 
+06:58:33 SQL> SELECT
+06:58:33   2  nt10-2 trend
+06:58:33   3  ,pair
+06:58:33   4  ,COUNT(pair)
+06:58:33   5  ,ROUND(CORR(lg10,npg10),2)crr10hr
+06:58:33   6  ,ROUND(AVG(lg10),4)       avg_lg10
+06:58:33   7  ,ROUND(AVG(npg10),4)      avg_npg10
+06:58:33   8  ,ROUND(STDDEV(npg10),4)   stddv_npg10
+06:58:33   9  FROM tr14
+06:58:33  10  WHERE ABS(lg10)> 4*std10 AND nt10 IN(1,3)
+06:58:33  11  GROUP BY nt10,pair
+06:58:33  12  ORDER BY nt10,pair
+06:58:33  13  /
+
+     TREND PAIR     COUNT(PAIR)    CRR10HR   AVG_LG10  AVG_NPG10 STDDV_NPG10
+---------- -------- ----------- ---------- ---------- ---------- -----------
+        -1 aud_usd           55       -.13     -.0257     -.0006       .0074
+        -1 eur_usd           49       -.04     -.0197      .0001       .0027
+        -1 gbp_usd           70       -.35     -.0194      .0022       .0045
+        -1 usd_cad            1                -.0207      .0038           0
+        -1 usd_chf           14        -.4     -.0175      .0014       .0014
+        -1 usd_jpy          119       -.69     -.0252      .0071       .0082
+         1 aud_usd            7       -.48      .0242     -.0043       .0031
+         1 eur_usd           44        .25      .0189      .0019       .0044
+         1 gbp_usd            3        .23      .0179      .0001       .0013
+         1 usd_cad           80       -.51      .0206      -.001       .0041
+         1 usd_chf           30        -.5      .0178     -.0018       .0009
+         1 usd_jpy          121       -.29      .0229      .0017       .0041
+
+12 rows selected.
+
+Elapsed: 00:00:00.21
+06:58:33 SQL> 
+06:58:33 SQL> SELECT
+06:58:33   2  nt12-2 trend
+06:58:33   3  ,pair
+06:58:33   4  ,COUNT(pair)
+06:58:33   5  ,ROUND(CORR(lg12,npg12),2)crr12hr
+06:58:33   6  ,ROUND(AVG(lg12),4)       avg_lg12
+06:58:33   7  ,ROUND(AVG(npg12),4)      avg_npg12
+06:58:33   8  ,ROUND(STDDEV(npg12),4)   stddv_npg12
+06:58:33   9  FROM tr14
+06:58:33  10  WHERE ABS(lg12)> 4*std12 AND nt12 IN(1,3)
+06:58:33  11  GROUP BY nt12,pair
+06:58:33  12  ORDER BY nt12,pair
+06:58:33  13  /
+
+     TREND PAIR     COUNT(PAIR)    CRR12HR   AVG_LG12  AVG_NPG12 STDDV_NPG12
+---------- -------- ----------- ---------- ---------- ---------- -----------
+        -1 aud_usd           62        .06     -.0276     -.0042       .0088
+        -1 eur_usd           31        -.3     -.0208     -.0003       .0028
+        -1 gbp_usd           52       -.15     -.0203      .0007       .0053
+        -1 usd_cad            1                -.0219      -.005           0
+        -1 usd_chf            6       -.92     -.0189      .0015       .0005
+        -1 usd_jpy          134       -.76     -.0255      .0079       .0078
+         1 aud_usd            1                 .0279      .0004           0
+         1 eur_usd           53       -.56      .0214     -.0028        .007
+         1 gbp_usd            2          1      .0191      .0023       .0037
+         1 usd_cad           52       -.22      .0226     -.0016       .0045
+         1 usd_chf            9        -.6      .0193     -.0024       .0012
+         1 usd_jpy          144       -.02      .0234      .0005       .0047
+
+12 rows selected.
+
+Elapsed: 00:00:00.22
+06:58:33 SQL> 
+06:58:33 SQL> SELECT
+06:58:33   2  nt14-2 trend
+06:58:33   3  ,pair
+06:58:33   4  ,COUNT(pair)
+06:58:33   5  ,ROUND(CORR(lg14,npg14),2)crr14hr
+06:58:33   6  ,ROUND(AVG(lg14),4)         avg_lg14
+06:58:33   7  ,ROUND(AVG(npg14),4)       avg_npg14
+06:58:33   8  ,ROUND(STDDEV(npg14),4)    stddv_npg14
+06:58:33   9  FROM tr14
+06:58:33  10  WHERE ABS(lg14)> 4*std14 AND nt14 IN(1,3)
+06:58:33  11  GROUP BY nt14,pair
+06:58:33  12  ORDER BY nt14,pair
+06:58:33  13  /
+
+     TREND PAIR     COUNT(PAIR)    CRR14HR   AVG_LG14  AVG_NPG14 STDDV_NPG14
+---------- -------- ----------- ---------- ---------- ---------- -----------
+        -1 aud_usd           57        -.2     -.0306     -.0027        .009
+        -1 eur_usd           19        .31     -.0225     -.0018       .0028
+        -1 gbp_usd           32       -.43     -.0216      .0013       .0055
+        -1 usd_cad            1                -.0258     -.0042           0
+        -1 usd_jpy          112       -.82     -.0272      .0091       .0085
+         1 aud_usd            7       -.59      .0279      .0008       .0011
+         1 eur_usd           52        -.4      .0236     -.0049       .0078
+         1 usd_cad           29       -.81      .0241     -.0017       .0043
+         1 usd_chf            1                 .0206     -.0052           0
+         1 usd_jpy          138        .01      .0249     -.0005        .005
+
+10 rows selected.
+
+Elapsed: 00:00:00.21
+06:58:34 SQL> 
+06:58:34 SQL> SELECT
+06:58:34   2  nt16-2 trend
+06:58:34   3  ,pair
+06:58:34   4  ,COUNT(pair)
+06:58:34   5  ,ROUND(CORR(lg16,npg16),2)crr16hr
+06:58:34   6  ,ROUND(AVG(lg16),4)         avg_lg16
+06:58:34   7  ,ROUND(AVG(npg16),4)       avg_npg16
+06:58:34   8  ,ROUND(STDDEV(npg16),4)    stddv_npg16
+06:58:34   9  FROM tr14
+06:58:34  10  WHERE ABS(lg16)> 4*std16 AND nt16 IN(1,3)
+06:58:34  11  GROUP BY nt16,pair
+06:58:34  12  ORDER BY nt16,pair
+06:58:34  13  /
+
+     TREND PAIR     COUNT(PAIR)    CRR16HR   AVG_LG16  AVG_NPG16 STDDV_NPG16
+---------- -------- ----------- ---------- ---------- ---------- -----------
+        -1 aud_usd           68        .04     -.0334      .0019       .0088
+        -1 eur_usd           16       -.33     -.0238      .0022       .0043
+        -1 gbp_usd           34        -.4     -.0243      .0037       .0067
+        -1 usd_chf            8       -.82     -.0223      .0013       .0004
+        -1 usd_jpy           86       -.92     -.0292      .0117       .0088
+         1 aud_usd           11       -.42      .0304      .0023       .0013
+         1 eur_usd           43       -.25      .0245     -.0076       .0077
+         1 gbp_usd            1                 .0226      .0069           0
+         1 usd_cad           27       -.76      .0264     -.0049       .0052
+         1 usd_jpy          120       -.02      .0265     -.0017       .0055
+
+10 rows selected.
+
+Elapsed: 00:00:00.22
+06:58:34 SQL> 
+06:58:34 SQL> EXIT
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+

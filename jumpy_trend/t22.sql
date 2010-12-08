@@ -171,28 +171,26 @@ SELECT
 nt6-2 trend
 ,pair
 ,COUNT(pair)
-,ROUND(CORR(npg6,npg96),2)crr6hr
-,ROUND(AVG(npg6),4)       avg_npg6
-,ROUND(AVG(npg96),4)      avg_npg96
-,ROUND(STDDEV(npg96),4)   stddv_npg96
+,ROUND(CORR(lg6,npg6),2)crr6hr
+,ROUND(AVG(lg6),4)       avg_lg6
+,ROUND(AVG(npg6),4)      avg_npg6
+,ROUND(STDDEV(npg6),4)   stddv_npg6
 FROM tr14
-WHERE ABS(npg6)> 4*std6 AND nt6 IN(1,3)
+WHERE ABS(lg6)> 4*std6 AND nt6 IN(1,3)
 GROUP BY nt6,pair
 ORDER BY nt6,pair
 /
-
-exit
 
 SELECT
 nt8-2 trend
 ,pair
 ,COUNT(pair)
-,ROUND(CORR(npg8,npg128),2)crr8hr
-,ROUND(AVG(npg8),4)        avg_npg8
-,ROUND(AVG(npg128),4)      avg_npg128 
-,ROUND(STDDEV(npg128),4)   stddv_npg128
+,ROUND(CORR(lg8,npg8),2) crr8hr
+,ROUND(AVG(lg8),4)       avg_lg8
+,ROUND(AVG(npg8),4)      avg_npg8 
+,ROUND(STDDEV(npg8),4)   stddv_npg8
 FROM tr14
-WHERE ABS(npg8)> 4*std8 AND nt8 IN(1,3)
+WHERE ABS(lg8)> 4*std8 AND nt8 IN(1,3)
 GROUP BY nt8,pair
 ORDER BY nt8,pair
 /
@@ -201,27 +199,26 @@ SELECT
 nt10-2 trend
 ,pair
 ,COUNT(pair)
-,ROUND(CORR(npg10,npg1510),2)crr10hr
-,ROUND(AVG(npg10),4)         avg_npg10
-,ROUND(AVG(npg1510),4)       avg_npg1510 
-,ROUND(STDDEV(npg1510),4)    stddv_npg1510
+,ROUND(CORR(lg10,npg10),2)crr10hr
+,ROUND(AVG(lg10),4)       avg_lg10
+,ROUND(AVG(npg10),4)      avg_npg10 
+,ROUND(STDDEV(npg10),4)   stddv_npg10
 FROM tr14
-WHERE ABS(npg10)> 4*std10 AND nt10 IN(1,3)
+WHERE ABS(lg10)> 4*std10 AND nt10 IN(1,3)
 GROUP BY nt10,pair
 ORDER BY nt10,pair
 /
-
 
 SELECT
 nt12-2 trend
 ,pair
 ,COUNT(pair)
-,ROUND(CORR(npg12,npg1812),2)crr12hr
-,ROUND(AVG(npg12),4)         avg_npg12
-,ROUND(AVG(npg1812),4)       avg_npg1812 
-,ROUND(STDDEV(npg1812),4)    stddv_npg1812
+,ROUND(CORR(lg12,npg12),2)crr12hr
+,ROUND(AVG(lg12),4)       avg_lg12
+,ROUND(AVG(npg12),4)      avg_npg12 
+,ROUND(STDDEV(npg12),4)   stddv_npg12
 FROM tr14
-WHERE ABS(npg12)> 4*std12 AND nt12 IN(1,3)
+WHERE ABS(lg12)> 4*std12 AND nt12 IN(1,3)
 GROUP BY nt12,pair
 ORDER BY nt12,pair
 /
@@ -230,12 +227,12 @@ SELECT
 nt14-2 trend
 ,pair
 ,COUNT(pair)
-,ROUND(CORR(npg14,npg2114),2)crr14hr
-,ROUND(AVG(npg14),4)         avg_npg14
-,ROUND(AVG(npg2114),4)       avg_npg2114 
-,ROUND(STDDEV(npg2114),4)    stddv_npg2114
+,ROUND(CORR(lg14,npg14),2)crr14hr
+,ROUND(AVG(lg14),4)         avg_lg14
+,ROUND(AVG(npg14),4)       avg_npg14 
+,ROUND(STDDEV(npg14),4)    stddv_npg14
 FROM tr14
-WHERE ABS(npg14)> 4*std14 AND nt14 IN(1,3)
+WHERE ABS(lg14)> 4*std14 AND nt14 IN(1,3)
 GROUP BY nt14,pair
 ORDER BY nt14,pair
 /
@@ -244,12 +241,12 @@ SELECT
 nt16-2 trend
 ,pair
 ,COUNT(pair)
-,ROUND(CORR(npg16,npg2416),2)crr16hr
-,ROUND(AVG(npg16),4)         avg_npg16
-,ROUND(AVG(npg2416),4)       avg_npg2416 
-,ROUND(STDDEV(npg2416),4)    stddv_npg2416
+,ROUND(CORR(lg16,npg16),2)crr16hr
+,ROUND(AVG(lg16),4)         avg_lg16
+,ROUND(AVG(npg16),4)       avg_npg16 
+,ROUND(STDDEV(npg16),4)    stddv_npg16
 FROM tr14
-WHERE ABS(npg16)> 4*std16 AND nt16 IN(1,3)
+WHERE ABS(lg16)> 4*std16 AND nt16 IN(1,3)
 GROUP BY nt16,pair
 ORDER BY nt16,pair
 /
