@@ -1,10 +1,15 @@
 #!/bin/bash
 
-# /pt/s/sb5/svm2/bld_eur14.bash
+# bld_eur14.bash
 
 # This script builds a sql script.
 
 # This script is both a working script and a template.
+
+set -x
+
+cd $SVM4HP
+cd svm2/
 
 # eur14t.txt will be the 'top' of eur14.sql
 cat abc14t.txt | sed '1,$s/abc/eur/g' > eur14t.txt

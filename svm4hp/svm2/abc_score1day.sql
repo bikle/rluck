@@ -43,7 +43,6 @@ SELECT
 ,eur_g33
 ,eur_g34
 ,eur_g35
-,eur_g36
 ,aud_g00
 ,aud_g01
 ,aud_g02
@@ -80,7 +79,6 @@ SELECT
 ,aud_g33
 ,aud_g34
 ,aud_g35
-,aud_g36
 ,gbp_g00
 ,gbp_g01
 ,gbp_g02
@@ -117,7 +115,6 @@ SELECT
 ,gbp_g33
 ,gbp_g34
 ,gbp_g35
-,gbp_g36
 ,jpy_g00
 ,jpy_g01
 ,jpy_g02
@@ -154,7 +151,6 @@ SELECT
 ,jpy_g33
 ,jpy_g34
 ,jpy_g35
-,jpy_g36
 ,cad_g00
 ,cad_g01
 ,cad_g02
@@ -191,7 +187,6 @@ SELECT
 ,cad_g33
 ,cad_g34
 ,cad_g35
-,cad_g36
 ,chf_g00
 ,chf_g01
 ,chf_g02
@@ -228,7 +223,6 @@ SELECT
 ,chf_g33
 ,chf_g34
 ,chf_g35
-,chf_g36
 FROM abc_ms14 m
 WHERE m.ydate = '&1'||' '||'&2'
 /
@@ -279,7 +273,6 @@ SELECT
 ,eur_g33
 ,eur_g34
 ,eur_g35
-,eur_g36
 ,aud_g00
 ,aud_g01
 ,aud_g02
@@ -316,7 +309,6 @@ SELECT
 ,aud_g33
 ,aud_g34
 ,aud_g35
-,aud_g36
 ,gbp_g00
 ,gbp_g01
 ,gbp_g02
@@ -353,7 +345,6 @@ SELECT
 ,gbp_g33
 ,gbp_g34
 ,gbp_g35
-,gbp_g36
 ,jpy_g00
 ,jpy_g01
 ,jpy_g02
@@ -390,7 +381,6 @@ SELECT
 ,jpy_g33
 ,jpy_g34
 ,jpy_g35
-,jpy_g36
 ,cad_g00
 ,cad_g01
 ,cad_g02
@@ -427,7 +417,6 @@ SELECT
 ,cad_g33
 ,cad_g34
 ,cad_g35
-,cad_g36
 ,chf_g00
 ,chf_g01
 ,chf_g02
@@ -464,7 +453,6 @@ SELECT
 ,chf_g33
 ,chf_g34
 ,chf_g35
-,chf_g36
 FROM abc_ms14 m
 WHERE gatt IN('nup','up')
 AND 1+m.ydate < '&1'||' '||'&2'

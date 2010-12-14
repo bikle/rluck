@@ -2,13 +2,14 @@
 
 # abc_svm2.bash
 
-# Runs svm for scan buyer
+# Runs svm for a specific pair: abc
 
 . /pt/s/oracle/.orcl
 
 set -x
 
-cd /pt/s/sb5/svm2/
+cd $SVM4HP
+cd svm2/
 
 # Build abc14.sql
 ./bld_abc14.bash
