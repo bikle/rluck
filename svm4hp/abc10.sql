@@ -7,8 +7,7 @@
 PURGE RECYCLEBIN;
 
 -- I created ibfu_t here:
--- /pt/s/sb5/cr_ibfu.sql
--- It should contain rows from ibf and then 6 recent rows from ibfn.
+-- /pt/s/rlk/svm4hp/update_ibfu_t.sql
 
 CREATE OR REPLACE VIEW q11 AS
 SELECT
@@ -105,7 +104,6 @@ pair
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY pair,ydate ROWS BETWEEN 24 PRECEDING AND CURRENT ROW)crr24
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY pair,ydate ROWS BETWEEN 72 PRECEDING AND CURRENT ROW)crr72
 ,0+TO_CHAR(ydate,'HH24')hh
-,0+TO_CHAR(ydate,'DD')dd
 ,0+TO_CHAR(ydate,'D')d
 ,0+TO_CHAR(ydate,'W')w
 ,STDDEV(clse-lg12)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 22*30 PRECEDING AND CURRENT ROW)stddv
@@ -156,12 +154,10 @@ pair
 ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
 -- date related integers: hour of day, day of month, day of week, week of month:
 ,hh    att28
-,dd    att29
-,d     att30
-,w     att31
-,trend att32
+,d     att29
+,w     att30
+,trend att31
 ,stddv
--- ,(trend * ug4)g4
 ,ug4 g4
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
@@ -261,7 +257,6 @@ ydate
 ,att29 abc_att29
 ,att30 abc_att30
 ,att31 abc_att31
-,att32 abc_att32
 FROM q15
 /
 
@@ -269,7 +264,5 @@ ANALYZE TABLE abc_att COMPUTE STATISTICS;
 
 -- rpt 
 SELECT COUNT(*)FROM abc_att;
-
-
 
 exit
