@@ -23,7 +23,7 @@ TRUNCATE TABLE ibfu_t0;
 DROP TABLE ibfu_t;
 PURGE RECYCLEBIN;
 
--- Copy in data from ibf15min which has the data I like the most:
+-- Copy in data from ibf15min which has data I trust the most:
 
 INSERT INTO ibfu_t0(prdate       ,pair,      ydate,        clse)
 SELECT  pair||ROUND(ydate,'HH24'),pair,ROUND(ydate,'HH24'),clse
