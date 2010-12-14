@@ -91,6 +91,7 @@ GROUP BY pair
 ORDER BY pair
 /
 
+COLUMN clse FORMAT 999.9999
 SELECT
 pair
 ,ROUND(clse,4)clse
