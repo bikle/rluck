@@ -4,8 +4,8 @@
 
 # I run this 4 min after the hour via cron usually.
 
-. /pt/s/oracle/.orcl
-. /pt/s/oracle/.jruby
+. /pt/s/rluck/svm4hp/.orcl
+. /pt/s/rluck/svm4hp/.jruby
 
 set -x 
 cd $SVM4HP
@@ -18,6 +18,6 @@ sqt>/pt/s/cron/out/update_ibfu_t.${myts}.txt<<EOF
 EOF
 
 # Next I create some scripts and then run SVM:
-./svm4hp.bash > /pt/s/cron/out/svm4hp.${myts}.txt 2>&1
+./run_svm4hp.bash > /pt/s/cron/out/svm4hp.${myts}.txt 2>&1
 
 exit
