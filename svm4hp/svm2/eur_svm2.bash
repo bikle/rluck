@@ -4,7 +4,7 @@
 
 # Runs svm for a specific pair: eur
 
-. /pt/s/oracle/.orcl
+. /pt/s/rluck/svm4hp/.orcl
 
 set -x
 

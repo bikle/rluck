@@ -4,7 +4,7 @@
 
 # Runs svm for a specific pair: gbp
 
-. /pt/s/oracle/.orcl
+. /pt/s/rluck/svm4hp/.orcl
 
 set -x
 

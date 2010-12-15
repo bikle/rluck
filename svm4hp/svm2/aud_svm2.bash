@@ -4,7 +4,7 @@
 
 # Runs svm for a specific pair: aud
 
-. /pt/s/oracle/.orcl
+. /pt/s/rluck/svm4hp/.orcl
 
 set -x
 
@@ -28,7 +28,6 @@ EOF
 
 # Massage the output txt into a sql script
 grep score1day aud_scorem.txt | grep -v SELECT > aud_scorem.sql
-
 exit
 
 # Run scorem
