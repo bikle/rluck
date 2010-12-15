@@ -1,3 +1,14 @@
+
+exit
+
+# I dont use this script anymore.
+# Now I use a script which runs more frequently
+# and uses data with 10 min between data points rather than 60 min.
+
+# Now I use: z2_every10.bash
+
+exit
+
 #!/bin/bash
 
 # z2_4after.bash

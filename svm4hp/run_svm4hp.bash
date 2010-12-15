@@ -16,6 +16,8 @@ export myts=`date +%Y_%m_%d_%H_%M`
 # Now I generate some scripts from some templates:
 jruby sedem.rb
 
+exit
+
 # Now, for each pair, I create some tables full of model attributes:
 # aud_ms10, aud_att, ... , chf_ms10, chf_att
 ./bld_run_big10.bash > /pt/s/cron/out/bld_run_big10.${myts}.txt 2>&1
