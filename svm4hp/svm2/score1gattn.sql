@@ -6,7 +6,7 @@
 @score_gattn.sql
 
 -- Use same model_name used in score_gattn.sql
-DEFINE model_name = 'forex13'
+DEFINE model_name = 'forex14'
 
 DELETE fxscores_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
 

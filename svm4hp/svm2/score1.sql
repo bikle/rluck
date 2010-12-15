@@ -6,7 +6,7 @@
 @score.sql
 
 -- Use same model_name used in score.sql
-DEFINE model_name = 'forex13'
+DEFINE model_name = 'forex14'
 
 -- CREATE TABLE fxscores (prdate VARCHAR2(34),score NUMBER,rundate DATE,pair VARCHAR2(8),ydate DATE, score2 NUMBER);
 
