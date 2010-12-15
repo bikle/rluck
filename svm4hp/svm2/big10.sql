@@ -103,9 +103,10 @@ pair
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*12 PRECEDING AND CURRENT ROW)crr12
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*24 PRECEDING AND CURRENT ROW)crr24
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*72 PRECEDING AND CURRENT ROW)crr72
-,0+TO_CHAR(ydate,'HH24')hh
+,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
 ,0+TO_CHAR(ydate,'D')d
 ,0+TO_CHAR(ydate,'W')w
+,ROUND( (ydate - trunc(ydate))*24*60 )mpm
 FROM q11
 -- I dont want any NULL values from the LAG() functions:
 WHERE lg72 > 0
@@ -157,7 +158,8 @@ pair
 ,hh    att28
 ,d     att29
 ,w     att30
-,trend att31
+,mpm   att31
+,trend att32
 ,ug4 g4
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
@@ -257,6 +259,7 @@ ydate
 ,att29 eur_att29
 ,att30 eur_att30
 ,att31 eur_att31
+,att32 eur_att32
 FROM q15
 /
 
@@ -370,9 +373,10 @@ pair
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*12 PRECEDING AND CURRENT ROW)crr12
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*24 PRECEDING AND CURRENT ROW)crr24
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*72 PRECEDING AND CURRENT ROW)crr72
-,0+TO_CHAR(ydate,'HH24')hh
+,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
 ,0+TO_CHAR(ydate,'D')d
 ,0+TO_CHAR(ydate,'W')w
+,ROUND( (ydate - trunc(ydate))*24*60 )mpm
 FROM q11
 -- I dont want any NULL values from the LAG() functions:
 WHERE lg72 > 0
@@ -424,7 +428,8 @@ pair
 ,hh    att28
 ,d     att29
 ,w     att30
-,trend att31
+,mpm   att31
+,trend att32
 ,ug4 g4
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
@@ -524,6 +529,7 @@ ydate
 ,att29 aud_att29
 ,att30 aud_att30
 ,att31 aud_att31
+,att32 aud_att32
 FROM q15
 /
 
@@ -637,9 +643,10 @@ pair
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*12 PRECEDING AND CURRENT ROW)crr12
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*24 PRECEDING AND CURRENT ROW)crr24
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*72 PRECEDING AND CURRENT ROW)crr72
-,0+TO_CHAR(ydate,'HH24')hh
+,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
 ,0+TO_CHAR(ydate,'D')d
 ,0+TO_CHAR(ydate,'W')w
+,ROUND( (ydate - trunc(ydate))*24*60 )mpm
 FROM q11
 -- I dont want any NULL values from the LAG() functions:
 WHERE lg72 > 0
@@ -691,7 +698,8 @@ pair
 ,hh    att28
 ,d     att29
 ,w     att30
-,trend att31
+,mpm   att31
+,trend att32
 ,ug4 g4
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
@@ -791,6 +799,7 @@ ydate
 ,att29 gbp_att29
 ,att30 gbp_att30
 ,att31 gbp_att31
+,att32 gbp_att32
 FROM q15
 /
 
@@ -904,9 +913,10 @@ pair
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*12 PRECEDING AND CURRENT ROW)crr12
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*24 PRECEDING AND CURRENT ROW)crr24
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*72 PRECEDING AND CURRENT ROW)crr72
-,0+TO_CHAR(ydate,'HH24')hh
+,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
 ,0+TO_CHAR(ydate,'D')d
 ,0+TO_CHAR(ydate,'W')w
+,ROUND( (ydate - trunc(ydate))*24*60 )mpm
 FROM q11
 -- I dont want any NULL values from the LAG() functions:
 WHERE lg72 > 0
@@ -958,7 +968,8 @@ pair
 ,hh    att28
 ,d     att29
 ,w     att30
-,trend att31
+,mpm   att31
+,trend att32
 ,ug4 g4
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
@@ -1058,6 +1069,7 @@ ydate
 ,att29 jpy_att29
 ,att30 jpy_att30
 ,att31 jpy_att31
+,att32 jpy_att32
 FROM q15
 /
 
@@ -1171,9 +1183,10 @@ pair
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*12 PRECEDING AND CURRENT ROW)crr12
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*24 PRECEDING AND CURRENT ROW)crr24
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*72 PRECEDING AND CURRENT ROW)crr72
-,0+TO_CHAR(ydate,'HH24')hh
+,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
 ,0+TO_CHAR(ydate,'D')d
 ,0+TO_CHAR(ydate,'W')w
+,ROUND( (ydate - trunc(ydate))*24*60 )mpm
 FROM q11
 -- I dont want any NULL values from the LAG() functions:
 WHERE lg72 > 0
@@ -1225,7 +1238,8 @@ pair
 ,hh    att28
 ,d     att29
 ,w     att30
-,trend att31
+,mpm   att31
+,trend att32
 ,ug4 g4
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
@@ -1325,6 +1339,7 @@ ydate
 ,att29 cad_att29
 ,att30 cad_att30
 ,att31 cad_att31
+,att32 cad_att32
 FROM q15
 /
 
@@ -1438,9 +1453,10 @@ pair
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*12 PRECEDING AND CURRENT ROW)crr12
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*24 PRECEDING AND CURRENT ROW)crr24
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*72 PRECEDING AND CURRENT ROW)crr72
-,0+TO_CHAR(ydate,'HH24')hh
+,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
 ,0+TO_CHAR(ydate,'D')d
 ,0+TO_CHAR(ydate,'W')w
+,ROUND( (ydate - trunc(ydate))*24*60 )mpm
 FROM q11
 -- I dont want any NULL values from the LAG() functions:
 WHERE lg72 > 0
@@ -1492,7 +1508,8 @@ pair
 ,hh    att28
 ,d     att29
 ,w     att30
-,trend att31
+,mpm   att31
+,trend att32
 ,ug4 g4
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
 ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
@@ -1592,6 +1609,7 @@ ydate
 ,att29 chf_att29
 ,att30 chf_att30
 ,att31 chf_att31
+,att32 chf_att32
 FROM q15
 /
 
