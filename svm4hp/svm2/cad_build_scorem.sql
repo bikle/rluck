@@ -9,7 +9,7 @@ WHERE 'cad'||ydate NOT IN (SELECT prdate FROM fxscores)
 -- For backtesting:
 AND ydate > (SELECT MIN(ydate)+35 FROM cad_ms14)
 -- For cron:
-AND ydate > sysdate - 0.5/24
+-- AND ydate > sysdate - 0.5/24
 ORDER BY ydate
 /
 
@@ -18,7 +18,7 @@ WHERE 'cad'||ydate NOT IN (SELECT prdate FROM fxscores_gattn)
 -- For backtesting:
 AND ydate > (SELECT MIN(ydate)+35 FROM cad_ms14)
 -- For cron:
-AND ydate > sysdate - 0.5/24
+-- AND ydate > sysdate - 0.5/24
 ORDER BY ydate
 /
 
