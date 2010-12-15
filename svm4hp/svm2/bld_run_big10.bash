@@ -12,12 +12,12 @@ set -x
 cd $SVM4HP
 cd svm2/
 
-cat abc10.sql | sed '1,$s/abc/eur/g' > eur10.sql
-cat abc10.sql | sed '1,$s/abc/aud/g' > aud10.sql
-cat abc10.sql | sed '1,$s/abc/gbp/g' > gbp10.sql
-cat abc10.sql | sed '1,$s/abc/jpy/g' > jpy10.sql
-cat abc10.sql | sed '1,$s/abc/cad/g' > cad10.sql
-cat abc10.sql | sed '1,$s/abc/chf/g' > chf10.sql
+cat abc10.sql | sed 's/abc/eur/g' > eur10.sql
+cat abc10.sql | sed 's/abc/aud/g' > aud10.sql
+cat abc10.sql | sed 's/abc/gbp/g' > gbp10.sql
+cat abc10.sql | sed 's/abc/jpy/g' > jpy10.sql
+cat abc10.sql | sed 's/abc/cad/g' > cad10.sql
+cat abc10.sql | sed 's/abc/chf/g' > chf10.sql
 
 cat \
 eur10.sql \
