@@ -5,6 +5,7 @@
 # Runs svm for a specific pair: chf
 
 . /pt/s/rluck/svm4hp/.orcl
+. /pt/s/rluck/svm4hp/.jruby
 
 set -x
 
