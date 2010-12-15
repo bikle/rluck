@@ -1,5 +1,5 @@
 
-SQL*Plus: Release 11.2.0.1.0 Production on Wed Dec 15 09:06:37 2010
+SQL*Plus: Release 11.2.0.1.0 Production on Wed Dec 15 18:37:25 2010
 
 Copyright (c) 1982, 2009, Oracle.  All rights reserved.
 
@@ -8,2510 +8,2524 @@ Connected to:
 Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 
-09:06:37 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+18:37:26 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
 
 Session altered.
 
 Elapsed: 00:00:00.00
-09:06:37 SQL> 09:06:37 SQL> --
-09:06:37 SQL> -- eur10.sql
-09:06:37 SQL> --
-09:06:37 SQL> 
-09:06:37 SQL> -- Creates views and tables for backtesting a forex SVM strategy
-09:06:37 SQL> 
-09:06:37 SQL> PURGE RECYCLEBIN;
+18:37:26 SQL> 18:37:26 SQL> --
+18:37:26 SQL> -- eur10.sql
+18:37:26 SQL> --
+18:37:26 SQL> 
+18:37:26 SQL> -- Creates views and tables for backtesting a forex SVM strategy
+18:37:26 SQL> 
+18:37:26 SQL> PURGE RECYCLEBIN;
 
 Recyclebin purged.
-
-Elapsed: 00:00:00.01
-09:06:37 SQL> 
-09:06:37 SQL> -- I created ibfu_t here:
-09:06:37 SQL> -- /pt/s/rlk/svm4hp/update_ibfu_t.sql
-09:06:37 SQL> 
-09:06:37 SQL> CREATE OR REPLACE VIEW q11 AS
-09:06:37   2  SELECT
-09:06:37   3  pair
-09:06:37   4  ,ydate
-09:06:37   5  ,prdate
-09:06:37   6  ,rownum rnum -- acts as t in my time-series
-09:06:37   7  ,clse
-09:06:37   8  ,LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg1
-09:06:37   9  ,LAG(clse,2,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg2
-09:06:37  10  ,LAG(clse,3,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg3
-09:06:37  11  ,LAG(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg4
-09:06:37  12  ,LAG(clse,5,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg5
-09:06:37  13  ,LAG(clse,6,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg6
-09:06:37  14  ,LAG(clse,7,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg7
-09:06:37  15  ,LAG(clse,8,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg8
-09:06:37  16  ,LAG(clse,9,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg9
-09:06:37  17  ,LAG(clse,12,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg12
-09:06:37  18  ,LAG(clse,18,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg18
-09:06:37  19  ,LAG(clse,24,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg24
-09:06:37  20  ,LAG(clse,72,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg72
-09:06:37  21  ,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ld4
-09:06:37  22  FROM ibfu_t WHERE pair LIKE'%eur%'
-09:06:37  23  ORDER BY ydate
-09:06:37  24  /
-
-View created.
-
-Elapsed: 00:00:00.07
-09:06:37 SQL> 
-09:06:37 SQL> -- rpt
-09:06:37 SQL> SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
-
-PAIR	COUNT(YDATE)
-------- ------------
-eur_usd 	3792
-
-Elapsed: 00:00:00.09
-09:06:37 SQL> 
-09:06:37 SQL> -- Calc deltas and gains
-09:06:37 SQL> DROP TABLE q13;
-
-Table dropped.
-
-Elapsed: 00:00:00.09
-09:06:37 SQL> 
-09:06:37 SQL> CREATE TABLE q13 COMPRESS AS
-09:06:37   2  SELECT
-09:06:37   3  pair
-09:06:37   4  ,ydate
-09:06:37   5  ,prdate
-09:06:37   6  ,rnum
-09:06:37   7  ,lg4
-09:06:37   8  ,lg8
-09:06:37   9  ,lg12
-09:06:37  10  ,ld4
-09:06:37  11  ,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
-09:06:37  12  -- step by 1
-09:06:37  13  ,clse-lg1 d01
-09:06:37  14  ,lg1-lg2	d12
-09:06:37  15  ,lg2-lg3	d23
-09:06:37  16  ,lg3-lg4	d34
-09:06:37  17  ,lg4-lg5	d45
-09:06:37  18  ,lg5-lg6	d56
-09:06:37  19  ,lg6-lg7	d67
-09:06:37  20  ,lg7-lg8	d78
-09:06:37  21  ,lg8-lg9	d89
-09:06:37  22  -- step by 2
-09:06:37  23  ,clse-lg2 d02
-09:06:37  24  ,lg2-lg4 d24
-09:06:37  25  ,lg4-lg6 d46
-09:06:37  26  ,lg6-lg8 d68
-09:06:37  27  -- step by 3
-09:06:37  28  ,clse-lg3 d03
-09:06:37  29  ,lg3-lg6	d36
-09:06:37  30  ,lg6-lg9	d69
-09:06:37  31  ,lg9-lg12 d912
-09:06:37  32  -- step by 4
-09:06:37  33  ,clse-lg4 d04
-09:06:37  34  ,lg4-lg8	d48
-09:06:37  35  ,lg8-lg12 d812
-09:06:37  36  ,lg6-lg12 d612
-09:06:37  37  ,lg12-lg18 d1218
-09:06:37  38  --
-09:06:37  39  ,ABS(clse-lg1)dc1
-09:06:37  40  ,ABS(clse-lg2)dc2
-09:06:37  41  ,ABS(clse-lg3)dc3
-09:06:37  42  ,ABS(clse-lg4)dc4
-09:06:37  43  ,ABS(clse-lg5)dc5
-09:06:37  44  ,ABS(clse-lg6)dc6
-09:06:37  45  ,ABS(clse-lg7)dc7
-09:06:37  46  ,ABS(clse-lg8)dc8
-09:06:37  47  ,ABS(clse-lg9)dc9
-09:06:37  48  ,ABS(clse-lg12)dc12
-09:06:37  49  ,ABS(clse-lg18)dc18
-09:06:37  50  ,ABS(clse-lg24)dc24
-09:06:37  51  ,ABS(clse-lg72)dc72
-09:06:37  52  ,(ld4-clse) ug4
-09:06:37  53  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 2  PRECEDING AND CURRENT ROW)crr2
-09:06:37  54  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 3  PRECEDING AND CURRENT ROW)crr3
-09:06:37  55  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 4  PRECEDING AND CURRENT ROW)crr4
-09:06:37  56  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 5  PRECEDING AND CURRENT ROW)crr5
-09:06:37  57  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6  PRECEDING AND CURRENT ROW)crr6
-09:06:37  58  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 7  PRECEDING AND CURRENT ROW)crr7
-09:06:37  59  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 8  PRECEDING AND CURRENT ROW)crr8
-09:06:37  60  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 9  PRECEDING AND CURRENT ROW)crr9
-09:06:37  61  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12 PRECEDING AND CURRENT ROW)crr12
-09:06:37  62  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 24 PRECEDING AND CURRENT ROW)crr24
-09:06:37  63  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 72 PRECEDING AND CURRENT ROW)crr72
-09:06:37  64  ,0+TO_CHAR(ydate,'HH24')hh
-09:06:37  65  ,0+TO_CHAR(ydate,'D')d
-09:06:37  66  ,0+TO_CHAR(ydate,'W')w
-09:06:37  67  FROM q11
-09:06:37  68  ORDER BY pair,ydate
-09:06:37  69  /
-
-Table created.
-
-Elapsed: 00:00:00.53
-09:06:38 SQL> 
-09:06:38 SQL> -- rpt
-09:06:38 SQL> SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
-
-     TREND COUNT(PRDATE)
----------- -------------
-	 1	    1927
-	-1	    1865
-
-Elapsed: 00:00:00.46
-09:06:38 SQL> 
-09:06:38 SQL> -- Calc gains and ntiles
-09:06:38 SQL> DROP TABLE q15;
-
-Table dropped.
-
-Elapsed: 00:00:00.14
-09:06:38 SQL> CREATE TABLE q15 COMPRESS AS
-09:06:38   2  SELECT
-09:06:38   3  pair
-09:06:38   4  ,ydate
-09:06:38   5  ,prdate -- Should be unique
-09:06:38   6  ,trend -- +1 or -1
-09:06:38   7  ,dc12 -- next statement needs this
-09:06:38   8  -- Use NTILE() to derive some attributes
-09:06:38   9  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))		 att00
-09:06:38  10  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))		 att01
-09:06:38  11  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))		 att02
-09:06:38  12  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))		 att03
-09:06:38  13  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))		 att04
-09:06:38  14  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))		 att05
-09:06:38  15  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))		 att06
-09:06:38  16  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))		 att07
-09:06:38  17  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912)) 	 att08
-09:06:38  18  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)		 att09
-09:06:38  19  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)		 att10
-09:06:38  20  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)		 att11
-09:06:38  21  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)		 att12
-09:06:38  22  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)		 att13
-09:06:38  23  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)		 att14
-09:06:38  24  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)		 att15
-09:06:38  25  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)		 att16
-09:06:38  26  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)		 att17
-09:06:38  27  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)		 att18
-09:06:38  28  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)		 att19
-09:06:38  29  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
-09:06:38  30  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
-09:06:38  31  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
-09:06:38  32  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
-09:06:38  33  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
-09:06:38  34  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
-09:06:38  35  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
-09:06:38  36  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
-09:06:38  37  -- date related integers: hour of day, day of week, week of month:
-09:06:38  38  ,hh    att28
-09:06:38  39  ,d     att29
-09:06:38  40  ,w     att30
-09:06:38  41  ,trend att31
-09:06:38  42  ,ug4 g4
-09:06:38  43  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
-09:06:38  44  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
-09:06:38  45  FROM q13
-09:06:38  46  ORDER BY pair,ydate
-09:06:38  47  /
-
-Table created.
-
-Elapsed: 00:00:00.82
-09:06:39 SQL> 
-09:06:39 SQL> -- rpt
-09:06:39 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
-09:06:39   2  GROUP BY pair,trend,gatt,gattn
-09:06:39   3  ORDER BY pair,trend,gatt,gattn
-09:06:39   4  /
-
-PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
-------- ---------- --- --- ---------- ---------- -------------
-eur_usd 	-1 nup nup -.00003879	     295    .050764511
-eur_usd 	-1 nup up   -.0034716	     758    -.02169756
-eur_usd 	-1 up  nup .003630167	     808    -.10277432
-eur_usd 	-1			       0
-eur_usd 	 1 nup nup 4.2437E-06	     357    .068853821
-eur_usd 	 1 nup up   -.0032727	     825    -.02104788
-eur_usd 	 1 up  nup .003599664	     745    -.01955522
-
-7 rows selected.
-
-Elapsed: 00:00:00.25
-09:06:39 SQL> 
-09:06:39 SQL> -- rpt
-09:06:39 SQL> SELECT pair,max(ydate)from q15 group by pair;
-
-PAIR	MAX(YDATE)
-------- -------------------
-eur_usd 2010-12-15 09:00:00
-
-Elapsed: 00:00:00.01
-09:06:39 SQL> 
-09:06:39 SQL> DROP TABLE modsrc;
-
-Table dropped.
-
-Elapsed: 00:00:00.11
-09:06:39 SQL> CREATE TABLE modsrc COMPRESS AS
-09:06:39   2  SELECT
-09:06:39   3  pair
-09:06:39   4  ,ydate
-09:06:39   5  ,prdate
-09:06:39   6  ,trend
-09:06:39   7  ,g4
-09:06:39   8  ,gatt
-09:06:39   9  ,gattn
-09:06:39  10  ,dc12
-09:06:39  11  FROM q15
-09:06:39  12  /
-
-Table created.
-
-Elapsed: 00:00:00.10
-09:06:40 SQL> 
-09:06:40 SQL> ANALYZE TABLE modsrc COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.19
-09:06:40 SQL> 
-09:06:40 SQL> -- rpt
-09:06:40 SQL> 
-09:06:40 SQL> SELECT COUNT(pair)FROM q11;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.07
-09:06:40 SQL> SELECT COUNT(pair)FROM q13;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:06:40 SQL> SELECT COUNT(pair)FROM q15;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.01
-09:06:40 SQL> SELECT COUNT(pair)FROM modsrc;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:06:40 SQL> 
-09:06:40 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
-09:06:40   2  GROUP BY pair,trend,gatt,gattn
-09:06:40   3  ORDER BY pair,trend,gatt,gattn
-09:06:40   4  /
-
-PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
-------- ---------- --- --- ---------- ---------- -------------
-eur_usd 	-1 nup nup -.00003879	     295    .050764511
-eur_usd 	-1 nup up   -.0034716	     758    -.02169756
-eur_usd 	-1 up  nup .003630167	     808    -.10277432
-eur_usd 	-1			       0
-eur_usd 	 1 nup nup 4.2437E-06	     357    .068853821
-eur_usd 	 1 nup up   -.0032727	     825    -.02104788
-eur_usd 	 1 up  nup .003599664	     745    -.01955522
-
-7 rows selected.
-
-Elapsed: 00:00:00.01
-09:06:40 SQL> 
-09:06:40 SQL> DROP   TABLE eur_ms10 ;
-
-Table dropped.
-
-Elapsed: 00:00:00.03
-09:06:40 SQL> CREATE TABLE eur_ms10 COMPRESS AS
-09:06:40   2  SELECT
-09:06:40   3  ydate
-09:06:40   4  ,trend eur_trend
-09:06:40   5  ,g4    eur_g4
-09:06:40   6  ,gatt  eur_gatt
-09:06:40   7  ,gattn	eur_gattn
-09:06:40   8  FROM modsrc
-09:06:40   9  /
-
-Table created.
-
-Elapsed: 00:00:00.13
-09:06:40 SQL> 
-09:06:40 SQL> ANALYZE TABLE eur_ms10 COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.19
-09:06:40 SQL> 
-09:06:40 SQL> -- rpt
-09:06:40 SQL> SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
-
-     TREND MIN(YDATE)	       MAX(YDATE)	    COUNT(G4)	 MIN(G4)    MAX(G4)
----------- ------------------- ------------------- ---------- ---------- ----------
-	 1 2010-05-12 10:00:00 2010-12-14 19:00:00	 1927	  -.0175      .0172
-	-1 2010-05-11 22:00:00 2010-12-15 09:00:00	 1861	  -.0164      .0224
-
-Elapsed: 00:00:00.01
-09:06:40 SQL> SELECT eur_trend,MIN(ydate),MAX(ydate),COUNT(eur_trend),MIN(eur_g4),MAX(eur_g4)FROM eur_ms10 GROUP BY eur_trend;
-
- EUR_TREND MIN(YDATE)	       MAX(YDATE)	   COUNT(EUR_TREND) MIN(EUR_G4) MAX(EUR_G4)
----------- ------------------- ------------------- ---------------- ----------- -----------
-	 1 2010-05-12 10:00:00 2010-12-14 19:00:00	       1927	 -.0175       .0172
-	-1 2010-05-11 22:00:00 2010-12-15 09:00:00	       1865	 -.0164       .0224
-
-Elapsed: 00:00:00.02
-09:06:40 SQL> 
-09:06:40 SQL> -- I need a copy of q15 attributes
-09:06:40 SQL> 
-09:06:40 SQL> DROP   TABLE eur_att;
-
-Table dropped.
-
-Elapsed: 00:00:00.04
-09:06:40 SQL> CREATE TABLE eur_att COMPRESS AS
-09:06:40   2  SELECT
-09:06:40   3  ydate
-09:06:40   4  ,att00 eur_att00
-09:06:40   5  ,att01 eur_att01
-09:06:40   6  ,att02 eur_att02
-09:06:40   7  ,att03 eur_att03
-09:06:40   8  ,att04 eur_att04
-09:06:40   9  ,att05 eur_att05
-09:06:40  10  ,att06 eur_att06
-09:06:40  11  ,att07 eur_att07
-09:06:40  12  ,att08 eur_att08
-09:06:40  13  ,att09 eur_att09
-09:06:40  14  ,att10 eur_att10
-09:06:40  15  ,att11 eur_att11
-09:06:40  16  ,att12 eur_att12
-09:06:40  17  ,att13 eur_att13
-09:06:40  18  ,att14 eur_att14
-09:06:40  19  ,att15 eur_att15
-09:06:40  20  ,att16 eur_att16
-09:06:40  21  ,att17 eur_att17
-09:06:40  22  ,att18 eur_att18
-09:06:40  23  ,att19 eur_att19
-09:06:40  24  ,att20 eur_att20
-09:06:40  25  ,att21 eur_att21
-09:06:40  26  ,att22 eur_att22
-09:06:40  27  ,att23 eur_att23
-09:06:40  28  ,att24 eur_att24
-09:06:40  29  ,att25 eur_att25
-09:06:40  30  ,att26 eur_att26
-09:06:40  31  ,att27 eur_att27
-09:06:40  32  ,att28 eur_att28
-09:06:40  33  ,att29 eur_att29
-09:06:40  34  ,att30 eur_att30
-09:06:40  35  ,att31 eur_att31
-09:06:40  36  FROM q15
-09:06:40  37  /
-
-Table created.
-
-Elapsed: 00:00:00.23
-09:06:40 SQL> 
-09:06:40 SQL> ANALYZE TABLE eur_att COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.25
-09:06:41 SQL> 
-09:06:41 SQL> -- rpt
-09:06:41 SQL> SELECT COUNT(*)FROM eur_att;
-
-  COUNT(*)
-----------
-      3792
-
-Elapsed: 00:00:00.00
-09:06:41 SQL> 
-09:06:41 SQL> --
-09:06:41 SQL> -- aud10.sql
-09:06:41 SQL> --
-09:06:41 SQL> 
-09:06:41 SQL> -- Creates views and tables for backtesting a forex SVM strategy
-09:06:41 SQL> 
-09:06:41 SQL> PURGE RECYCLEBIN;
-
-Recyclebin purged.
-
-Elapsed: 00:00:00.71
-09:06:41 SQL> 
-09:06:41 SQL> -- I created ibfu_t here:
-09:06:41 SQL> -- /pt/s/rlk/svm4hp/update_ibfu_t.sql
-09:06:41 SQL> 
-09:06:41 SQL> CREATE OR REPLACE VIEW q11 AS
-09:06:41   2  SELECT
-09:06:41   3  pair
-09:06:41   4  ,ydate
-09:06:41   5  ,prdate
-09:06:41   6  ,rownum rnum -- acts as t in my time-series
-09:06:41   7  ,clse
-09:06:41   8  ,LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg1
-09:06:41   9  ,LAG(clse,2,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg2
-09:06:41  10  ,LAG(clse,3,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg3
-09:06:41  11  ,LAG(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg4
-09:06:41  12  ,LAG(clse,5,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg5
-09:06:41  13  ,LAG(clse,6,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg6
-09:06:41  14  ,LAG(clse,7,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg7
-09:06:41  15  ,LAG(clse,8,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg8
-09:06:41  16  ,LAG(clse,9,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg9
-09:06:41  17  ,LAG(clse,12,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg12
-09:06:41  18  ,LAG(clse,18,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg18
-09:06:41  19  ,LAG(clse,24,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg24
-09:06:41  20  ,LAG(clse,72,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg72
-09:06:41  21  ,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ld4
-09:06:41  22  FROM ibfu_t WHERE pair LIKE'%aud%'
-09:06:41  23  ORDER BY ydate
-09:06:41  24  /
-
-View created.
-
-Elapsed: 00:00:00.03
-09:06:41 SQL> 
-09:06:41 SQL> -- rpt
-09:06:41 SQL> SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
-
-PAIR	COUNT(YDATE)
-------- ------------
-aud_usd 	3792
-
-Elapsed: 00:00:00.08
-09:06:42 SQL> 
-09:06:42 SQL> -- Calc deltas and gains
-09:06:42 SQL> DROP TABLE q13;
-
-Table dropped.
-
-Elapsed: 00:00:00.12
-09:06:42 SQL> 
-09:06:42 SQL> CREATE TABLE q13 COMPRESS AS
-09:06:42   2  SELECT
-09:06:42   3  pair
-09:06:42   4  ,ydate
-09:06:42   5  ,prdate
-09:06:42   6  ,rnum
-09:06:42   7  ,lg4
-09:06:42   8  ,lg8
-09:06:42   9  ,lg12
-09:06:42  10  ,ld4
-09:06:42  11  ,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
-09:06:42  12  -- step by 1
-09:06:42  13  ,clse-lg1 d01
-09:06:42  14  ,lg1-lg2	d12
-09:06:42  15  ,lg2-lg3	d23
-09:06:42  16  ,lg3-lg4	d34
-09:06:42  17  ,lg4-lg5	d45
-09:06:42  18  ,lg5-lg6	d56
-09:06:42  19  ,lg6-lg7	d67
-09:06:42  20  ,lg7-lg8	d78
-09:06:42  21  ,lg8-lg9	d89
-09:06:42  22  -- step by 2
-09:06:42  23  ,clse-lg2 d02
-09:06:42  24  ,lg2-lg4 d24
-09:06:42  25  ,lg4-lg6 d46
-09:06:42  26  ,lg6-lg8 d68
-09:06:42  27  -- step by 3
-09:06:42  28  ,clse-lg3 d03
-09:06:42  29  ,lg3-lg6	d36
-09:06:42  30  ,lg6-lg9	d69
-09:06:42  31  ,lg9-lg12 d912
-09:06:42  32  -- step by 4
-09:06:42  33  ,clse-lg4 d04
-09:06:42  34  ,lg4-lg8	d48
-09:06:42  35  ,lg8-lg12 d812
-09:06:42  36  ,lg6-lg12 d612
-09:06:42  37  ,lg12-lg18 d1218
-09:06:42  38  --
-09:06:42  39  ,ABS(clse-lg1)dc1
-09:06:42  40  ,ABS(clse-lg2)dc2
-09:06:42  41  ,ABS(clse-lg3)dc3
-09:06:42  42  ,ABS(clse-lg4)dc4
-09:06:42  43  ,ABS(clse-lg5)dc5
-09:06:42  44  ,ABS(clse-lg6)dc6
-09:06:42  45  ,ABS(clse-lg7)dc7
-09:06:42  46  ,ABS(clse-lg8)dc8
-09:06:42  47  ,ABS(clse-lg9)dc9
-09:06:42  48  ,ABS(clse-lg12)dc12
-09:06:42  49  ,ABS(clse-lg18)dc18
-09:06:42  50  ,ABS(clse-lg24)dc24
-09:06:42  51  ,ABS(clse-lg72)dc72
-09:06:42  52  ,(ld4-clse) ug4
-09:06:42  53  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 2  PRECEDING AND CURRENT ROW)crr2
-09:06:42  54  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 3  PRECEDING AND CURRENT ROW)crr3
-09:06:42  55  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 4  PRECEDING AND CURRENT ROW)crr4
-09:06:42  56  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 5  PRECEDING AND CURRENT ROW)crr5
-09:06:42  57  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6  PRECEDING AND CURRENT ROW)crr6
-09:06:42  58  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 7  PRECEDING AND CURRENT ROW)crr7
-09:06:42  59  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 8  PRECEDING AND CURRENT ROW)crr8
-09:06:42  60  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 9  PRECEDING AND CURRENT ROW)crr9
-09:06:42  61  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12 PRECEDING AND CURRENT ROW)crr12
-09:06:42  62  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 24 PRECEDING AND CURRENT ROW)crr24
-09:06:42  63  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 72 PRECEDING AND CURRENT ROW)crr72
-09:06:42  64  ,0+TO_CHAR(ydate,'HH24')hh
-09:06:42  65  ,0+TO_CHAR(ydate,'D')d
-09:06:42  66  ,0+TO_CHAR(ydate,'W')w
-09:06:42  67  FROM q11
-09:06:42  68  ORDER BY pair,ydate
-09:06:42  69  /
-
-Table created.
-
-Elapsed: 00:00:00.46
-09:06:42 SQL> 
-09:06:42 SQL> -- rpt
-09:06:42 SQL> SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
-
-     TREND COUNT(PRDATE)
----------- -------------
-	 1	    1949
-	-1	    1843
-
-Elapsed: 00:00:00.13
-09:06:42 SQL> 
-09:06:42 SQL> -- Calc gains and ntiles
-09:06:42 SQL> DROP TABLE q15;
-
-Table dropped.
-
-Elapsed: 00:00:00.19
-09:06:42 SQL> CREATE TABLE q15 COMPRESS AS
-09:06:42   2  SELECT
-09:06:42   3  pair
-09:06:42   4  ,ydate
-09:06:42   5  ,prdate -- Should be unique
-09:06:42   6  ,trend -- +1 or -1
-09:06:42   7  ,dc12 -- next statement needs this
-09:06:42   8  -- Use NTILE() to derive some attributes
-09:06:42   9  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))		 att00
-09:06:42  10  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))		 att01
-09:06:42  11  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))		 att02
-09:06:42  12  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))		 att03
-09:06:42  13  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))		 att04
-09:06:42  14  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))		 att05
-09:06:42  15  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))		 att06
-09:06:42  16  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))		 att07
-09:06:42  17  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912)) 	 att08
-09:06:42  18  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)		 att09
-09:06:42  19  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)		 att10
-09:06:42  20  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)		 att11
-09:06:42  21  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)		 att12
-09:06:42  22  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)		 att13
-09:06:42  23  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)		 att14
-09:06:42  24  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)		 att15
-09:06:42  25  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)		 att16
-09:06:42  26  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)		 att17
-09:06:42  27  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)		 att18
-09:06:42  28  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)		 att19
-09:06:42  29  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
-09:06:42  30  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
-09:06:42  31  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
-09:06:42  32  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
-09:06:42  33  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
-09:06:42  34  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
-09:06:42  35  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
-09:06:42  36  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
-09:06:42  37  -- date related integers: hour of day, day of week, week of month:
-09:06:42  38  ,hh    att28
-09:06:42  39  ,d     att29
-09:06:42  40  ,w     att30
-09:06:42  41  ,trend att31
-09:06:42  42  ,ug4 g4
-09:06:42  43  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
-09:06:42  44  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
-09:06:42  45  FROM q13
-09:06:42  46  ORDER BY pair,ydate
-09:06:42  47  /
-
-Table created.
-
-Elapsed: 00:00:00.79
-09:06:43 SQL> 
-09:06:43 SQL> -- rpt
-09:06:43 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
-09:06:43   2  GROUP BY pair,trend,gatt,gattn
-09:06:43   3  ORDER BY pair,trend,gatt,gattn
-09:06:43   4  /
-
-PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
-------- ---------- --- --- ---------- ---------- -------------
-aud_usd 	-1 nup nup  -.0000101	     302    .039073994
-aud_usd 	-1 nup up   -.0032568	     717    -.16062511
-aud_usd 	-1 up  nup .003174116	     820    .146140361
-aud_usd 	-1			       0
-aud_usd 	 1 nup nup -.00002417	     362    -.02443808
-aud_usd 	 1 nup up  -.00313077	     762    -.00641392
-aud_usd 	 1 up  nup .003059152	     825    -.01396605
-
-7 rows selected.
-
-Elapsed: 00:00:00.02
-09:06:43 SQL> 
-09:06:43 SQL> -- rpt
-09:06:43 SQL> SELECT pair,max(ydate)from q15 group by pair;
-
-PAIR	MAX(YDATE)
-------- -------------------
-aud_usd 2010-12-15 09:00:00
-
-Elapsed: 00:00:00.01
-09:06:43 SQL> 
-09:06:43 SQL> DROP TABLE modsrc;
-
-Table dropped.
-
-Elapsed: 00:00:00.07
-09:06:43 SQL> CREATE TABLE modsrc COMPRESS AS
-09:06:43   2  SELECT
-09:06:43   3  pair
-09:06:43   4  ,ydate
-09:06:43   5  ,prdate
-09:06:43   6  ,trend
-09:06:43   7  ,g4
-09:06:43   8  ,gatt
-09:06:43   9  ,gattn
-09:06:43  10  ,dc12
-09:06:43  11  FROM q15
-09:06:43  12  /
-
-Table created.
-
-Elapsed: 00:00:00.04
-09:06:43 SQL> 
-09:06:43 SQL> ANALYZE TABLE modsrc COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.05
-09:06:43 SQL> 
-09:06:43 SQL> -- rpt
-09:06:43 SQL> 
-09:06:43 SQL> SELECT COUNT(pair)FROM q11;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.07
-09:06:44 SQL> SELECT COUNT(pair)FROM q13;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:06:44 SQL> SELECT COUNT(pair)FROM q15;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:06:44 SQL> SELECT COUNT(pair)FROM modsrc;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:06:44 SQL> 
-09:06:44 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
-09:06:44   2  GROUP BY pair,trend,gatt,gattn
-09:06:44   3  ORDER BY pair,trend,gatt,gattn
-09:06:44   4  /
-
-PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
-------- ---------- --- --- ---------- ---------- -------------
-aud_usd 	-1 nup nup  -.0000101	     302    .039073994
-aud_usd 	-1 nup up   -.0032568	     717    -.16062511
-aud_usd 	-1 up  nup .003174116	     820    .146140361
-aud_usd 	-1			       0
-aud_usd 	 1 nup nup -.00002417	     362    -.02443808
-aud_usd 	 1 nup up  -.00313077	     762    -.00641392
-aud_usd 	 1 up  nup .003059152	     825    -.01396605
-
-7 rows selected.
-
-Elapsed: 00:00:00.01
-09:06:44 SQL> 
-09:06:44 SQL> DROP   TABLE aud_ms10 ;
-
-Table dropped.
-
-Elapsed: 00:00:00.06
-09:06:44 SQL> CREATE TABLE aud_ms10 COMPRESS AS
-09:06:44   2  SELECT
-09:06:44   3  ydate
-09:06:44   4  ,trend aud_trend
-09:06:44   5  ,g4    aud_g4
-09:06:44   6  ,gatt  aud_gatt
-09:06:44   7  ,gattn	aud_gattn
-09:06:44   8  FROM modsrc
-09:06:44   9  /
-
-Table created.
-
-Elapsed: 00:00:00.06
-09:06:44 SQL> 
-09:06:44 SQL> ANALYZE TABLE aud_ms10 COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.06
-09:06:44 SQL> 
-09:06:44 SQL> -- rpt
-09:06:44 SQL> SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
-
-     TREND MIN(YDATE)	       MAX(YDATE)	    COUNT(G4)	 MIN(G4)    MAX(G4)
----------- ------------------- ------------------- ---------- ---------- ----------
-	 1 2010-05-12 10:00:00 2010-12-14 22:00:00	 1949	  -.0197      .0116
-	-1 2010-05-11 22:00:00 2010-12-15 09:00:00	 1839	  -.0179      .0184
-
-Elapsed: 00:00:00.01
-09:06:44 SQL> SELECT aud_trend,MIN(ydate),MAX(ydate),COUNT(aud_trend),MIN(aud_g4),MAX(aud_g4)FROM aud_ms10 GROUP BY aud_trend;
-
- AUD_TREND MIN(YDATE)	       MAX(YDATE)	   COUNT(AUD_TREND) MIN(AUD_G4) MAX(AUD_G4)
----------- ------------------- ------------------- ---------------- ----------- -----------
-	 1 2010-05-12 10:00:00 2010-12-14 22:00:00	       1949	 -.0197       .0116
-	-1 2010-05-11 22:00:00 2010-12-15 09:00:00	       1843	 -.0179       .0184
-
-Elapsed: 00:00:00.01
-09:06:44 SQL> 
-09:06:44 SQL> -- I need a copy of q15 attributes
-09:06:44 SQL> 
-09:06:44 SQL> DROP   TABLE aud_att;
-
-Table dropped.
-
-Elapsed: 00:00:00.03
-09:06:44 SQL> CREATE TABLE aud_att COMPRESS AS
-09:06:44   2  SELECT
-09:06:44   3  ydate
-09:06:44   4  ,att00 aud_att00
-09:06:44   5  ,att01 aud_att01
-09:06:44   6  ,att02 aud_att02
-09:06:44   7  ,att03 aud_att03
-09:06:44   8  ,att04 aud_att04
-09:06:44   9  ,att05 aud_att05
-09:06:44  10  ,att06 aud_att06
-09:06:44  11  ,att07 aud_att07
-09:06:44  12  ,att08 aud_att08
-09:06:44  13  ,att09 aud_att09
-09:06:44  14  ,att10 aud_att10
-09:06:44  15  ,att11 aud_att11
-09:06:44  16  ,att12 aud_att12
-09:06:44  17  ,att13 aud_att13
-09:06:44  18  ,att14 aud_att14
-09:06:44  19  ,att15 aud_att15
-09:06:44  20  ,att16 aud_att16
-09:06:44  21  ,att17 aud_att17
-09:06:44  22  ,att18 aud_att18
-09:06:44  23  ,att19 aud_att19
-09:06:44  24  ,att20 aud_att20
-09:06:44  25  ,att21 aud_att21
-09:06:44  26  ,att22 aud_att22
-09:06:44  27  ,att23 aud_att23
-09:06:44  28  ,att24 aud_att24
-09:06:44  29  ,att25 aud_att25
-09:06:44  30  ,att26 aud_att26
-09:06:44  31  ,att27 aud_att27
-09:06:44  32  ,att28 aud_att28
-09:06:44  33  ,att29 aud_att29
-09:06:44  34  ,att30 aud_att30
-09:06:44  35  ,att31 aud_att31
-09:06:44  36  FROM q15
-09:06:44  37  /
-
-Table created.
-
-Elapsed: 00:00:00.06
-09:06:44 SQL> 
-09:06:44 SQL> ANALYZE TABLE aud_att COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.29
-09:06:44 SQL> 
-09:06:44 SQL> -- rpt
-09:06:44 SQL> SELECT COUNT(*)FROM aud_att;
-
-  COUNT(*)
-----------
-      3792
-
-Elapsed: 00:00:00.00
-09:06:44 SQL> 
-09:06:44 SQL> --
-09:06:44 SQL> -- gbp10.sql
-09:06:44 SQL> --
-09:06:44 SQL> 
-09:06:44 SQL> -- Creates views and tables for backtesting a forex SVM strategy
-09:06:44 SQL> 
-09:06:44 SQL> PURGE RECYCLEBIN;
-
-Recyclebin purged.
-
-Elapsed: 00:00:00.86
-09:06:45 SQL> 
-09:06:45 SQL> -- I created ibfu_t here:
-09:06:45 SQL> -- /pt/s/rlk/svm4hp/update_ibfu_t.sql
-09:06:45 SQL> 
-09:06:45 SQL> CREATE OR REPLACE VIEW q11 AS
-09:06:45   2  SELECT
-09:06:45   3  pair
-09:06:45   4  ,ydate
-09:06:45   5  ,prdate
-09:06:45   6  ,rownum rnum -- acts as t in my time-series
-09:06:45   7  ,clse
-09:06:45   8  ,LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg1
-09:06:45   9  ,LAG(clse,2,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg2
-09:06:45  10  ,LAG(clse,3,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg3
-09:06:45  11  ,LAG(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg4
-09:06:45  12  ,LAG(clse,5,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg5
-09:06:45  13  ,LAG(clse,6,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg6
-09:06:45  14  ,LAG(clse,7,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg7
-09:06:45  15  ,LAG(clse,8,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg8
-09:06:45  16  ,LAG(clse,9,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg9
-09:06:45  17  ,LAG(clse,12,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg12
-09:06:45  18  ,LAG(clse,18,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg18
-09:06:45  19  ,LAG(clse,24,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg24
-09:06:45  20  ,LAG(clse,72,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg72
-09:06:45  21  ,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ld4
-09:06:45  22  FROM ibfu_t WHERE pair LIKE'%gbp%'
-09:06:45  23  ORDER BY ydate
-09:06:45  24  /
-
-View created.
-
-Elapsed: 00:00:00.11
-09:06:45 SQL> 
-09:06:45 SQL> -- rpt
-09:06:45 SQL> SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
-
-PAIR	COUNT(YDATE)
-------- ------------
-gbp_usd 	3792
-
-Elapsed: 00:00:00.08
-09:06:45 SQL> 
-09:06:45 SQL> -- Calc deltas and gains
-09:06:45 SQL> DROP TABLE q13;
-
-Table dropped.
-
-Elapsed: 00:00:00.14
-09:06:45 SQL> 
-09:06:45 SQL> CREATE TABLE q13 COMPRESS AS
-09:06:45   2  SELECT
-09:06:45   3  pair
-09:06:45   4  ,ydate
-09:06:45   5  ,prdate
-09:06:45   6  ,rnum
-09:06:45   7  ,lg4
-09:06:45   8  ,lg8
-09:06:45   9  ,lg12
-09:06:45  10  ,ld4
-09:06:45  11  ,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
-09:06:45  12  -- step by 1
-09:06:45  13  ,clse-lg1 d01
-09:06:45  14  ,lg1-lg2	d12
-09:06:45  15  ,lg2-lg3	d23
-09:06:45  16  ,lg3-lg4	d34
-09:06:45  17  ,lg4-lg5	d45
-09:06:45  18  ,lg5-lg6	d56
-09:06:45  19  ,lg6-lg7	d67
-09:06:45  20  ,lg7-lg8	d78
-09:06:45  21  ,lg8-lg9	d89
-09:06:45  22  -- step by 2
-09:06:45  23  ,clse-lg2 d02
-09:06:45  24  ,lg2-lg4 d24
-09:06:45  25  ,lg4-lg6 d46
-09:06:45  26  ,lg6-lg8 d68
-09:06:45  27  -- step by 3
-09:06:45  28  ,clse-lg3 d03
-09:06:45  29  ,lg3-lg6	d36
-09:06:45  30  ,lg6-lg9	d69
-09:06:45  31  ,lg9-lg12 d912
-09:06:45  32  -- step by 4
-09:06:45  33  ,clse-lg4 d04
-09:06:45  34  ,lg4-lg8	d48
-09:06:45  35  ,lg8-lg12 d812
-09:06:45  36  ,lg6-lg12 d612
-09:06:45  37  ,lg12-lg18 d1218
-09:06:45  38  --
-09:06:45  39  ,ABS(clse-lg1)dc1
-09:06:45  40  ,ABS(clse-lg2)dc2
-09:06:45  41  ,ABS(clse-lg3)dc3
-09:06:45  42  ,ABS(clse-lg4)dc4
-09:06:45  43  ,ABS(clse-lg5)dc5
-09:06:45  44  ,ABS(clse-lg6)dc6
-09:06:45  45  ,ABS(clse-lg7)dc7
-09:06:45  46  ,ABS(clse-lg8)dc8
-09:06:45  47  ,ABS(clse-lg9)dc9
-09:06:45  48  ,ABS(clse-lg12)dc12
-09:06:45  49  ,ABS(clse-lg18)dc18
-09:06:45  50  ,ABS(clse-lg24)dc24
-09:06:45  51  ,ABS(clse-lg72)dc72
-09:06:45  52  ,(ld4-clse) ug4
-09:06:45  53  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 2  PRECEDING AND CURRENT ROW)crr2
-09:06:45  54  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 3  PRECEDING AND CURRENT ROW)crr3
-09:06:45  55  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 4  PRECEDING AND CURRENT ROW)crr4
-09:06:45  56  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 5  PRECEDING AND CURRENT ROW)crr5
-09:06:45  57  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6  PRECEDING AND CURRENT ROW)crr6
-09:06:45  58  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 7  PRECEDING AND CURRENT ROW)crr7
-09:06:45  59  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 8  PRECEDING AND CURRENT ROW)crr8
-09:06:45  60  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 9  PRECEDING AND CURRENT ROW)crr9
-09:06:45  61  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12 PRECEDING AND CURRENT ROW)crr12
-09:06:45  62  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 24 PRECEDING AND CURRENT ROW)crr24
-09:06:45  63  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 72 PRECEDING AND CURRENT ROW)crr72
-09:06:45  64  ,0+TO_CHAR(ydate,'HH24')hh
-09:06:45  65  ,0+TO_CHAR(ydate,'D')d
-09:06:45  66  ,0+TO_CHAR(ydate,'W')w
-09:06:45  67  FROM q11
-09:06:45  68  ORDER BY pair,ydate
-09:06:45  69  /
-
-Table created.
 
 Elapsed: 00:00:00.49
-09:06:46 SQL> 
-09:06:46 SQL> -- rpt
-09:06:46 SQL> SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
-
-     TREND COUNT(PRDATE)
----------- -------------
-	 1	    1913
-	-1	    1879
-
-Elapsed: 00:00:01.85
-09:06:48 SQL> 
-09:06:48 SQL> -- Calc gains and ntiles
-09:06:48 SQL> DROP TABLE q15;
-
-Table dropped.
-
-Elapsed: 00:00:00.15
-09:06:48 SQL> CREATE TABLE q15 COMPRESS AS
-09:06:48   2  SELECT
-09:06:48   3  pair
-09:06:48   4  ,ydate
-09:06:48   5  ,prdate -- Should be unique
-09:06:48   6  ,trend -- +1 or -1
-09:06:48   7  ,dc12 -- next statement needs this
-09:06:48   8  -- Use NTILE() to derive some attributes
-09:06:48   9  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))		 att00
-09:06:48  10  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))		 att01
-09:06:48  11  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))		 att02
-09:06:48  12  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))		 att03
-09:06:48  13  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))		 att04
-09:06:48  14  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))		 att05
-09:06:48  15  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))		 att06
-09:06:48  16  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))		 att07
-09:06:48  17  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912)) 	 att08
-09:06:48  18  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)		 att09
-09:06:48  19  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)		 att10
-09:06:48  20  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)		 att11
-09:06:48  21  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)		 att12
-09:06:48  22  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)		 att13
-09:06:48  23  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)		 att14
-09:06:48  24  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)		 att15
-09:06:48  25  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)		 att16
-09:06:48  26  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)		 att17
-09:06:48  27  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)		 att18
-09:06:48  28  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)		 att19
-09:06:48  29  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
-09:06:48  30  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
-09:06:48  31  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
-09:06:48  32  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
-09:06:48  33  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
-09:06:48  34  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
-09:06:48  35  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
-09:06:48  36  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
-09:06:48  37  -- date related integers: hour of day, day of week, week of month:
-09:06:48  38  ,hh    att28
-09:06:48  39  ,d     att29
-09:06:48  40  ,w     att30
-09:06:48  41  ,trend att31
-09:06:48  42  ,ug4 g4
-09:06:48  43  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
-09:06:48  44  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
-09:06:48  45  FROM q13
-09:06:48  46  ORDER BY pair,ydate
-09:06:48  47  /
-
-Table created.
-
-Elapsed: 00:00:00.83
-09:06:49 SQL> 
-09:06:49 SQL> -- rpt
-09:06:49 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
-09:06:49   2  GROUP BY pair,trend,gatt,gattn
-09:06:49   3  ORDER BY pair,trend,gatt,gattn
-09:06:49   4  /
-
-PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
-------- ---------- --- --- ---------- ---------- -------------
-gbp_usd 	-1 nup nup -1.525E-06	     305    .027924561
-gbp_usd 	-1 nup up  -.00345084	     775    -.04012393
-gbp_usd 	-1 up  nup .003594535	     795    .013518562
-gbp_usd 	-1			       0
-gbp_usd 	 1 nup nup 6.1446E-06	     332    .029458244
-gbp_usd 	 1 nup up  -.00339611	     789    .051843018
-gbp_usd 	 1 up  nup .003564773	     792    -.04665928
-
-7 rows selected.
-
-Elapsed: 00:00:00.54
-09:06:49 SQL> 
-09:06:49 SQL> -- rpt
-09:06:49 SQL> SELECT pair,max(ydate)from q15 group by pair;
-
-PAIR	MAX(YDATE)
-------- -------------------
-gbp_usd 2010-12-15 09:00:00
-
-Elapsed: 00:00:00.00
-09:06:49 SQL> 
-09:06:49 SQL> DROP TABLE modsrc;
-
-Table dropped.
-
-Elapsed: 00:00:00.13
-09:06:49 SQL> CREATE TABLE modsrc COMPRESS AS
-09:06:49   2  SELECT
-09:06:49   3  pair
-09:06:49   4  ,ydate
-09:06:49   5  ,prdate
-09:06:49   6  ,trend
-09:06:49   7  ,g4
-09:06:49   8  ,gatt
-09:06:49   9  ,gattn
-09:06:49  10  ,dc12
-09:06:49  11  FROM q15
-09:06:49  12  /
-
-Table created.
-
-Elapsed: 00:00:00.10
-09:06:49 SQL> 
-09:06:49 SQL> ANALYZE TABLE modsrc COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.45
-09:06:50 SQL> 
-09:06:50 SQL> -- rpt
-09:06:50 SQL> 
-09:06:50 SQL> SELECT COUNT(pair)FROM q11;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.08
-09:06:50 SQL> SELECT COUNT(pair)FROM q13;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:06:50 SQL> SELECT COUNT(pair)FROM q15;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:06:50 SQL> SELECT COUNT(pair)FROM modsrc;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:06:50 SQL> 
-09:06:50 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
-09:06:50   2  GROUP BY pair,trend,gatt,gattn
-09:06:50   3  ORDER BY pair,trend,gatt,gattn
-09:06:50   4  /
-
-PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
-------- ---------- --- --- ---------- ---------- -------------
-gbp_usd 	-1 nup nup -1.525E-06	     305    .027924561
-gbp_usd 	-1 nup up  -.00345084	     775    -.04012393
-gbp_usd 	-1 up  nup .003594535	     795    .013518562
-gbp_usd 	-1			       0
-gbp_usd 	 1 nup nup 6.1446E-06	     332    .029458244
-gbp_usd 	 1 nup up  -.00339611	     789    .051843018
-gbp_usd 	 1 up  nup .003564773	     792    -.04665928
-
-7 rows selected.
-
-Elapsed: 00:00:00.00
-09:06:50 SQL> 
-09:06:50 SQL> DROP   TABLE gbp_ms10 ;
-
-Table dropped.
-
-Elapsed: 00:00:00.09
-09:06:50 SQL> CREATE TABLE gbp_ms10 COMPRESS AS
-09:06:50   2  SELECT
-09:06:50   3  ydate
-09:06:50   4  ,trend gbp_trend
-09:06:50   5  ,g4    gbp_g4
-09:06:50   6  ,gatt  gbp_gatt
-09:06:50   7  ,gattn	gbp_gattn
-09:06:50   8  FROM modsrc
-09:06:50   9  /
-
-Table created.
-
-Elapsed: 00:00:00.22
-09:06:50 SQL> 
-09:06:50 SQL> ANALYZE TABLE gbp_ms10 COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.26
-09:06:51 SQL> 
-09:06:51 SQL> -- rpt
-09:06:51 SQL> SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
-
-     TREND MIN(YDATE)	       MAX(YDATE)	    COUNT(G4)	 MIN(G4)    MAX(G4)
----------- ------------------- ------------------- ---------- ---------- ----------
-	 1 2010-05-12 10:00:00 2010-12-14 11:00:00	 1913	  -.0194      .0192
-	-1 2010-05-11 22:00:00 2010-12-15 09:00:00	 1875	  -.0243      .0217
-
-Elapsed: 00:00:00.01
-09:06:51 SQL> SELECT gbp_trend,MIN(ydate),MAX(ydate),COUNT(gbp_trend),MIN(gbp_g4),MAX(gbp_g4)FROM gbp_ms10 GROUP BY gbp_trend;
-
- GBP_TREND MIN(YDATE)	       MAX(YDATE)	   COUNT(GBP_TREND) MIN(GBP_G4) MAX(GBP_G4)
----------- ------------------- ------------------- ---------------- ----------- -----------
-	 1 2010-05-12 10:00:00 2010-12-14 11:00:00	       1913	 -.0194       .0192
-	-1 2010-05-11 22:00:00 2010-12-15 09:00:00	       1879	 -.0243       .0217
-
-Elapsed: 00:00:00.01
-09:06:51 SQL> 
-09:06:51 SQL> -- I need a copy of q15 attributes
-09:06:51 SQL> 
-09:06:51 SQL> DROP   TABLE gbp_att;
-
-Table dropped.
-
-Elapsed: 00:00:00.10
-09:06:51 SQL> CREATE TABLE gbp_att COMPRESS AS
-09:06:51   2  SELECT
-09:06:51   3  ydate
-09:06:51   4  ,att00 gbp_att00
-09:06:51   5  ,att01 gbp_att01
-09:06:51   6  ,att02 gbp_att02
-09:06:51   7  ,att03 gbp_att03
-09:06:51   8  ,att04 gbp_att04
-09:06:51   9  ,att05 gbp_att05
-09:06:51  10  ,att06 gbp_att06
-09:06:51  11  ,att07 gbp_att07
-09:06:51  12  ,att08 gbp_att08
-09:06:51  13  ,att09 gbp_att09
-09:06:51  14  ,att10 gbp_att10
-09:06:51  15  ,att11 gbp_att11
-09:06:51  16  ,att12 gbp_att12
-09:06:51  17  ,att13 gbp_att13
-09:06:51  18  ,att14 gbp_att14
-09:06:51  19  ,att15 gbp_att15
-09:06:51  20  ,att16 gbp_att16
-09:06:51  21  ,att17 gbp_att17
-09:06:51  22  ,att18 gbp_att18
-09:06:51  23  ,att19 gbp_att19
-09:06:51  24  ,att20 gbp_att20
-09:06:51  25  ,att21 gbp_att21
-09:06:51  26  ,att22 gbp_att22
-09:06:51  27  ,att23 gbp_att23
-09:06:51  28  ,att24 gbp_att24
-09:06:51  29  ,att25 gbp_att25
-09:06:51  30  ,att26 gbp_att26
-09:06:51  31  ,att27 gbp_att27
-09:06:51  32  ,att28 gbp_att28
-09:06:51  33  ,att29 gbp_att29
-09:06:51  34  ,att30 gbp_att30
-09:06:51  35  ,att31 gbp_att31
-09:06:51  36  FROM q15
-09:06:51  37  /
-
-Table created.
-
-Elapsed: 00:00:00.19
-09:06:51 SQL> 
-09:06:51 SQL> ANALYZE TABLE gbp_att COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.50
-09:06:51 SQL> 
-09:06:51 SQL> -- rpt
-09:06:51 SQL> SELECT COUNT(*)FROM gbp_att;
-
-  COUNT(*)
-----------
-      3792
-
-Elapsed: 00:00:00.01
-09:06:51 SQL> 
-09:06:51 SQL> --
-09:06:51 SQL> -- jpy10.sql
-09:06:51 SQL> --
-09:06:51 SQL> 
-09:06:51 SQL> -- Creates views and tables for backtesting a forex SVM strategy
-09:06:51 SQL> 
-09:06:51 SQL> PURGE RECYCLEBIN;
-
-Recyclebin purged.
-
-Elapsed: 00:00:01.15
-09:06:52 SQL> 
-09:06:52 SQL> -- I created ibfu_t here:
-09:06:52 SQL> -- /pt/s/rlk/svm4hp/update_ibfu_t.sql
-09:06:52 SQL> 
-09:06:52 SQL> CREATE OR REPLACE VIEW q11 AS
-09:06:52   2  SELECT
-09:06:52   3  pair
-09:06:52   4  ,ydate
-09:06:52   5  ,prdate
-09:06:52   6  ,rownum rnum -- acts as t in my time-series
-09:06:52   7  ,clse
-09:06:52   8  ,LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg1
-09:06:52   9  ,LAG(clse,2,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg2
-09:06:52  10  ,LAG(clse,3,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg3
-09:06:52  11  ,LAG(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg4
-09:06:52  12  ,LAG(clse,5,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg5
-09:06:52  13  ,LAG(clse,6,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg6
-09:06:52  14  ,LAG(clse,7,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg7
-09:06:52  15  ,LAG(clse,8,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg8
-09:06:52  16  ,LAG(clse,9,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg9
-09:06:52  17  ,LAG(clse,12,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg12
-09:06:52  18  ,LAG(clse,18,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg18
-09:06:52  19  ,LAG(clse,24,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg24
-09:06:52  20  ,LAG(clse,72,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg72
-09:06:52  21  ,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ld4
-09:06:52  22  FROM ibfu_t WHERE pair LIKE'%jpy%'
-09:06:52  23  ORDER BY ydate
-09:06:52  24  /
+18:37:26 SQL> 
+18:37:26 SQL> -- I created di5min here:
+18:37:26 SQL> -- /pt/s/rlk/svm4hp/update_di5min.sql
+18:37:26 SQL> 
+18:37:26 SQL> CREATE OR REPLACE VIEW q11 AS
+18:37:26   2  SELECT
+18:37:26   3  pair
+18:37:26   4  ,ydate
+18:37:26   5  ,prdate
+18:37:26   6  ,rownum rnum -- acts as t in my time-series
+18:37:26   7  ,clse
+18:37:26   8  ,LAG(clse,6*1,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg1
+18:37:26   9  ,LAG(clse,6*2,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg2
+18:37:26  10  ,LAG(clse,6*3,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg3
+18:37:26  11  ,LAG(clse,6*4,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg4
+18:37:26  12  ,LAG(clse,6*5,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg5
+18:37:26  13  ,LAG(clse,6*6,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg6
+18:37:26  14  ,LAG(clse,6*7,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg7
+18:37:26  15  ,LAG(clse,6*8,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg8
+18:37:26  16  ,LAG(clse,6*9,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg9
+18:37:26  17  ,LAG(clse,6*12,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg12
+18:37:26  18  ,LAG(clse,6*18,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg18
+18:37:26  19  ,LAG(clse,6*24,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg24
+18:37:26  20  ,LAG(clse,6*72,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg72
+18:37:26  21  ,LEAD(clse,6*4,NULL)OVER(PARTITION BY pair ORDER BY ydate) ld4
+18:37:26  22  FROM di5min WHERE pair LIKE'%eur%'
+18:37:26  23  ORDER BY ydate
+18:37:26  24  /
 
 View created.
 
 Elapsed: 00:00:00.05
-09:06:53 SQL> 
-09:06:53 SQL> -- rpt
-09:06:53 SQL> SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
+18:37:26 SQL> 
+18:37:26 SQL> -- rpt
+18:37:26 SQL> SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
 
 PAIR	COUNT(YDATE)
 ------- ------------
-usd_jpy 	3792
+eur_usd        18644
 
-Elapsed: 00:00:00.07
-09:06:53 SQL> 
-09:06:53 SQL> -- Calc deltas and gains
-09:06:53 SQL> DROP TABLE q13;
-
-Table dropped.
-
-Elapsed: 00:00:00.13
-09:06:53 SQL> 
-09:06:53 SQL> CREATE TABLE q13 COMPRESS AS
-09:06:53   2  SELECT
-09:06:53   3  pair
-09:06:53   4  ,ydate
-09:06:53   5  ,prdate
-09:06:53   6  ,rnum
-09:06:53   7  ,lg4
-09:06:53   8  ,lg8
-09:06:53   9  ,lg12
-09:06:53  10  ,ld4
-09:06:53  11  ,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
-09:06:53  12  -- step by 1
-09:06:53  13  ,clse-lg1 d01
-09:06:53  14  ,lg1-lg2	d12
-09:06:53  15  ,lg2-lg3	d23
-09:06:53  16  ,lg3-lg4	d34
-09:06:53  17  ,lg4-lg5	d45
-09:06:53  18  ,lg5-lg6	d56
-09:06:53  19  ,lg6-lg7	d67
-09:06:53  20  ,lg7-lg8	d78
-09:06:53  21  ,lg8-lg9	d89
-09:06:53  22  -- step by 2
-09:06:53  23  ,clse-lg2 d02
-09:06:53  24  ,lg2-lg4 d24
-09:06:53  25  ,lg4-lg6 d46
-09:06:53  26  ,lg6-lg8 d68
-09:06:53  27  -- step by 3
-09:06:53  28  ,clse-lg3 d03
-09:06:53  29  ,lg3-lg6	d36
-09:06:53  30  ,lg6-lg9	d69
-09:06:53  31  ,lg9-lg12 d912
-09:06:53  32  -- step by 4
-09:06:53  33  ,clse-lg4 d04
-09:06:53  34  ,lg4-lg8	d48
-09:06:53  35  ,lg8-lg12 d812
-09:06:53  36  ,lg6-lg12 d612
-09:06:53  37  ,lg12-lg18 d1218
-09:06:53  38  --
-09:06:53  39  ,ABS(clse-lg1)dc1
-09:06:53  40  ,ABS(clse-lg2)dc2
-09:06:53  41  ,ABS(clse-lg3)dc3
-09:06:53  42  ,ABS(clse-lg4)dc4
-09:06:53  43  ,ABS(clse-lg5)dc5
-09:06:53  44  ,ABS(clse-lg6)dc6
-09:06:53  45  ,ABS(clse-lg7)dc7
-09:06:53  46  ,ABS(clse-lg8)dc8
-09:06:53  47  ,ABS(clse-lg9)dc9
-09:06:53  48  ,ABS(clse-lg12)dc12
-09:06:53  49  ,ABS(clse-lg18)dc18
-09:06:53  50  ,ABS(clse-lg24)dc24
-09:06:53  51  ,ABS(clse-lg72)dc72
-09:06:53  52  ,(ld4-clse) ug4
-09:06:53  53  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 2  PRECEDING AND CURRENT ROW)crr2
-09:06:53  54  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 3  PRECEDING AND CURRENT ROW)crr3
-09:06:53  55  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 4  PRECEDING AND CURRENT ROW)crr4
-09:06:53  56  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 5  PRECEDING AND CURRENT ROW)crr5
-09:06:53  57  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6  PRECEDING AND CURRENT ROW)crr6
-09:06:53  58  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 7  PRECEDING AND CURRENT ROW)crr7
-09:06:53  59  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 8  PRECEDING AND CURRENT ROW)crr8
-09:06:53  60  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 9  PRECEDING AND CURRENT ROW)crr9
-09:06:53  61  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12 PRECEDING AND CURRENT ROW)crr12
-09:06:53  62  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 24 PRECEDING AND CURRENT ROW)crr24
-09:06:53  63  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 72 PRECEDING AND CURRENT ROW)crr72
-09:06:53  64  ,0+TO_CHAR(ydate,'HH24')hh
-09:06:53  65  ,0+TO_CHAR(ydate,'D')d
-09:06:53  66  ,0+TO_CHAR(ydate,'W')w
-09:06:53  67  FROM q11
-09:06:53  68  ORDER BY pair,ydate
-09:06:53  69  /
-
-Table created.
-
-Elapsed: 00:00:00.45
-09:06:53 SQL> 
-09:06:53 SQL> -- rpt
-09:06:53 SQL> SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
-
-     TREND COUNT(PRDATE)
----------- -------------
-	 1	    1717
-	-1	    2075
-
-Elapsed: 00:00:01.26
-09:06:54 SQL> 
-09:06:54 SQL> -- Calc gains and ntiles
-09:06:54 SQL> DROP TABLE q15;
-
-Table dropped.
-
-Elapsed: 00:00:00.20
-09:06:55 SQL> CREATE TABLE q15 COMPRESS AS
-09:06:55   2  SELECT
-09:06:55   3  pair
-09:06:55   4  ,ydate
-09:06:55   5  ,prdate -- Should be unique
-09:06:55   6  ,trend -- +1 or -1
-09:06:55   7  ,dc12 -- next statement needs this
-09:06:55   8  -- Use NTILE() to derive some attributes
-09:06:55   9  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))		 att00
-09:06:55  10  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))		 att01
-09:06:55  11  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))		 att02
-09:06:55  12  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))		 att03
-09:06:55  13  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))		 att04
-09:06:55  14  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))		 att05
-09:06:55  15  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))		 att06
-09:06:55  16  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))		 att07
-09:06:55  17  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912)) 	 att08
-09:06:55  18  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)		 att09
-09:06:55  19  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)		 att10
-09:06:55  20  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)		 att11
-09:06:55  21  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)		 att12
-09:06:55  22  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)		 att13
-09:06:55  23  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)		 att14
-09:06:55  24  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)		 att15
-09:06:55  25  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)		 att16
-09:06:55  26  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)		 att17
-09:06:55  27  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)		 att18
-09:06:55  28  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)		 att19
-09:06:55  29  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
-09:06:55  30  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
-09:06:55  31  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
-09:06:55  32  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
-09:06:55  33  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
-09:06:55  34  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
-09:06:55  35  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
-09:06:55  36  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
-09:06:55  37  -- date related integers: hour of day, day of week, week of month:
-09:06:55  38  ,hh    att28
-09:06:55  39  ,d     att29
-09:06:55  40  ,w     att30
-09:06:55  41  ,trend att31
-09:06:55  42  ,ug4 g4
-09:06:55  43  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
-09:06:55  44  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
-09:06:55  45  FROM q13
-09:06:55  46  ORDER BY pair,ydate
-09:06:55  47  /
-
-Table created.
-
-Elapsed: 00:00:00.77
-09:06:55 SQL> 
-09:06:55 SQL> -- rpt
-09:06:55 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
-09:06:55   2  GROUP BY pair,trend,gatt,gattn
-09:06:55   3  ORDER BY pair,trend,gatt,gattn
-09:06:55   4  /
-
-PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
-------- ---------- --- --- ---------- ---------- -------------
-usd_jpy 	-1 nup nup	    0	      56
-usd_jpy 	-1 nup up  -.16828062	     996    -.06454534
-usd_jpy 	-1 up  nup .160179374	    1023     .15748503
-usd_jpy 	 1 nup nup	    0	      28
-usd_jpy 	 1 nup up  -.16370162	     925    .001557389
-usd_jpy 	 1 up  nup	.1578	     760    .111768339
-usd_jpy 	 1			       0
-
-7 rows selected.
-
-Elapsed: 00:00:00.37
-09:06:56 SQL> 
-09:06:56 SQL> -- rpt
-09:06:56 SQL> SELECT pair,max(ydate)from q15 group by pair;
-
-PAIR	MAX(YDATE)
-------- -------------------
-usd_jpy 2010-12-15 09:00:00
-
-Elapsed: 00:00:00.00
-09:06:56 SQL> 
-09:06:56 SQL> DROP TABLE modsrc;
-
-Table dropped.
-
-Elapsed: 00:00:00.12
-09:06:56 SQL> CREATE TABLE modsrc COMPRESS AS
-09:06:56   2  SELECT
-09:06:56   3  pair
-09:06:56   4  ,ydate
-09:06:56   5  ,prdate
-09:06:56   6  ,trend
-09:06:56   7  ,g4
-09:06:56   8  ,gatt
-09:06:56   9  ,gattn
-09:06:56  10  ,dc12
-09:06:56  11  FROM q15
-09:06:56  12  /
-
-Table created.
-
-Elapsed: 00:00:00.05
-09:06:56 SQL> 
-09:06:56 SQL> ANALYZE TABLE modsrc COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.34
-09:06:56 SQL> 
-09:06:56 SQL> -- rpt
-09:06:56 SQL> 
-09:06:56 SQL> SELECT COUNT(pair)FROM q11;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.08
-09:06:56 SQL> SELECT COUNT(pair)FROM q13;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:06:56 SQL> SELECT COUNT(pair)FROM q15;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:06:56 SQL> SELECT COUNT(pair)FROM modsrc;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.01
-09:06:56 SQL> 
-09:06:56 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
-09:06:56   2  GROUP BY pair,trend,gatt,gattn
-09:06:56   3  ORDER BY pair,trend,gatt,gattn
-09:06:56   4  /
-
-PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
-------- ---------- --- --- ---------- ---------- -------------
-usd_jpy 	-1 nup nup	    0	      56
-usd_jpy 	-1 nup up  -.16828062	     996    -.06454534
-usd_jpy 	-1 up  nup .160179374	    1023     .15748503
-usd_jpy 	 1 nup nup	    0	      28
-usd_jpy 	 1 nup up  -.16370162	     925    .001557389
-usd_jpy 	 1 up  nup	.1578	     760    .111768339
-usd_jpy 	 1			       0
-
-7 rows selected.
-
-Elapsed: 00:00:00.00
-09:06:56 SQL> 
-09:06:56 SQL> DROP   TABLE jpy_ms10 ;
-
-Table dropped.
-
-Elapsed: 00:00:00.07
-09:06:56 SQL> CREATE TABLE jpy_ms10 COMPRESS AS
-09:06:56   2  SELECT
-09:06:56   3  ydate
-09:06:56   4  ,trend jpy_trend
-09:06:56   5  ,g4    jpy_g4
-09:06:56   6  ,gatt  jpy_gatt
-09:06:56   7  ,gattn	jpy_gattn
-09:06:56   8  FROM modsrc
-09:06:56   9  /
-
-Table created.
-
-Elapsed: 00:00:00.05
-09:06:57 SQL> 
-09:06:57 SQL> ANALYZE TABLE jpy_ms10 COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.31
-09:06:57 SQL> 
-09:06:57 SQL> -- rpt
-09:06:57 SQL> SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
-
-     TREND MIN(YDATE)	       MAX(YDATE)	    COUNT(G4)	 MIN(G4)    MAX(G4)
----------- ------------------- ------------------- ---------- ---------- ----------
-	 1 2010-05-12 10:00:00 2010-12-15 09:00:00	 1713	   -1.05	.71
-	-1 2010-05-11 22:00:00 2010-12-14 19:00:00	 2075	   -2.13       1.97
-
-Elapsed: 00:00:00.01
-09:06:57 SQL> SELECT jpy_trend,MIN(ydate),MAX(ydate),COUNT(jpy_trend),MIN(jpy_g4),MAX(jpy_g4)FROM jpy_ms10 GROUP BY jpy_trend;
-
- JPY_TREND MIN(YDATE)	       MAX(YDATE)	   COUNT(JPY_TREND) MIN(JPY_G4) MAX(JPY_G4)
----------- ------------------- ------------------- ---------------- ----------- -----------
-	 1 2010-05-12 10:00:00 2010-12-15 09:00:00	       1717	  -1.05 	.71
-	-1 2010-05-11 22:00:00 2010-12-14 19:00:00	       2075	  -2.13        1.97
-
-Elapsed: 00:00:00.01
-09:06:57 SQL> 
-09:06:57 SQL> -- I need a copy of q15 attributes
-09:06:57 SQL> 
-09:06:57 SQL> DROP   TABLE jpy_att;
-
-Table dropped.
-
-Elapsed: 00:00:00.20
-09:06:57 SQL> CREATE TABLE jpy_att COMPRESS AS
-09:06:57   2  SELECT
-09:06:57   3  ydate
-09:06:57   4  ,att00 jpy_att00
-09:06:57   5  ,att01 jpy_att01
-09:06:57   6  ,att02 jpy_att02
-09:06:57   7  ,att03 jpy_att03
-09:06:57   8  ,att04 jpy_att04
-09:06:57   9  ,att05 jpy_att05
-09:06:57  10  ,att06 jpy_att06
-09:06:57  11  ,att07 jpy_att07
-09:06:57  12  ,att08 jpy_att08
-09:06:57  13  ,att09 jpy_att09
-09:06:57  14  ,att10 jpy_att10
-09:06:57  15  ,att11 jpy_att11
-09:06:57  16  ,att12 jpy_att12
-09:06:57  17  ,att13 jpy_att13
-09:06:57  18  ,att14 jpy_att14
-09:06:57  19  ,att15 jpy_att15
-09:06:57  20  ,att16 jpy_att16
-09:06:57  21  ,att17 jpy_att17
-09:06:57  22  ,att18 jpy_att18
-09:06:57  23  ,att19 jpy_att19
-09:06:57  24  ,att20 jpy_att20
-09:06:57  25  ,att21 jpy_att21
-09:06:57  26  ,att22 jpy_att22
-09:06:57  27  ,att23 jpy_att23
-09:06:57  28  ,att24 jpy_att24
-09:06:57  29  ,att25 jpy_att25
-09:06:57  30  ,att26 jpy_att26
-09:06:57  31  ,att27 jpy_att27
-09:06:57  32  ,att28 jpy_att28
-09:06:57  33  ,att29 jpy_att29
-09:06:57  34  ,att30 jpy_att30
-09:06:57  35  ,att31 jpy_att31
-09:06:57  36  FROM q15
-09:06:57  37  /
-
-Table created.
-
-Elapsed: 00:00:00.30
-09:06:57 SQL> 
-09:06:57 SQL> ANALYZE TABLE jpy_att COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.18
-09:06:58 SQL> 
-09:06:58 SQL> -- rpt
-09:06:58 SQL> SELECT COUNT(*)FROM jpy_att;
-
-  COUNT(*)
-----------
-      3792
-
-Elapsed: 00:00:00.00
-09:06:58 SQL> 
-09:06:58 SQL> --
-09:06:58 SQL> -- cad10.sql
-09:06:58 SQL> --
-09:06:58 SQL> 
-09:06:58 SQL> -- Creates views and tables for backtesting a forex SVM strategy
-09:06:58 SQL> 
-09:06:58 SQL> PURGE RECYCLEBIN;
-
-Recyclebin purged.
-
-Elapsed: 00:00:00.43
-09:06:58 SQL> 
-09:06:58 SQL> -- I created ibfu_t here:
-09:06:58 SQL> -- /pt/s/rlk/svm4hp/update_ibfu_t.sql
-09:06:58 SQL> 
-09:06:58 SQL> CREATE OR REPLACE VIEW q11 AS
-09:06:58   2  SELECT
-09:06:58   3  pair
-09:06:58   4  ,ydate
-09:06:58   5  ,prdate
-09:06:58   6  ,rownum rnum -- acts as t in my time-series
-09:06:58   7  ,clse
-09:06:58   8  ,LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg1
-09:06:58   9  ,LAG(clse,2,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg2
-09:06:58  10  ,LAG(clse,3,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg3
-09:06:58  11  ,LAG(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg4
-09:06:58  12  ,LAG(clse,5,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg5
-09:06:58  13  ,LAG(clse,6,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg6
-09:06:58  14  ,LAG(clse,7,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg7
-09:06:58  15  ,LAG(clse,8,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg8
-09:06:58  16  ,LAG(clse,9,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg9
-09:06:58  17  ,LAG(clse,12,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg12
-09:06:58  18  ,LAG(clse,18,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg18
-09:06:58  19  ,LAG(clse,24,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg24
-09:06:58  20  ,LAG(clse,72,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg72
-09:06:58  21  ,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ld4
-09:06:58  22  FROM ibfu_t WHERE pair LIKE'%cad%'
-09:06:58  23  ORDER BY ydate
-09:06:58  24  /
-
-View created.
-
-Elapsed: 00:00:00.03
-09:06:58 SQL> 
-09:06:58 SQL> -- rpt
-09:06:58 SQL> SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
-
-PAIR	COUNT(YDATE)
-------- ------------
-usd_cad 	3792
-
-Elapsed: 00:00:00.07
-09:06:58 SQL> 
-09:06:58 SQL> -- Calc deltas and gains
-09:06:58 SQL> DROP TABLE q13;
+Elapsed: 00:00:00.32
+18:37:26 SQL> 
+18:37:26 SQL> -- Calc deltas and gains
+18:37:26 SQL> DROP TABLE q13;
 
 Table dropped.
 
 Elapsed: 00:00:00.18
-09:06:58 SQL> 
-09:06:58 SQL> CREATE TABLE q13 COMPRESS AS
-09:06:58   2  SELECT
-09:06:58   3  pair
-09:06:58   4  ,ydate
-09:06:58   5  ,prdate
-09:06:58   6  ,rnum
-09:06:58   7  ,lg4
-09:06:58   8  ,lg8
-09:06:58   9  ,lg12
-09:06:58  10  ,ld4
-09:06:58  11  ,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
-09:06:58  12  -- step by 1
-09:06:58  13  ,clse-lg1 d01
-09:06:58  14  ,lg1-lg2	d12
-09:06:58  15  ,lg2-lg3	d23
-09:06:58  16  ,lg3-lg4	d34
-09:06:58  17  ,lg4-lg5	d45
-09:06:58  18  ,lg5-lg6	d56
-09:06:58  19  ,lg6-lg7	d67
-09:06:58  20  ,lg7-lg8	d78
-09:06:58  21  ,lg8-lg9	d89
-09:06:58  22  -- step by 2
-09:06:58  23  ,clse-lg2 d02
-09:06:58  24  ,lg2-lg4 d24
-09:06:58  25  ,lg4-lg6 d46
-09:06:58  26  ,lg6-lg8 d68
-09:06:58  27  -- step by 3
-09:06:58  28  ,clse-lg3 d03
-09:06:58  29  ,lg3-lg6	d36
-09:06:58  30  ,lg6-lg9	d69
-09:06:58  31  ,lg9-lg12 d912
-09:06:58  32  -- step by 4
-09:06:58  33  ,clse-lg4 d04
-09:06:58  34  ,lg4-lg8	d48
-09:06:58  35  ,lg8-lg12 d812
-09:06:58  36  ,lg6-lg12 d612
-09:06:58  37  ,lg12-lg18 d1218
-09:06:58  38  --
-09:06:58  39  ,ABS(clse-lg1)dc1
-09:06:58  40  ,ABS(clse-lg2)dc2
-09:06:58  41  ,ABS(clse-lg3)dc3
-09:06:58  42  ,ABS(clse-lg4)dc4
-09:06:58  43  ,ABS(clse-lg5)dc5
-09:06:58  44  ,ABS(clse-lg6)dc6
-09:06:58  45  ,ABS(clse-lg7)dc7
-09:06:58  46  ,ABS(clse-lg8)dc8
-09:06:58  47  ,ABS(clse-lg9)dc9
-09:06:58  48  ,ABS(clse-lg12)dc12
-09:06:58  49  ,ABS(clse-lg18)dc18
-09:06:58  50  ,ABS(clse-lg24)dc24
-09:06:58  51  ,ABS(clse-lg72)dc72
-09:06:58  52  ,(ld4-clse) ug4
-09:06:58  53  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 2  PRECEDING AND CURRENT ROW)crr2
-09:06:58  54  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 3  PRECEDING AND CURRENT ROW)crr3
-09:06:58  55  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 4  PRECEDING AND CURRENT ROW)crr4
-09:06:58  56  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 5  PRECEDING AND CURRENT ROW)crr5
-09:06:58  57  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6  PRECEDING AND CURRENT ROW)crr6
-09:06:58  58  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 7  PRECEDING AND CURRENT ROW)crr7
-09:06:58  59  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 8  PRECEDING AND CURRENT ROW)crr8
-09:06:58  60  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 9  PRECEDING AND CURRENT ROW)crr9
-09:06:58  61  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12 PRECEDING AND CURRENT ROW)crr12
-09:06:58  62  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 24 PRECEDING AND CURRENT ROW)crr24
-09:06:58  63  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 72 PRECEDING AND CURRENT ROW)crr72
-09:06:58  64  ,0+TO_CHAR(ydate,'HH24')hh
-09:06:58  65  ,0+TO_CHAR(ydate,'D')d
-09:06:58  66  ,0+TO_CHAR(ydate,'W')w
-09:06:58  67  FROM q11
-09:06:58  68  ORDER BY pair,ydate
-09:06:58  69  /
+18:37:27 SQL> 
+18:37:27 SQL> CREATE TABLE q13 COMPRESS AS
+18:37:27   2  SELECT
+18:37:27   3  pair
+18:37:27   4  ,ydate
+18:37:27   5  ,prdate
+18:37:27   6  ,rnum
+18:37:27   7  ,lg4
+18:37:27   8  ,lg8
+18:37:27   9  ,lg12
+18:37:27  10  ,ld4
+18:37:27  11  ,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
+18:37:27  12  -- step by 1
+18:37:27  13  ,clse-lg1 d01
+18:37:27  14  ,lg1-lg2	d12
+18:37:27  15  ,lg2-lg3	d23
+18:37:27  16  ,lg3-lg4	d34
+18:37:27  17  ,lg4-lg5	d45
+18:37:27  18  ,lg5-lg6	d56
+18:37:27  19  ,lg6-lg7	d67
+18:37:27  20  ,lg7-lg8	d78
+18:37:27  21  ,lg8-lg9	d89
+18:37:27  22  -- step by 2
+18:37:27  23  ,clse-lg2 d02
+18:37:27  24  ,lg2-lg4 d24
+18:37:27  25  ,lg4-lg6 d46
+18:37:27  26  ,lg6-lg8 d68
+18:37:27  27  -- step by 3
+18:37:27  28  ,clse-lg3 d03
+18:37:27  29  ,lg3-lg6	d36
+18:37:27  30  ,lg6-lg9	d69
+18:37:27  31  ,lg9-lg12 d912
+18:37:27  32  -- step by 4
+18:37:27  33  ,clse-lg4 d04
+18:37:27  34  ,lg4-lg8	d48
+18:37:27  35  ,lg8-lg12 d812
+18:37:27  36  ,lg6-lg12 d612
+18:37:27  37  ,lg12-lg18 d1218
+18:37:27  38  --
+18:37:27  39  ,ABS(clse-lg1)dc1
+18:37:27  40  ,ABS(clse-lg2)dc2
+18:37:27  41  ,ABS(clse-lg3)dc3
+18:37:27  42  ,ABS(clse-lg4)dc4
+18:37:27  43  ,ABS(clse-lg5)dc5
+18:37:27  44  ,ABS(clse-lg6)dc6
+18:37:27  45  ,ABS(clse-lg7)dc7
+18:37:27  46  ,ABS(clse-lg8)dc8
+18:37:27  47  ,ABS(clse-lg9)dc9
+18:37:27  48  ,ABS(clse-lg12)dc12
+18:37:27  49  ,ABS(clse-lg18)dc18
+18:37:27  50  ,ABS(clse-lg24)dc24
+18:37:27  51  ,ABS(clse-lg72)dc72
+18:37:27  52  ,(ld4-clse) ug4
+18:37:27  53  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*2  PRECEDING AND CURRENT ROW)crr2
+18:37:27  54  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*3  PRECEDING AND CURRENT ROW)crr3
+18:37:27  55  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*4  PRECEDING AND CURRENT ROW)crr4
+18:37:27  56  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*5  PRECEDING AND CURRENT ROW)crr5
+18:37:27  57  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*6  PRECEDING AND CURRENT ROW)crr6
+18:37:27  58  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*7  PRECEDING AND CURRENT ROW)crr7
+18:37:27  59  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*8  PRECEDING AND CURRENT ROW)crr8
+18:37:27  60  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*9  PRECEDING AND CURRENT ROW)crr9
+18:37:27  61  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*12 PRECEDING AND CURRENT ROW)crr12
+18:37:27  62  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*24 PRECEDING AND CURRENT ROW)crr24
+18:37:27  63  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*72 PRECEDING AND CURRENT ROW)crr72
+18:37:27  64  ,0+TO_CHAR(ydate,'HH24')hh
+18:37:27  65  ,0+TO_CHAR(ydate,'D')d
+18:37:27  66  ,0+TO_CHAR(ydate,'W')w
+18:37:27  67  FROM q11
+18:37:27  68  -- I dont want any NULL values from the LAG() functions:
+18:37:27  69  WHERE lg72 > 0
+18:37:27  70  ORDER BY pair,ydate
+18:37:27  71  /
 
 Table created.
 
-Elapsed: 00:00:00.37
-09:06:59 SQL> 
-09:06:59 SQL> -- rpt
-09:06:59 SQL> SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
+Elapsed: 00:00:01.74
+18:37:28 SQL> 
+18:37:28 SQL> -- rpt
+18:37:28 SQL> SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
 
      TREND COUNT(PRDATE)
 ---------- -------------
-	 1	    1737
-	-1	    2055
+	 1	    9397
+	-1	    8815
 
-Elapsed: 00:00:00.02
-09:06:59 SQL> 
-09:06:59 SQL> -- Calc gains and ntiles
-09:06:59 SQL> DROP TABLE q15;
+Elapsed: 00:00:00.23
+18:37:29 SQL> 
+18:37:29 SQL> -- Calc gains and ntiles
+18:37:29 SQL> DROP TABLE q15;
 
 Table dropped.
 
 Elapsed: 00:00:00.13
-09:06:59 SQL> CREATE TABLE q15 COMPRESS AS
-09:06:59   2  SELECT
-09:06:59   3  pair
-09:06:59   4  ,ydate
-09:06:59   5  ,prdate -- Should be unique
-09:06:59   6  ,trend -- +1 or -1
-09:06:59   7  ,dc12 -- next statement needs this
-09:06:59   8  -- Use NTILE() to derive some attributes
-09:06:59   9  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))		 att00
-09:06:59  10  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))		 att01
-09:06:59  11  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))		 att02
-09:06:59  12  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))		 att03
-09:06:59  13  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))		 att04
-09:06:59  14  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))		 att05
-09:06:59  15  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))		 att06
-09:06:59  16  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))		 att07
-09:06:59  17  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912)) 	 att08
-09:06:59  18  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)		 att09
-09:06:59  19  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)		 att10
-09:06:59  20  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)		 att11
-09:06:59  21  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)		 att12
-09:06:59  22  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)		 att13
-09:06:59  23  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)		 att14
-09:06:59  24  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)		 att15
-09:06:59  25  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)		 att16
-09:06:59  26  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)		 att17
-09:06:59  27  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)		 att18
-09:06:59  28  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)		 att19
-09:06:59  29  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
-09:06:59  30  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
-09:06:59  31  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
-09:06:59  32  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
-09:06:59  33  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
-09:06:59  34  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
-09:06:59  35  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
-09:06:59  36  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
-09:06:59  37  -- date related integers: hour of day, day of week, week of month:
-09:06:59  38  ,hh    att28
-09:06:59  39  ,d     att29
-09:06:59  40  ,w     att30
-09:06:59  41  ,trend att31
-09:06:59  42  ,ug4 g4
-09:06:59  43  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
-09:06:59  44  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
-09:06:59  45  FROM q13
-09:06:59  46  ORDER BY pair,ydate
-09:06:59  47  /
+18:37:29 SQL> CREATE TABLE q15 COMPRESS AS
+18:37:29   2  SELECT
+18:37:29   3  pair
+18:37:29   4  ,ydate
+18:37:29   5  ,prdate -- Should be unique
+18:37:29   6  ,trend -- +1 or -1
+18:37:29   7  ,dc12 -- next statement needs this
+18:37:29   8  -- Use NTILE() to derive some attributes
+18:37:29   9  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))		 att00
+18:37:29  10  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))		 att01
+18:37:29  11  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))		 att02
+18:37:29  12  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))		 att03
+18:37:29  13  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))		 att04
+18:37:29  14  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))		 att05
+18:37:29  15  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))		 att06
+18:37:29  16  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))		 att07
+18:37:29  17  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912)) 	 att08
+18:37:29  18  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)		 att09
+18:37:29  19  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)		 att10
+18:37:29  20  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)		 att11
+18:37:29  21  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)		 att12
+18:37:29  22  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)		 att13
+18:37:29  23  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)		 att14
+18:37:29  24  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)		 att15
+18:37:29  25  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)		 att16
+18:37:29  26  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)		 att17
+18:37:29  27  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)		 att18
+18:37:29  28  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)		 att19
+18:37:29  29  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
+18:37:29  30  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
+18:37:29  31  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
+18:37:29  32  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
+18:37:29  33  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
+18:37:29  34  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
+18:37:29  35  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
+18:37:29  36  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
+18:37:29  37  -- date related integers: hour of day, day of week, week of month:
+18:37:29  38  ,hh    att28
+18:37:29  39  ,d     att29
+18:37:29  40  ,w     att30
+18:37:29  41  ,trend att31
+18:37:29  42  ,ug4 g4
+18:37:29  43  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
+18:37:29  44  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
+18:37:29  45  FROM q13
+18:37:29  46  ORDER BY pair,ydate
+18:37:29  47  /
 
 Table created.
 
-Elapsed: 00:00:00.71
-09:06:59 SQL> 
-09:06:59 SQL> -- rpt
-09:06:59 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
-09:06:59   2  GROUP BY pair,trend,gatt,gattn
-09:06:59   3  ORDER BY pair,trend,gatt,gattn
-09:06:59   4  /
+Elapsed: 00:00:03.45
+18:37:32 SQL> 
+18:37:32 SQL> -- rpt
+18:37:32 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
+18:37:32   2  GROUP BY pair,trend,gatt,gattn
+18:37:32   3  ORDER BY pair,trend,gatt,gattn
+18:37:32   4  /
 
 PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
 ------- ---------- --- --- ---------- ---------- -------------
-usd_cad 	-1 nup nup -.00003084	     497    .023220239
-usd_cad 	-1 nup up  -.00261843	     788    .066977781
-usd_cad 	-1 up  nup .002802682	     769    .030952702
-usd_cad 	-1			       0
-usd_cad 	 1 nup nup 1.6319E-06	     383    .034968469
-usd_cad 	 1 nup up   -.0028438	     716    -.01094611
-usd_cad 	 1 up  nup .003006969	     635    .054044227
-usd_cad 	 1			       0
+eur_usd 	-1 nup nup -8.933E-06	    1556    .017845076
+eur_usd 	-1 nup up  -.00333028	    3560    .023512137
+eur_usd 	-1 up  nup .003597738	    3681    -.16538797
+eur_usd 	-1			       0
+eur_usd 	 1 nup nup -3.539E-06	    1787    .027043047
+eur_usd 	 1 nup up  -.00311969	    3854    .079612124
+eur_usd 	 1 up  nup .003475607	    3750    -.03599509
+eur_usd 	 1			       0
 
 8 rows selected.
 
-Elapsed: 00:00:00.02
-09:07:00 SQL> 
-09:07:00 SQL> -- rpt
-09:07:00 SQL> SELECT pair,max(ydate)from q15 group by pair;
+Elapsed: 00:00:00.05
+18:37:32 SQL> 
+18:37:32 SQL> -- rpt
+18:37:32 SQL> SELECT pair,max(ydate)from q15 group by pair;
 
 PAIR	MAX(YDATE)
 ------- -------------------
-usd_cad 2010-12-15 09:00:00
-
-Elapsed: 00:00:00.01
-09:07:00 SQL> 
-09:07:00 SQL> DROP TABLE modsrc;
-
-Table dropped.
-
-Elapsed: 00:00:00.11
-09:07:00 SQL> CREATE TABLE modsrc COMPRESS AS
-09:07:00   2  SELECT
-09:07:00   3  pair
-09:07:00   4  ,ydate
-09:07:00   5  ,prdate
-09:07:00   6  ,trend
-09:07:00   7  ,g4
-09:07:00   8  ,gatt
-09:07:00   9  ,gattn
-09:07:00  10  ,dc12
-09:07:00  11  FROM q15
-09:07:00  12  /
-
-Table created.
-
-Elapsed: 00:00:00.03
-09:07:00 SQL> 
-09:07:00 SQL> ANALYZE TABLE modsrc COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.07
-09:07:00 SQL> 
-09:07:00 SQL> -- rpt
-09:07:00 SQL> 
-09:07:00 SQL> SELECT COUNT(pair)FROM q11;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.07
-09:07:00 SQL> SELECT COUNT(pair)FROM q13;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:07:00 SQL> SELECT COUNT(pair)FROM q15;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:07:00 SQL> SELECT COUNT(pair)FROM modsrc;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.01
-09:07:00 SQL> 
-09:07:00 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
-09:07:00   2  GROUP BY pair,trend,gatt,gattn
-09:07:00   3  ORDER BY pair,trend,gatt,gattn
-09:07:00   4  /
-
-PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
-------- ---------- --- --- ---------- ---------- -------------
-usd_cad 	-1 nup nup -.00003084	     497    .023220239
-usd_cad 	-1 nup up  -.00261843	     788    .066977781
-usd_cad 	-1 up  nup .002802682	     769    .030952702
-usd_cad 	-1			       0
-usd_cad 	 1 nup nup 1.6319E-06	     383    .034968469
-usd_cad 	 1 nup up   -.0028438	     716    -.01094611
-usd_cad 	 1 up  nup .003006969	     635    .054044227
-usd_cad 	 1			       0
-
-8 rows selected.
-
-Elapsed: 00:00:00.00
-09:07:00 SQL> 
-09:07:00 SQL> DROP   TABLE cad_ms10 ;
-
-Table dropped.
-
-Elapsed: 00:00:00.04
-09:07:00 SQL> CREATE TABLE cad_ms10 COMPRESS AS
-09:07:00   2  SELECT
-09:07:00   3  ydate
-09:07:00   4  ,trend cad_trend
-09:07:00   5  ,g4    cad_g4
-09:07:00   6  ,gatt  cad_gatt
-09:07:00   7  ,gattn	cad_gattn
-09:07:00   8  FROM modsrc
-09:07:00   9  /
-
-Table created.
-
-Elapsed: 00:00:00.04
-09:07:00 SQL> 
-09:07:00 SQL> ANALYZE TABLE cad_ms10 COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.06
-09:07:00 SQL> 
-09:07:00 SQL> -- rpt
-09:07:00 SQL> SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
-
-     TREND MIN(YDATE)	       MAX(YDATE)	    COUNT(G4)	 MIN(G4)    MAX(G4)
----------- ------------------- ------------------- ---------- ---------- ----------
-	 1 2010-05-12 15:00:00 2010-12-15 08:00:00	 1734	  -.0173      .0159
-	-1 2010-05-11 22:00:00 2010-12-15 09:00:00	 2054	  -.0139      .0147
-
-Elapsed: 00:00:00.01
-09:07:00 SQL> SELECT cad_trend,MIN(ydate),MAX(ydate),COUNT(cad_trend),MIN(cad_g4),MAX(cad_g4)FROM cad_ms10 GROUP BY cad_trend;
-
- CAD_TREND MIN(YDATE)	       MAX(YDATE)	   COUNT(CAD_TREND) MIN(CAD_G4) MAX(CAD_G4)
----------- ------------------- ------------------- ---------------- ----------- -----------
-	 1 2010-05-12 15:00:00 2010-12-15 08:00:00	       1737	 -.0173       .0159
-	-1 2010-05-11 22:00:00 2010-12-15 09:00:00	       2055	 -.0139       .0147
+eur_usd 2010-12-15 17:50:00
 
 Elapsed: 00:00:00.02
-09:07:00 SQL> 
-09:07:00 SQL> -- I need a copy of q15 attributes
-09:07:00 SQL> 
-09:07:00 SQL> DROP   TABLE cad_att;
-
-Table dropped.
-
-Elapsed: 00:00:00.05
-09:07:00 SQL> CREATE TABLE cad_att COMPRESS AS
-09:07:00   2  SELECT
-09:07:00   3  ydate
-09:07:00   4  ,att00 cad_att00
-09:07:00   5  ,att01 cad_att01
-09:07:00   6  ,att02 cad_att02
-09:07:00   7  ,att03 cad_att03
-09:07:00   8  ,att04 cad_att04
-09:07:00   9  ,att05 cad_att05
-09:07:00  10  ,att06 cad_att06
-09:07:00  11  ,att07 cad_att07
-09:07:00  12  ,att08 cad_att08
-09:07:00  13  ,att09 cad_att09
-09:07:00  14  ,att10 cad_att10
-09:07:00  15  ,att11 cad_att11
-09:07:00  16  ,att12 cad_att12
-09:07:00  17  ,att13 cad_att13
-09:07:00  18  ,att14 cad_att14
-09:07:00  19  ,att15 cad_att15
-09:07:00  20  ,att16 cad_att16
-09:07:00  21  ,att17 cad_att17
-09:07:00  22  ,att18 cad_att18
-09:07:00  23  ,att19 cad_att19
-09:07:00  24  ,att20 cad_att20
-09:07:00  25  ,att21 cad_att21
-09:07:00  26  ,att22 cad_att22
-09:07:00  27  ,att23 cad_att23
-09:07:00  28  ,att24 cad_att24
-09:07:00  29  ,att25 cad_att25
-09:07:00  30  ,att26 cad_att26
-09:07:00  31  ,att27 cad_att27
-09:07:00  32  ,att28 cad_att28
-09:07:00  33  ,att29 cad_att29
-09:07:00  34  ,att30 cad_att30
-09:07:00  35  ,att31 cad_att31
-09:07:00  36  FROM q15
-09:07:00  37  /
-
-Table created.
-
-Elapsed: 00:00:00.05
-09:07:00 SQL> 
-09:07:00 SQL> ANALYZE TABLE cad_att COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.14
-09:07:00 SQL> 
-09:07:00 SQL> -- rpt
-09:07:00 SQL> SELECT COUNT(*)FROM cad_att;
-
-  COUNT(*)
-----------
-      3792
-
-Elapsed: 00:00:00.00
-09:07:00 SQL> 
-09:07:00 SQL> --
-09:07:00 SQL> -- chf10.sql
-09:07:00 SQL> --
-09:07:00 SQL> 
-09:07:00 SQL> -- Creates views and tables for backtesting a forex SVM strategy
-09:07:00 SQL> 
-09:07:00 SQL> PURGE RECYCLEBIN;
-
-Recyclebin purged.
-
-Elapsed: 00:00:00.39
-09:07:01 SQL> 
-09:07:01 SQL> -- I created ibfu_t here:
-09:07:01 SQL> -- /pt/s/rlk/svm4hp/update_ibfu_t.sql
-09:07:01 SQL> 
-09:07:01 SQL> CREATE OR REPLACE VIEW q11 AS
-09:07:01   2  SELECT
-09:07:01   3  pair
-09:07:01   4  ,ydate
-09:07:01   5  ,prdate
-09:07:01   6  ,rownum rnum -- acts as t in my time-series
-09:07:01   7  ,clse
-09:07:01   8  ,LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg1
-09:07:01   9  ,LAG(clse,2,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg2
-09:07:01  10  ,LAG(clse,3,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg3
-09:07:01  11  ,LAG(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg4
-09:07:01  12  ,LAG(clse,5,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg5
-09:07:01  13  ,LAG(clse,6,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg6
-09:07:01  14  ,LAG(clse,7,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg7
-09:07:01  15  ,LAG(clse,8,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg8
-09:07:01  16  ,LAG(clse,9,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg9
-09:07:01  17  ,LAG(clse,12,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg12
-09:07:01  18  ,LAG(clse,18,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg18
-09:07:01  19  ,LAG(clse,24,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg24
-09:07:01  20  ,LAG(clse,72,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) lg72
-09:07:01  21  ,LEAD(clse,4,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ld4
-09:07:01  22  FROM ibfu_t WHERE pair LIKE'%chf%'
-09:07:01  23  ORDER BY ydate
-09:07:01  24  /
-
-View created.
-
-Elapsed: 00:00:00.05
-09:07:01 SQL> 
-09:07:01 SQL> -- rpt
-09:07:01 SQL> SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
-
-PAIR	COUNT(YDATE)
-------- ------------
-usd_chf 	3792
-
-Elapsed: 00:00:00.08
-09:07:01 SQL> 
-09:07:01 SQL> -- Calc deltas and gains
-09:07:01 SQL> DROP TABLE q13;
-
-Table dropped.
-
-Elapsed: 00:00:00.12
-09:07:01 SQL> 
-09:07:01 SQL> CREATE TABLE q13 COMPRESS AS
-09:07:01   2  SELECT
-09:07:01   3  pair
-09:07:01   4  ,ydate
-09:07:01   5  ,prdate
-09:07:01   6  ,rnum
-09:07:01   7  ,lg4
-09:07:01   8  ,lg8
-09:07:01   9  ,lg12
-09:07:01  10  ,ld4
-09:07:01  11  ,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
-09:07:01  12  -- step by 1
-09:07:01  13  ,clse-lg1 d01
-09:07:01  14  ,lg1-lg2	d12
-09:07:01  15  ,lg2-lg3	d23
-09:07:01  16  ,lg3-lg4	d34
-09:07:01  17  ,lg4-lg5	d45
-09:07:01  18  ,lg5-lg6	d56
-09:07:01  19  ,lg6-lg7	d67
-09:07:01  20  ,lg7-lg8	d78
-09:07:01  21  ,lg8-lg9	d89
-09:07:01  22  -- step by 2
-09:07:01  23  ,clse-lg2 d02
-09:07:01  24  ,lg2-lg4 d24
-09:07:01  25  ,lg4-lg6 d46
-09:07:01  26  ,lg6-lg8 d68
-09:07:01  27  -- step by 3
-09:07:01  28  ,clse-lg3 d03
-09:07:01  29  ,lg3-lg6	d36
-09:07:01  30  ,lg6-lg9	d69
-09:07:01  31  ,lg9-lg12 d912
-09:07:01  32  -- step by 4
-09:07:01  33  ,clse-lg4 d04
-09:07:01  34  ,lg4-lg8	d48
-09:07:01  35  ,lg8-lg12 d812
-09:07:01  36  ,lg6-lg12 d612
-09:07:01  37  ,lg12-lg18 d1218
-09:07:01  38  --
-09:07:01  39  ,ABS(clse-lg1)dc1
-09:07:01  40  ,ABS(clse-lg2)dc2
-09:07:01  41  ,ABS(clse-lg3)dc3
-09:07:01  42  ,ABS(clse-lg4)dc4
-09:07:01  43  ,ABS(clse-lg5)dc5
-09:07:01  44  ,ABS(clse-lg6)dc6
-09:07:01  45  ,ABS(clse-lg7)dc7
-09:07:01  46  ,ABS(clse-lg8)dc8
-09:07:01  47  ,ABS(clse-lg9)dc9
-09:07:01  48  ,ABS(clse-lg12)dc12
-09:07:01  49  ,ABS(clse-lg18)dc18
-09:07:01  50  ,ABS(clse-lg24)dc24
-09:07:01  51  ,ABS(clse-lg72)dc72
-09:07:01  52  ,(ld4-clse) ug4
-09:07:01  53  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 2  PRECEDING AND CURRENT ROW)crr2
-09:07:01  54  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 3  PRECEDING AND CURRENT ROW)crr3
-09:07:01  55  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 4  PRECEDING AND CURRENT ROW)crr4
-09:07:01  56  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 5  PRECEDING AND CURRENT ROW)crr5
-09:07:01  57  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6  PRECEDING AND CURRENT ROW)crr6
-09:07:01  58  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 7  PRECEDING AND CURRENT ROW)crr7
-09:07:01  59  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 8  PRECEDING AND CURRENT ROW)crr8
-09:07:01  60  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 9  PRECEDING AND CURRENT ROW)crr9
-09:07:01  61  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12 PRECEDING AND CURRENT ROW)crr12
-09:07:01  62  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 24 PRECEDING AND CURRENT ROW)crr24
-09:07:01  63  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 72 PRECEDING AND CURRENT ROW)crr72
-09:07:01  64  ,0+TO_CHAR(ydate,'HH24')hh
-09:07:01  65  ,0+TO_CHAR(ydate,'D')d
-09:07:01  66  ,0+TO_CHAR(ydate,'W')w
-09:07:01  67  FROM q11
-09:07:01  68  ORDER BY pair,ydate
-09:07:01  69  /
-
-Table created.
-
-Elapsed: 00:00:00.37
-09:07:01 SQL> 
-09:07:01 SQL> -- rpt
-09:07:01 SQL> SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
-
-     TREND COUNT(PRDATE)
----------- -------------
-	 1	    1715
-	-1	    2077
-
-Elapsed: 00:00:00.03
-09:07:01 SQL> 
-09:07:01 SQL> -- Calc gains and ntiles
-09:07:01 SQL> DROP TABLE q15;
+18:37:32 SQL> 
+18:37:32 SQL> DROP TABLE modsrc;
 
 Table dropped.
 
 Elapsed: 00:00:00.17
-09:07:01 SQL> CREATE TABLE q15 COMPRESS AS
-09:07:01   2  SELECT
-09:07:01   3  pair
-09:07:01   4  ,ydate
-09:07:01   5  ,prdate -- Should be unique
-09:07:01   6  ,trend -- +1 or -1
-09:07:01   7  ,dc12 -- next statement needs this
-09:07:01   8  -- Use NTILE() to derive some attributes
-09:07:01   9  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))		 att00
-09:07:01  10  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))		 att01
-09:07:01  11  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))		 att02
-09:07:01  12  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))		 att03
-09:07:01  13  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))		 att04
-09:07:01  14  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))		 att05
-09:07:01  15  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))		 att06
-09:07:01  16  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))		 att07
-09:07:01  17  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912)) 	 att08
-09:07:01  18  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)		 att09
-09:07:01  19  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)		 att10
-09:07:01  20  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)		 att11
-09:07:01  21  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)		 att12
-09:07:01  22  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)		 att13
-09:07:01  23  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)		 att14
-09:07:01  24  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)		 att15
-09:07:01  25  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)		 att16
-09:07:01  26  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)		 att17
-09:07:01  27  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)		 att18
-09:07:01  28  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)		 att19
-09:07:01  29  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
-09:07:01  30  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
-09:07:01  31  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
-09:07:01  32  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
-09:07:01  33  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
-09:07:01  34  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
-09:07:01  35  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
-09:07:01  36  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
-09:07:01  37  -- date related integers: hour of day, day of week, week of month:
-09:07:01  38  ,hh    att28
-09:07:01  39  ,d     att29
-09:07:01  40  ,w     att30
-09:07:01  41  ,trend att31
-09:07:01  42  ,ug4 g4
-09:07:01  43  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
-09:07:01  44  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
-09:07:01  45  FROM q13
-09:07:01  46  ORDER BY pair,ydate
-09:07:01  47  /
+18:37:32 SQL> CREATE TABLE modsrc COMPRESS AS
+18:37:32   2  SELECT
+18:37:32   3  pair
+18:37:32   4  ,ydate
+18:37:32   5  ,prdate
+18:37:32   6  ,trend
+18:37:32   7  ,g4
+18:37:32   8  ,gatt
+18:37:32   9  ,gattn
+18:37:32  10  ,dc12
+18:37:32  11  FROM q15
+18:37:32  12  /
 
 Table created.
-
-Elapsed: 00:00:00.72
-09:07:02 SQL> 
-09:07:02 SQL> -- rpt
-09:07:02 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
-09:07:02   2  GROUP BY pair,trend,gatt,gattn
-09:07:02   3  ORDER BY pair,trend,gatt,gattn
-09:07:02   4  /
-
-PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
-------- ---------- --- --- ---------- ---------- -------------
-usd_chf 	-1 nup nup 9.3924E-06	     502     .06264553
-usd_chf 	-1 nup up  -.00283945	     771    .075396575
-usd_chf 	-1 up  nup .002668144	     803    -.06478155
-usd_chf 	-1			       0
-usd_chf 	 1 nup nup -9.438E-06	     400    .037388328
-usd_chf 	 1 nup up  -.00292287	     735    .015412578
-usd_chf 	 1 up  nup .002763024	     577    -.06026713
-usd_chf 	 1			       0
-
-8 rows selected.
-
-Elapsed: 00:00:00.06
-09:07:02 SQL> 
-09:07:02 SQL> -- rpt
-09:07:02 SQL> SELECT pair,max(ydate)from q15 group by pair;
-
-PAIR	MAX(YDATE)
-------- -------------------
-usd_chf 2010-12-15 09:00:00
-
-Elapsed: 00:00:00.00
-09:07:02 SQL> 
-09:07:02 SQL> DROP TABLE modsrc;
-
-Table dropped.
-
-Elapsed: 00:00:00.10
-09:07:02 SQL> CREATE TABLE modsrc COMPRESS AS
-09:07:02   2  SELECT
-09:07:02   3  pair
-09:07:02   4  ,ydate
-09:07:02   5  ,prdate
-09:07:02   6  ,trend
-09:07:02   7  ,g4
-09:07:02   8  ,gatt
-09:07:02   9  ,gattn
-09:07:02  10  ,dc12
-09:07:02  11  FROM q15
-09:07:02  12  /
-
-Table created.
-
-Elapsed: 00:00:00.06
-09:07:02 SQL> 
-09:07:02 SQL> ANALYZE TABLE modsrc COMPUTE STATISTICS;
-
-Table analyzed.
-
-Elapsed: 00:00:00.07
-09:07:02 SQL> 
-09:07:02 SQL> -- rpt
-09:07:02 SQL> 
-09:07:02 SQL> SELECT COUNT(pair)FROM q11;
-
-COUNT(PAIR)
------------
-       3792
 
 Elapsed: 00:00:00.08
-09:07:03 SQL> SELECT COUNT(pair)FROM q13;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:07:03 SQL> SELECT COUNT(pair)FROM q15;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.00
-09:07:03 SQL> SELECT COUNT(pair)FROM modsrc;
-
-COUNT(PAIR)
------------
-       3792
-
-Elapsed: 00:00:00.01
-09:07:03 SQL> 
-09:07:03 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
-09:07:03   2  GROUP BY pair,trend,gatt,gattn
-09:07:03   3  ORDER BY pair,trend,gatt,gattn
-09:07:03   4  /
-
-PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
-------- ---------- --- --- ---------- ---------- -------------
-usd_chf 	-1 nup nup 9.3924E-06	     502     .06264553
-usd_chf 	-1 nup up  -.00283945	     771    .075396575
-usd_chf 	-1 up  nup .002668144	     803    -.06478155
-usd_chf 	-1			       0
-usd_chf 	 1 nup nup -9.438E-06	     400    .037388328
-usd_chf 	 1 nup up  -.00292287	     735    .015412578
-usd_chf 	 1 up  nup .002763024	     577    -.06026713
-usd_chf 	 1			       0
-
-8 rows selected.
-
-Elapsed: 00:00:00.00
-09:07:03 SQL> 
-09:07:03 SQL> DROP   TABLE chf_ms10 ;
-
-Table dropped.
-
-Elapsed: 00:00:00.03
-09:07:03 SQL> CREATE TABLE chf_ms10 COMPRESS AS
-09:07:03   2  SELECT
-09:07:03   3  ydate
-09:07:03   4  ,trend chf_trend
-09:07:03   5  ,g4    chf_g4
-09:07:03   6  ,gatt  chf_gatt
-09:07:03   7  ,gattn	chf_gattn
-09:07:03   8  FROM modsrc
-09:07:03   9  /
-
-Table created.
-
-Elapsed: 00:00:00.04
-09:07:03 SQL> 
-09:07:03 SQL> ANALYZE TABLE chf_ms10 COMPUTE STATISTICS;
+18:37:32 SQL> 
+18:37:32 SQL> ANALYZE TABLE modsrc COMPUTE STATISTICS;
 
 Table analyzed.
 
-Elapsed: 00:00:00.10
-09:07:03 SQL> 
-09:07:03 SQL> -- rpt
-09:07:03 SQL> SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
+Elapsed: 00:00:00.21
+18:37:33 SQL> 
+18:37:33 SQL> -- rpt
+18:37:33 SQL> 
+18:37:33 SQL> SELECT COUNT(pair)FROM q11;
 
-     TREND MIN(YDATE)	       MAX(YDATE)	    COUNT(G4)	 MIN(G4)    MAX(G4)
----------- ------------------- ------------------- ---------- ---------- ----------
-	 1 2010-05-12 20:00:00 2010-12-15 08:00:00	 1712	  -.0227      .0156
-	-1 2010-05-11 22:00:00 2010-12-15 09:00:00	 2076	   -.016      .0145
+COUNT(PAIR)
+-----------
+      18644
 
-Elapsed: 00:00:00.01
-09:07:03 SQL> SELECT chf_trend,MIN(ydate),MAX(ydate),COUNT(chf_trend),MIN(chf_g4),MAX(chf_g4)FROM chf_ms10 GROUP BY chf_trend;
+Elapsed: 00:00:00.31
+18:37:33 SQL> SELECT COUNT(pair)FROM q13;
 
- CHF_TREND MIN(YDATE)	       MAX(YDATE)	   COUNT(CHF_TREND) MIN(CHF_G4) MAX(CHF_G4)
----------- ------------------- ------------------- ---------------- ----------- -----------
-	 1 2010-05-12 20:00:00 2010-12-15 08:00:00	       1715	 -.0227       .0156
-	-1 2010-05-11 22:00:00 2010-12-15 09:00:00	       2077	  -.016       .0145
+COUNT(PAIR)
+-----------
+      18212
 
 Elapsed: 00:00:00.00
-09:07:03 SQL> 
-09:07:03 SQL> -- I need a copy of q15 attributes
-09:07:03 SQL> 
-09:07:03 SQL> DROP   TABLE chf_att;
+18:37:33 SQL> SELECT COUNT(pair)FROM q15;
+
+COUNT(PAIR)
+-----------
+      18212
+
+Elapsed: 00:00:00.01
+18:37:33 SQL> SELECT COUNT(pair)FROM modsrc;
+
+COUNT(PAIR)
+-----------
+      18212
+
+Elapsed: 00:00:00.00
+18:37:33 SQL> 
+18:37:33 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
+18:37:33   2  GROUP BY pair,trend,gatt,gattn
+18:37:33   3  ORDER BY pair,trend,gatt,gattn
+18:37:33   4  /
+
+PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
+------- ---------- --- --- ---------- ---------- -------------
+eur_usd 	-1 nup nup -8.933E-06	    1556    .017845076
+eur_usd 	-1 nup up  -.00333028	    3560    .023512137
+eur_usd 	-1 up  nup .003597738	    3681    -.16538797
+eur_usd 	-1			       0
+eur_usd 	 1 nup nup -3.539E-06	    1787    .027043047
+eur_usd 	 1 nup up  -.00311969	    3854    .079612124
+eur_usd 	 1 up  nup .003475607	    3750    -.03599509
+eur_usd 	 1			       0
+
+8 rows selected.
+
+Elapsed: 00:00:00.02
+18:37:33 SQL> 
+18:37:33 SQL> DROP   TABLE eur_ms10 ;
 
 Table dropped.
 
 Elapsed: 00:00:00.09
-09:07:03 SQL> CREATE TABLE chf_att COMPRESS AS
-09:07:03   2  SELECT
-09:07:03   3  ydate
-09:07:03   4  ,att00 chf_att00
-09:07:03   5  ,att01 chf_att01
-09:07:03   6  ,att02 chf_att02
-09:07:03   7  ,att03 chf_att03
-09:07:03   8  ,att04 chf_att04
-09:07:03   9  ,att05 chf_att05
-09:07:03  10  ,att06 chf_att06
-09:07:03  11  ,att07 chf_att07
-09:07:03  12  ,att08 chf_att08
-09:07:03  13  ,att09 chf_att09
-09:07:03  14  ,att10 chf_att10
-09:07:03  15  ,att11 chf_att11
-09:07:03  16  ,att12 chf_att12
-09:07:03  17  ,att13 chf_att13
-09:07:03  18  ,att14 chf_att14
-09:07:03  19  ,att15 chf_att15
-09:07:03  20  ,att16 chf_att16
-09:07:03  21  ,att17 chf_att17
-09:07:03  22  ,att18 chf_att18
-09:07:03  23  ,att19 chf_att19
-09:07:03  24  ,att20 chf_att20
-09:07:03  25  ,att21 chf_att21
-09:07:03  26  ,att22 chf_att22
-09:07:03  27  ,att23 chf_att23
-09:07:03  28  ,att24 chf_att24
-09:07:03  29  ,att25 chf_att25
-09:07:03  30  ,att26 chf_att26
-09:07:03  31  ,att27 chf_att27
-09:07:03  32  ,att28 chf_att28
-09:07:03  33  ,att29 chf_att29
-09:07:03  34  ,att30 chf_att30
-09:07:03  35  ,att31 chf_att31
-09:07:03  36  FROM q15
-09:07:03  37  /
+18:37:33 SQL> CREATE TABLE eur_ms10 COMPRESS AS
+18:37:33   2  SELECT
+18:37:33   3  ydate
+18:37:33   4  ,trend eur_trend
+18:37:33   5  ,g4    eur_g4
+18:37:33   6  ,gatt  eur_gatt
+18:37:33   7  ,gattn	eur_gattn
+18:37:33   8  FROM modsrc
+18:37:33   9  /
+
+Table created.
+
+Elapsed: 00:00:00.12
+18:37:33 SQL> 
+18:37:33 SQL> ANALYZE TABLE eur_ms10 COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.16
+18:37:33 SQL> 
+18:37:33 SQL> -- rpt
+18:37:33 SQL> SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
+
+     TREND MIN(YDATE)	       MAX(YDATE)	    COUNT(G4)	 MIN(G4)    MAX(G4)
+---------- ------------------- ------------------- ---------- ---------- ----------
+	 1 2010-06-21 14:50:01 2010-12-15 15:20:00	 9391	  -.0153      .0165
+	-1 2010-06-21 16:40:01 2010-12-15 17:50:00	 8797	  -.0164      .0167
+
+Elapsed: 00:00:00.02
+18:37:33 SQL> SELECT eur_trend,MIN(ydate),MAX(ydate),COUNT(eur_trend),MIN(eur_g4),MAX(eur_g4)FROM eur_ms10 GROUP BY eur_trend;
+
+ EUR_TREND MIN(YDATE)	       MAX(YDATE)	   COUNT(EUR_TREND) MIN(EUR_G4) MAX(EUR_G4)
+---------- ------------------- ------------------- ---------------- ----------- -----------
+	 1 2010-06-21 14:50:01 2010-12-15 15:20:00	       9397	 -.0153       .0165
+	-1 2010-06-21 16:40:01 2010-12-15 17:50:00	       8815	 -.0164       .0167
+
+Elapsed: 00:00:00.01
+18:37:33 SQL> 
+18:37:33 SQL> -- I need a copy of q15 attributes
+18:37:33 SQL> 
+18:37:33 SQL> DROP   TABLE eur_att;
+
+Table dropped.
+
+Elapsed: 00:00:00.12
+18:37:34 SQL> CREATE TABLE eur_att COMPRESS AS
+18:37:34   2  SELECT
+18:37:34   3  ydate
+18:37:34   4  ,att00 eur_att00
+18:37:34   5  ,att01 eur_att01
+18:37:34   6  ,att02 eur_att02
+18:37:34   7  ,att03 eur_att03
+18:37:34   8  ,att04 eur_att04
+18:37:34   9  ,att05 eur_att05
+18:37:34  10  ,att06 eur_att06
+18:37:34  11  ,att07 eur_att07
+18:37:34  12  ,att08 eur_att08
+18:37:34  13  ,att09 eur_att09
+18:37:34  14  ,att10 eur_att10
+18:37:34  15  ,att11 eur_att11
+18:37:34  16  ,att12 eur_att12
+18:37:34  17  ,att13 eur_att13
+18:37:34  18  ,att14 eur_att14
+18:37:34  19  ,att15 eur_att15
+18:37:34  20  ,att16 eur_att16
+18:37:34  21  ,att17 eur_att17
+18:37:34  22  ,att18 eur_att18
+18:37:34  23  ,att19 eur_att19
+18:37:34  24  ,att20 eur_att20
+18:37:34  25  ,att21 eur_att21
+18:37:34  26  ,att22 eur_att22
+18:37:34  27  ,att23 eur_att23
+18:37:34  28  ,att24 eur_att24
+18:37:34  29  ,att25 eur_att25
+18:37:34  30  ,att26 eur_att26
+18:37:34  31  ,att27 eur_att27
+18:37:34  32  ,att28 eur_att28
+18:37:34  33  ,att29 eur_att29
+18:37:34  34  ,att30 eur_att30
+18:37:34  35  ,att31 eur_att31
+18:37:34  36  FROM q15
+18:37:34  37  /
+
+Table created.
+
+Elapsed: 00:00:00.20
+18:37:34 SQL> 
+18:37:34 SQL> ANALYZE TABLE eur_att COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.37
+18:37:34 SQL> 
+18:37:34 SQL> -- rpt
+18:37:34 SQL> SELECT COUNT(*)FROM eur_att;
+
+  COUNT(*)
+----------
+     18212
+
+Elapsed: 00:00:00.00
+18:37:34 SQL> 
+18:37:34 SQL> --
+18:37:34 SQL> -- aud10.sql
+18:37:34 SQL> --
+18:37:34 SQL> 
+18:37:34 SQL> -- Creates views and tables for backtesting a forex SVM strategy
+18:37:34 SQL> 
+18:37:34 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.51
+18:37:35 SQL> 
+18:37:35 SQL> -- I created di5min here:
+18:37:35 SQL> -- /pt/s/rlk/svm4hp/update_di5min.sql
+18:37:35 SQL> 
+18:37:35 SQL> CREATE OR REPLACE VIEW q11 AS
+18:37:35   2  SELECT
+18:37:35   3  pair
+18:37:35   4  ,ydate
+18:37:35   5  ,prdate
+18:37:35   6  ,rownum rnum -- acts as t in my time-series
+18:37:35   7  ,clse
+18:37:35   8  ,LAG(clse,6*1,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg1
+18:37:35   9  ,LAG(clse,6*2,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg2
+18:37:35  10  ,LAG(clse,6*3,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg3
+18:37:35  11  ,LAG(clse,6*4,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg4
+18:37:35  12  ,LAG(clse,6*5,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg5
+18:37:35  13  ,LAG(clse,6*6,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg6
+18:37:35  14  ,LAG(clse,6*7,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg7
+18:37:35  15  ,LAG(clse,6*8,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg8
+18:37:35  16  ,LAG(clse,6*9,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg9
+18:37:35  17  ,LAG(clse,6*12,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg12
+18:37:35  18  ,LAG(clse,6*18,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg18
+18:37:35  19  ,LAG(clse,6*24,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg24
+18:37:35  20  ,LAG(clse,6*72,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg72
+18:37:35  21  ,LEAD(clse,6*4,NULL)OVER(PARTITION BY pair ORDER BY ydate) ld4
+18:37:35  22  FROM di5min WHERE pair LIKE'%aud%'
+18:37:35  23  ORDER BY ydate
+18:37:35  24  /
+
+View created.
+
+Elapsed: 00:00:00.05
+18:37:35 SQL> 
+18:37:35 SQL> -- rpt
+18:37:35 SQL> SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
+
+PAIR	COUNT(YDATE)
+------- ------------
+aud_usd        18643
+
+Elapsed: 00:00:00.32
+18:37:35 SQL> 
+18:37:35 SQL> -- Calc deltas and gains
+18:37:35 SQL> DROP TABLE q13;
+
+Table dropped.
+
+Elapsed: 00:00:00.24
+18:37:35 SQL> 
+18:37:35 SQL> CREATE TABLE q13 COMPRESS AS
+18:37:35   2  SELECT
+18:37:35   3  pair
+18:37:35   4  ,ydate
+18:37:35   5  ,prdate
+18:37:35   6  ,rnum
+18:37:35   7  ,lg4
+18:37:35   8  ,lg8
+18:37:35   9  ,lg12
+18:37:35  10  ,ld4
+18:37:35  11  ,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
+18:37:35  12  -- step by 1
+18:37:35  13  ,clse-lg1 d01
+18:37:35  14  ,lg1-lg2	d12
+18:37:35  15  ,lg2-lg3	d23
+18:37:35  16  ,lg3-lg4	d34
+18:37:35  17  ,lg4-lg5	d45
+18:37:35  18  ,lg5-lg6	d56
+18:37:35  19  ,lg6-lg7	d67
+18:37:35  20  ,lg7-lg8	d78
+18:37:35  21  ,lg8-lg9	d89
+18:37:35  22  -- step by 2
+18:37:35  23  ,clse-lg2 d02
+18:37:35  24  ,lg2-lg4 d24
+18:37:35  25  ,lg4-lg6 d46
+18:37:35  26  ,lg6-lg8 d68
+18:37:35  27  -- step by 3
+18:37:35  28  ,clse-lg3 d03
+18:37:35  29  ,lg3-lg6	d36
+18:37:35  30  ,lg6-lg9	d69
+18:37:35  31  ,lg9-lg12 d912
+18:37:35  32  -- step by 4
+18:37:35  33  ,clse-lg4 d04
+18:37:35  34  ,lg4-lg8	d48
+18:37:35  35  ,lg8-lg12 d812
+18:37:35  36  ,lg6-lg12 d612
+18:37:35  37  ,lg12-lg18 d1218
+18:37:35  38  --
+18:37:35  39  ,ABS(clse-lg1)dc1
+18:37:35  40  ,ABS(clse-lg2)dc2
+18:37:35  41  ,ABS(clse-lg3)dc3
+18:37:35  42  ,ABS(clse-lg4)dc4
+18:37:35  43  ,ABS(clse-lg5)dc5
+18:37:35  44  ,ABS(clse-lg6)dc6
+18:37:35  45  ,ABS(clse-lg7)dc7
+18:37:35  46  ,ABS(clse-lg8)dc8
+18:37:35  47  ,ABS(clse-lg9)dc9
+18:37:35  48  ,ABS(clse-lg12)dc12
+18:37:35  49  ,ABS(clse-lg18)dc18
+18:37:35  50  ,ABS(clse-lg24)dc24
+18:37:35  51  ,ABS(clse-lg72)dc72
+18:37:35  52  ,(ld4-clse) ug4
+18:37:35  53  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*2  PRECEDING AND CURRENT ROW)crr2
+18:37:35  54  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*3  PRECEDING AND CURRENT ROW)crr3
+18:37:35  55  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*4  PRECEDING AND CURRENT ROW)crr4
+18:37:35  56  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*5  PRECEDING AND CURRENT ROW)crr5
+18:37:35  57  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*6  PRECEDING AND CURRENT ROW)crr6
+18:37:35  58  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*7  PRECEDING AND CURRENT ROW)crr7
+18:37:35  59  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*8  PRECEDING AND CURRENT ROW)crr8
+18:37:35  60  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*9  PRECEDING AND CURRENT ROW)crr9
+18:37:35  61  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*12 PRECEDING AND CURRENT ROW)crr12
+18:37:35  62  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*24 PRECEDING AND CURRENT ROW)crr24
+18:37:35  63  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*72 PRECEDING AND CURRENT ROW)crr72
+18:37:35  64  ,0+TO_CHAR(ydate,'HH24')hh
+18:37:35  65  ,0+TO_CHAR(ydate,'D')d
+18:37:35  66  ,0+TO_CHAR(ydate,'W')w
+18:37:35  67  FROM q11
+18:37:35  68  -- I dont want any NULL values from the LAG() functions:
+18:37:35  69  WHERE lg72 > 0
+18:37:35  70  ORDER BY pair,ydate
+18:37:35  71  /
+
+Table created.
+
+Elapsed: 00:00:01.47
+18:37:37 SQL> 
+18:37:37 SQL> -- rpt
+18:37:37 SQL> SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
+
+     TREND COUNT(PRDATE)
+---------- -------------
+	 1	    9396
+	-1	    8815
+
+Elapsed: 00:00:00.10
+18:37:37 SQL> 
+18:37:37 SQL> -- Calc gains and ntiles
+18:37:37 SQL> DROP TABLE q15;
+
+Table dropped.
+
+Elapsed: 00:00:00.20
+18:37:37 SQL> CREATE TABLE q15 COMPRESS AS
+18:37:37   2  SELECT
+18:37:37   3  pair
+18:37:37   4  ,ydate
+18:37:37   5  ,prdate -- Should be unique
+18:37:37   6  ,trend -- +1 or -1
+18:37:37   7  ,dc12 -- next statement needs this
+18:37:37   8  -- Use NTILE() to derive some attributes
+18:37:37   9  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))		 att00
+18:37:37  10  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))		 att01
+18:37:37  11  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))		 att02
+18:37:37  12  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))		 att03
+18:37:37  13  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))		 att04
+18:37:37  14  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))		 att05
+18:37:37  15  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))		 att06
+18:37:37  16  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))		 att07
+18:37:37  17  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912)) 	 att08
+18:37:37  18  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)		 att09
+18:37:37  19  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)		 att10
+18:37:37  20  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)		 att11
+18:37:37  21  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)		 att12
+18:37:37  22  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)		 att13
+18:37:37  23  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)		 att14
+18:37:37  24  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)		 att15
+18:37:37  25  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)		 att16
+18:37:37  26  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)		 att17
+18:37:37  27  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)		 att18
+18:37:37  28  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)		 att19
+18:37:37  29  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
+18:37:37  30  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
+18:37:37  31  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
+18:37:37  32  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
+18:37:37  33  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
+18:37:37  34  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
+18:37:37  35  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
+18:37:37  36  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
+18:37:37  37  -- date related integers: hour of day, day of week, week of month:
+18:37:37  38  ,hh    att28
+18:37:37  39  ,d     att29
+18:37:37  40  ,w     att30
+18:37:37  41  ,trend att31
+18:37:37  42  ,ug4 g4
+18:37:37  43  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
+18:37:37  44  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
+18:37:37  45  FROM q13
+18:37:37  46  ORDER BY pair,ydate
+18:37:37  47  /
+
+Table created.
+
+Elapsed: 00:00:03.53
+18:37:41 SQL> 
+18:37:41 SQL> -- rpt
+18:37:41 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
+18:37:41   2  GROUP BY pair,trend,gatt,gattn
+18:37:41   3  ORDER BY pair,trend,gatt,gattn
+18:37:41   4  /
+
+PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
+------- ---------- --- --- ---------- ---------- -------------
+aud_usd 	-1 nup nup .000019961	    1548    -.01579838
+aud_usd 	-1 nup up  -.00302308	    3377    -.03765284
+aud_usd 	-1 up  nup .002948345	    3866    .026000641
+aud_usd 	-1			       0
+aud_usd 	 1 nup nup -7.481E-06	    1848    .029928361
+aud_usd 	 1 nup up  -.00277946	    3625    .028811907
+aud_usd 	 1 up  nup .002958629	    3923    -.03786373
+
+7 rows selected.
+
+Elapsed: 00:00:00.04
+18:37:41 SQL> 
+18:37:41 SQL> -- rpt
+18:37:41 SQL> SELECT pair,max(ydate)from q15 group by pair;
+
+PAIR	MAX(YDATE)
+------- -------------------
+aud_usd 2010-12-15 17:50:00
+
+Elapsed: 00:00:00.01
+18:37:41 SQL> 
+18:37:41 SQL> DROP TABLE modsrc;
+
+Table dropped.
+
+Elapsed: 00:00:00.16
+18:37:41 SQL> CREATE TABLE modsrc COMPRESS AS
+18:37:41   2  SELECT
+18:37:41   3  pair
+18:37:41   4  ,ydate
+18:37:41   5  ,prdate
+18:37:41   6  ,trend
+18:37:41   7  ,g4
+18:37:41   8  ,gatt
+18:37:41   9  ,gattn
+18:37:41  10  ,dc12
+18:37:41  11  FROM q15
+18:37:41  12  /
+
+Table created.
+
+Elapsed: 00:00:00.08
+18:37:41 SQL> 
+18:37:41 SQL> ANALYZE TABLE modsrc COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.23
+18:37:41 SQL> 
+18:37:41 SQL> -- rpt
+18:37:41 SQL> 
+18:37:41 SQL> SELECT COUNT(pair)FROM q11;
+
+COUNT(PAIR)
+-----------
+      18643
+
+Elapsed: 00:00:00.31
+18:37:41 SQL> SELECT COUNT(pair)FROM q13;
+
+COUNT(PAIR)
+-----------
+      18211
+
+Elapsed: 00:00:00.00
+18:37:41 SQL> SELECT COUNT(pair)FROM q15;
+
+COUNT(PAIR)
+-----------
+      18211
+
+Elapsed: 00:00:00.01
+18:37:41 SQL> SELECT COUNT(pair)FROM modsrc;
+
+COUNT(PAIR)
+-----------
+      18211
+
+Elapsed: 00:00:00.00
+18:37:41 SQL> 
+18:37:41 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
+18:37:41   2  GROUP BY pair,trend,gatt,gattn
+18:37:41   3  ORDER BY pair,trend,gatt,gattn
+18:37:41   4  /
+
+PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
+------- ---------- --- --- ---------- ---------- -------------
+aud_usd 	-1 nup nup .000019961	    1548    -.01579838
+aud_usd 	-1 nup up  -.00302308	    3377    -.03765284
+aud_usd 	-1 up  nup .002948345	    3866    .026000641
+aud_usd 	-1			       0
+aud_usd 	 1 nup nup -7.481E-06	    1848    .029928361
+aud_usd 	 1 nup up  -.00277946	    3625    .028811907
+aud_usd 	 1 up  nup .002958629	    3923    -.03786373
+
+7 rows selected.
+
+Elapsed: 00:00:00.02
+18:37:41 SQL> 
+18:37:41 SQL> DROP   TABLE aud_ms10 ;
+
+Table dropped.
+
+Elapsed: 00:00:00.13
+18:37:42 SQL> CREATE TABLE aud_ms10 COMPRESS AS
+18:37:42   2  SELECT
+18:37:42   3  ydate
+18:37:42   4  ,trend aud_trend
+18:37:42   5  ,g4    aud_g4
+18:37:42   6  ,gatt  aud_gatt
+18:37:42   7  ,gattn	aud_gattn
+18:37:42   8  FROM modsrc
+18:37:42   9  /
+
+Table created.
+
+Elapsed: 00:00:00.05
+18:37:42 SQL> 
+18:37:42 SQL> ANALYZE TABLE aud_ms10 COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.19
+18:37:42 SQL> 
+18:37:42 SQL> -- rpt
+18:37:42 SQL> SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
+
+     TREND MIN(YDATE)	       MAX(YDATE)	    COUNT(G4)	 MIN(G4)    MAX(G4)
+---------- ------------------- ------------------- ---------- ---------- ----------
+	 1 2010-06-21 14:50:01 2010-12-14 22:20:00	 9396	  -.0162      .0122
+	-1 2010-06-21 23:50:01 2010-12-15 17:50:00	 8791	   -.017      .0131
+
+Elapsed: 00:00:00.01
+18:37:42 SQL> SELECT aud_trend,MIN(ydate),MAX(ydate),COUNT(aud_trend),MIN(aud_g4),MAX(aud_g4)FROM aud_ms10 GROUP BY aud_trend;
+
+ AUD_TREND MIN(YDATE)	       MAX(YDATE)	   COUNT(AUD_TREND) MIN(AUD_G4) MAX(AUD_G4)
+---------- ------------------- ------------------- ---------------- ----------- -----------
+	 1 2010-06-21 14:50:01 2010-12-14 22:20:00	       9396	 -.0162       .0122
+	-1 2010-06-21 23:50:01 2010-12-15 17:50:00	       8815	  -.017       .0131
+
+Elapsed: 00:00:00.03
+18:37:42 SQL> 
+18:37:42 SQL> -- I need a copy of q15 attributes
+18:37:42 SQL> 
+18:37:42 SQL> DROP   TABLE aud_att;
+
+Table dropped.
+
+Elapsed: 00:00:00.11
+18:37:42 SQL> CREATE TABLE aud_att COMPRESS AS
+18:37:42   2  SELECT
+18:37:42   3  ydate
+18:37:42   4  ,att00 aud_att00
+18:37:42   5  ,att01 aud_att01
+18:37:42   6  ,att02 aud_att02
+18:37:42   7  ,att03 aud_att03
+18:37:42   8  ,att04 aud_att04
+18:37:42   9  ,att05 aud_att05
+18:37:42  10  ,att06 aud_att06
+18:37:42  11  ,att07 aud_att07
+18:37:42  12  ,att08 aud_att08
+18:37:42  13  ,att09 aud_att09
+18:37:42  14  ,att10 aud_att10
+18:37:42  15  ,att11 aud_att11
+18:37:42  16  ,att12 aud_att12
+18:37:42  17  ,att13 aud_att13
+18:37:42  18  ,att14 aud_att14
+18:37:42  19  ,att15 aud_att15
+18:37:42  20  ,att16 aud_att16
+18:37:42  21  ,att17 aud_att17
+18:37:42  22  ,att18 aud_att18
+18:37:42  23  ,att19 aud_att19
+18:37:42  24  ,att20 aud_att20
+18:37:42  25  ,att21 aud_att21
+18:37:42  26  ,att22 aud_att22
+18:37:42  27  ,att23 aud_att23
+18:37:42  28  ,att24 aud_att24
+18:37:42  29  ,att25 aud_att25
+18:37:42  30  ,att26 aud_att26
+18:37:42  31  ,att27 aud_att27
+18:37:42  32  ,att28 aud_att28
+18:37:42  33  ,att29 aud_att29
+18:37:42  34  ,att30 aud_att30
+18:37:42  35  ,att31 aud_att31
+18:37:42  36  FROM q15
+18:37:42  37  /
+
+Table created.
+
+Elapsed: 00:00:00.14
+18:37:42 SQL> 
+18:37:42 SQL> ANALYZE TABLE aud_att COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.38
+18:37:42 SQL> 
+18:37:42 SQL> -- rpt
+18:37:42 SQL> SELECT COUNT(*)FROM aud_att;
+
+  COUNT(*)
+----------
+     18211
+
+Elapsed: 00:00:00.00
+18:37:42 SQL> 
+18:37:42 SQL> --
+18:37:42 SQL> -- gbp10.sql
+18:37:42 SQL> --
+18:37:42 SQL> 
+18:37:42 SQL> -- Creates views and tables for backtesting a forex SVM strategy
+18:37:42 SQL> 
+18:37:42 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.38
+18:37:43 SQL> 
+18:37:43 SQL> -- I created di5min here:
+18:37:43 SQL> -- /pt/s/rlk/svm4hp/update_di5min.sql
+18:37:43 SQL> 
+18:37:43 SQL> CREATE OR REPLACE VIEW q11 AS
+18:37:43   2  SELECT
+18:37:43   3  pair
+18:37:43   4  ,ydate
+18:37:43   5  ,prdate
+18:37:43   6  ,rownum rnum -- acts as t in my time-series
+18:37:43   7  ,clse
+18:37:43   8  ,LAG(clse,6*1,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg1
+18:37:43   9  ,LAG(clse,6*2,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg2
+18:37:43  10  ,LAG(clse,6*3,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg3
+18:37:43  11  ,LAG(clse,6*4,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg4
+18:37:43  12  ,LAG(clse,6*5,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg5
+18:37:43  13  ,LAG(clse,6*6,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg6
+18:37:43  14  ,LAG(clse,6*7,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg7
+18:37:43  15  ,LAG(clse,6*8,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg8
+18:37:43  16  ,LAG(clse,6*9,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg9
+18:37:43  17  ,LAG(clse,6*12,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg12
+18:37:43  18  ,LAG(clse,6*18,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg18
+18:37:43  19  ,LAG(clse,6*24,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg24
+18:37:43  20  ,LAG(clse,6*72,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg72
+18:37:43  21  ,LEAD(clse,6*4,NULL)OVER(PARTITION BY pair ORDER BY ydate) ld4
+18:37:43  22  FROM di5min WHERE pair LIKE'%gbp%'
+18:37:43  23  ORDER BY ydate
+18:37:43  24  /
+
+View created.
+
+Elapsed: 00:00:00.03
+18:37:43 SQL> 
+18:37:43 SQL> -- rpt
+18:37:43 SQL> SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
+
+PAIR	COUNT(YDATE)
+------- ------------
+gbp_usd        18643
+
+Elapsed: 00:00:00.32
+18:37:43 SQL> 
+18:37:43 SQL> -- Calc deltas and gains
+18:37:43 SQL> DROP TABLE q13;
+
+Table dropped.
+
+Elapsed: 00:00:00.25
+18:37:43 SQL> 
+18:37:43 SQL> CREATE TABLE q13 COMPRESS AS
+18:37:43   2  SELECT
+18:37:43   3  pair
+18:37:43   4  ,ydate
+18:37:43   5  ,prdate
+18:37:43   6  ,rnum
+18:37:43   7  ,lg4
+18:37:43   8  ,lg8
+18:37:43   9  ,lg12
+18:37:43  10  ,ld4
+18:37:43  11  ,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
+18:37:43  12  -- step by 1
+18:37:43  13  ,clse-lg1 d01
+18:37:43  14  ,lg1-lg2	d12
+18:37:43  15  ,lg2-lg3	d23
+18:37:43  16  ,lg3-lg4	d34
+18:37:43  17  ,lg4-lg5	d45
+18:37:43  18  ,lg5-lg6	d56
+18:37:43  19  ,lg6-lg7	d67
+18:37:43  20  ,lg7-lg8	d78
+18:37:43  21  ,lg8-lg9	d89
+18:37:43  22  -- step by 2
+18:37:43  23  ,clse-lg2 d02
+18:37:43  24  ,lg2-lg4 d24
+18:37:43  25  ,lg4-lg6 d46
+18:37:43  26  ,lg6-lg8 d68
+18:37:43  27  -- step by 3
+18:37:43  28  ,clse-lg3 d03
+18:37:43  29  ,lg3-lg6	d36
+18:37:43  30  ,lg6-lg9	d69
+18:37:43  31  ,lg9-lg12 d912
+18:37:43  32  -- step by 4
+18:37:43  33  ,clse-lg4 d04
+18:37:43  34  ,lg4-lg8	d48
+18:37:43  35  ,lg8-lg12 d812
+18:37:43  36  ,lg6-lg12 d612
+18:37:43  37  ,lg12-lg18 d1218
+18:37:43  38  --
+18:37:43  39  ,ABS(clse-lg1)dc1
+18:37:43  40  ,ABS(clse-lg2)dc2
+18:37:43  41  ,ABS(clse-lg3)dc3
+18:37:43  42  ,ABS(clse-lg4)dc4
+18:37:43  43  ,ABS(clse-lg5)dc5
+18:37:43  44  ,ABS(clse-lg6)dc6
+18:37:43  45  ,ABS(clse-lg7)dc7
+18:37:43  46  ,ABS(clse-lg8)dc8
+18:37:43  47  ,ABS(clse-lg9)dc9
+18:37:43  48  ,ABS(clse-lg12)dc12
+18:37:43  49  ,ABS(clse-lg18)dc18
+18:37:43  50  ,ABS(clse-lg24)dc24
+18:37:43  51  ,ABS(clse-lg72)dc72
+18:37:43  52  ,(ld4-clse) ug4
+18:37:43  53  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*2  PRECEDING AND CURRENT ROW)crr2
+18:37:43  54  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*3  PRECEDING AND CURRENT ROW)crr3
+18:37:43  55  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*4  PRECEDING AND CURRENT ROW)crr4
+18:37:43  56  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*5  PRECEDING AND CURRENT ROW)crr5
+18:37:43  57  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*6  PRECEDING AND CURRENT ROW)crr6
+18:37:43  58  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*7  PRECEDING AND CURRENT ROW)crr7
+18:37:43  59  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*8  PRECEDING AND CURRENT ROW)crr8
+18:37:43  60  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*9  PRECEDING AND CURRENT ROW)crr9
+18:37:43  61  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*12 PRECEDING AND CURRENT ROW)crr12
+18:37:43  62  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*24 PRECEDING AND CURRENT ROW)crr24
+18:37:43  63  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*72 PRECEDING AND CURRENT ROW)crr72
+18:37:43  64  ,0+TO_CHAR(ydate,'HH24')hh
+18:37:43  65  ,0+TO_CHAR(ydate,'D')d
+18:37:43  66  ,0+TO_CHAR(ydate,'W')w
+18:37:43  67  FROM q11
+18:37:43  68  -- I dont want any NULL values from the LAG() functions:
+18:37:43  69  WHERE lg72 > 0
+18:37:43  70  ORDER BY pair,ydate
+18:37:43  71  /
+
+Table created.
+
+Elapsed: 00:00:01.45
+18:37:45 SQL> 
+18:37:45 SQL> -- rpt
+18:37:45 SQL> SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
+
+     TREND COUNT(PRDATE)
+---------- -------------
+	 1	    9059
+	-1	    9152
+
+Elapsed: 00:00:00.05
+18:37:45 SQL> 
+18:37:45 SQL> -- Calc gains and ntiles
+18:37:45 SQL> DROP TABLE q15;
+
+Table dropped.
+
+Elapsed: 00:00:00.24
+18:37:45 SQL> CREATE TABLE q15 COMPRESS AS
+18:37:45   2  SELECT
+18:37:45   3  pair
+18:37:45   4  ,ydate
+18:37:45   5  ,prdate -- Should be unique
+18:37:45   6  ,trend -- +1 or -1
+18:37:45   7  ,dc12 -- next statement needs this
+18:37:45   8  -- Use NTILE() to derive some attributes
+18:37:45   9  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))		 att00
+18:37:45  10  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))		 att01
+18:37:45  11  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))		 att02
+18:37:45  12  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))		 att03
+18:37:45  13  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))		 att04
+18:37:45  14  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))		 att05
+18:37:45  15  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))		 att06
+18:37:45  16  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))		 att07
+18:37:45  17  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912)) 	 att08
+18:37:45  18  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)		 att09
+18:37:45  19  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)		 att10
+18:37:45  20  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)		 att11
+18:37:45  21  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)		 att12
+18:37:45  22  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)		 att13
+18:37:45  23  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)		 att14
+18:37:45  24  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)		 att15
+18:37:45  25  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)		 att16
+18:37:45  26  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)		 att17
+18:37:45  27  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)		 att18
+18:37:45  28  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)		 att19
+18:37:45  29  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
+18:37:45  30  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
+18:37:45  31  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
+18:37:45  32  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
+18:37:45  33  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
+18:37:45  34  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
+18:37:45  35  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
+18:37:45  36  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
+18:37:45  37  -- date related integers: hour of day, day of week, week of month:
+18:37:45  38  ,hh    att28
+18:37:45  39  ,d     att29
+18:37:45  40  ,w     att30
+18:37:45  41  ,trend att31
+18:37:45  42  ,ug4 g4
+18:37:45  43  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
+18:37:45  44  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
+18:37:45  45  FROM q13
+18:37:45  46  ORDER BY pair,ydate
+18:37:45  47  /
+
+Table created.
+
+Elapsed: 00:00:03.48
+18:37:49 SQL> 
+18:37:49 SQL> -- rpt
+18:37:49 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
+18:37:49   2  GROUP BY pair,trend,gatt,gattn
+18:37:49   3  ORDER BY pair,trend,gatt,gattn
+18:37:49   4  /
+
+PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
+------- ---------- --- --- ---------- ---------- -------------
+gbp_usd 	-1 nup nup -9.823E-06	    1662    .027138956
+gbp_usd 	-1 nup up  -.00320685	    3743    .023526574
+gbp_usd 	-1 up  nup .003457004	    3723    -.03013915
+gbp_usd 	-1			       0
+gbp_usd 	 1 nup nup -1.668E-06	    1574    .026963894
+gbp_usd 	 1 nup up  -.00315693	    3757    .061114431
+gbp_usd 	 1 up  nup .003498297	    3728    -.11108955
+
+7 rows selected.
+
+Elapsed: 00:00:00.04
+18:37:49 SQL> 
+18:37:49 SQL> -- rpt
+18:37:49 SQL> SELECT pair,max(ydate)from q15 group by pair;
+
+PAIR	MAX(YDATE)
+------- -------------------
+gbp_usd 2010-12-15 17:50:00
+
+Elapsed: 00:00:00.01
+18:37:49 SQL> 
+18:37:49 SQL> DROP TABLE modsrc;
+
+Table dropped.
+
+Elapsed: 00:00:00.15
+18:37:49 SQL> CREATE TABLE modsrc COMPRESS AS
+18:37:49   2  SELECT
+18:37:49   3  pair
+18:37:49   4  ,ydate
+18:37:49   5  ,prdate
+18:37:49   6  ,trend
+18:37:49   7  ,g4
+18:37:49   8  ,gatt
+18:37:49   9  ,gattn
+18:37:49  10  ,dc12
+18:37:49  11  FROM q15
+18:37:49  12  /
+
+Table created.
+
+Elapsed: 00:00:00.09
+18:37:49 SQL> 
+18:37:49 SQL> ANALYZE TABLE modsrc COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.20
+18:37:49 SQL> 
+18:37:49 SQL> -- rpt
+18:37:49 SQL> 
+18:37:49 SQL> SELECT COUNT(pair)FROM q11;
+
+COUNT(PAIR)
+-----------
+      18643
+
+Elapsed: 00:00:00.31
+18:37:49 SQL> SELECT COUNT(pair)FROM q13;
+
+COUNT(PAIR)
+-----------
+      18211
+
+Elapsed: 00:00:00.00
+18:37:49 SQL> SELECT COUNT(pair)FROM q15;
+
+COUNT(PAIR)
+-----------
+      18211
+
+Elapsed: 00:00:00.01
+18:37:49 SQL> SELECT COUNT(pair)FROM modsrc;
+
+COUNT(PAIR)
+-----------
+      18211
+
+Elapsed: 00:00:00.00
+18:37:49 SQL> 
+18:37:49 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
+18:37:49   2  GROUP BY pair,trend,gatt,gattn
+18:37:49   3  ORDER BY pair,trend,gatt,gattn
+18:37:49   4  /
+
+PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
+------- ---------- --- --- ---------- ---------- -------------
+gbp_usd 	-1 nup nup -9.823E-06	    1662    .027138956
+gbp_usd 	-1 nup up  -.00320685	    3743    .023526574
+gbp_usd 	-1 up  nup .003457004	    3723    -.03013915
+gbp_usd 	-1			       0
+gbp_usd 	 1 nup nup -1.668E-06	    1574    .026963894
+gbp_usd 	 1 nup up  -.00315693	    3757    .061114431
+gbp_usd 	 1 up  nup .003498297	    3728    -.11108955
+
+7 rows selected.
+
+Elapsed: 00:00:00.02
+18:37:49 SQL> 
+18:37:49 SQL> DROP   TABLE gbp_ms10 ;
+
+Table dropped.
+
+Elapsed: 00:00:00.10
+18:37:50 SQL> CREATE TABLE gbp_ms10 COMPRESS AS
+18:37:50   2  SELECT
+18:37:50   3  ydate
+18:37:50   4  ,trend gbp_trend
+18:37:50   5  ,g4    gbp_g4
+18:37:50   6  ,gatt  gbp_gatt
+18:37:50   7  ,gattn	gbp_gattn
+18:37:50   8  FROM modsrc
+18:37:50   9  /
+
+Table created.
+
+Elapsed: 00:00:00.07
+18:37:50 SQL> 
+18:37:50 SQL> ANALYZE TABLE gbp_ms10 COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.15
+18:37:50 SQL> 
+18:37:50 SQL> -- rpt
+18:37:50 SQL> SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
+
+     TREND MIN(YDATE)	       MAX(YDATE)	    COUNT(G4)	 MIN(G4)    MAX(G4)
+---------- ------------------- ------------------- ---------- ---------- ----------
+	 1 2010-06-21 14:50:01 2010-12-15 03:50:00	 9059	  -.0194      .0192
+	-1 2010-06-21 16:40:01 2010-12-15 17:50:00	 9128	  -.0153      .0189
+
+Elapsed: 00:00:00.02
+18:37:50 SQL> SELECT gbp_trend,MIN(ydate),MAX(ydate),COUNT(gbp_trend),MIN(gbp_g4),MAX(gbp_g4)FROM gbp_ms10 GROUP BY gbp_trend;
+
+ GBP_TREND MIN(YDATE)	       MAX(YDATE)	   COUNT(GBP_TREND) MIN(GBP_G4) MAX(GBP_G4)
+---------- ------------------- ------------------- ---------------- ----------- -----------
+	 1 2010-06-21 14:50:01 2010-12-15 03:50:00	       9059	 -.0194       .0192
+	-1 2010-06-21 16:40:01 2010-12-15 17:50:00	       9152	 -.0153       .0189
+
+Elapsed: 00:00:00.02
+18:37:50 SQL> 
+18:37:50 SQL> -- I need a copy of q15 attributes
+18:37:50 SQL> 
+18:37:50 SQL> DROP   TABLE gbp_att;
+
+Table dropped.
+
+Elapsed: 00:00:00.15
+18:37:50 SQL> CREATE TABLE gbp_att COMPRESS AS
+18:37:50   2  SELECT
+18:37:50   3  ydate
+18:37:50   4  ,att00 gbp_att00
+18:37:50   5  ,att01 gbp_att01
+18:37:50   6  ,att02 gbp_att02
+18:37:50   7  ,att03 gbp_att03
+18:37:50   8  ,att04 gbp_att04
+18:37:50   9  ,att05 gbp_att05
+18:37:50  10  ,att06 gbp_att06
+18:37:50  11  ,att07 gbp_att07
+18:37:50  12  ,att08 gbp_att08
+18:37:50  13  ,att09 gbp_att09
+18:37:50  14  ,att10 gbp_att10
+18:37:50  15  ,att11 gbp_att11
+18:37:50  16  ,att12 gbp_att12
+18:37:50  17  ,att13 gbp_att13
+18:37:50  18  ,att14 gbp_att14
+18:37:50  19  ,att15 gbp_att15
+18:37:50  20  ,att16 gbp_att16
+18:37:50  21  ,att17 gbp_att17
+18:37:50  22  ,att18 gbp_att18
+18:37:50  23  ,att19 gbp_att19
+18:37:50  24  ,att20 gbp_att20
+18:37:50  25  ,att21 gbp_att21
+18:37:50  26  ,att22 gbp_att22
+18:37:50  27  ,att23 gbp_att23
+18:37:50  28  ,att24 gbp_att24
+18:37:50  29  ,att25 gbp_att25
+18:37:50  30  ,att26 gbp_att26
+18:37:50  31  ,att27 gbp_att27
+18:37:50  32  ,att28 gbp_att28
+18:37:50  33  ,att29 gbp_att29
+18:37:50  34  ,att30 gbp_att30
+18:37:50  35  ,att31 gbp_att31
+18:37:50  36  FROM q15
+18:37:50  37  /
+
+Table created.
+
+Elapsed: 00:00:00.15
+18:37:50 SQL> 
+18:37:50 SQL> ANALYZE TABLE gbp_att COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.55
+18:37:51 SQL> 
+18:37:51 SQL> -- rpt
+18:37:51 SQL> SELECT COUNT(*)FROM gbp_att;
+
+  COUNT(*)
+----------
+     18211
+
+Elapsed: 00:00:00.00
+18:37:51 SQL> 
+18:37:51 SQL> --
+18:37:51 SQL> -- jpy10.sql
+18:37:51 SQL> --
+18:37:51 SQL> 
+18:37:51 SQL> -- Creates views and tables for backtesting a forex SVM strategy
+18:37:51 SQL> 
+18:37:51 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.41
+18:37:51 SQL> 
+18:37:51 SQL> -- I created di5min here:
+18:37:51 SQL> -- /pt/s/rlk/svm4hp/update_di5min.sql
+18:37:51 SQL> 
+18:37:51 SQL> CREATE OR REPLACE VIEW q11 AS
+18:37:51   2  SELECT
+18:37:51   3  pair
+18:37:51   4  ,ydate
+18:37:51   5  ,prdate
+18:37:51   6  ,rownum rnum -- acts as t in my time-series
+18:37:51   7  ,clse
+18:37:51   8  ,LAG(clse,6*1,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg1
+18:37:51   9  ,LAG(clse,6*2,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg2
+18:37:51  10  ,LAG(clse,6*3,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg3
+18:37:51  11  ,LAG(clse,6*4,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg4
+18:37:51  12  ,LAG(clse,6*5,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg5
+18:37:51  13  ,LAG(clse,6*6,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg6
+18:37:51  14  ,LAG(clse,6*7,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg7
+18:37:51  15  ,LAG(clse,6*8,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg8
+18:37:51  16  ,LAG(clse,6*9,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg9
+18:37:51  17  ,LAG(clse,6*12,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg12
+18:37:51  18  ,LAG(clse,6*18,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg18
+18:37:51  19  ,LAG(clse,6*24,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg24
+18:37:51  20  ,LAG(clse,6*72,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg72
+18:37:51  21  ,LEAD(clse,6*4,NULL)OVER(PARTITION BY pair ORDER BY ydate) ld4
+18:37:51  22  FROM di5min WHERE pair LIKE'%jpy%'
+18:37:51  23  ORDER BY ydate
+18:37:51  24  /
+
+View created.
+
+Elapsed: 00:00:00.03
+18:37:51 SQL> 
+18:37:51 SQL> -- rpt
+18:37:51 SQL> SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
+
+PAIR	COUNT(YDATE)
+------- ------------
+usd_jpy        18644
+
+Elapsed: 00:00:00.32
+18:37:51 SQL> 
+18:37:51 SQL> -- Calc deltas and gains
+18:37:51 SQL> DROP TABLE q13;
+
+Table dropped.
+
+Elapsed: 00:00:00.16
+18:37:52 SQL> 
+18:37:52 SQL> CREATE TABLE q13 COMPRESS AS
+18:37:52   2  SELECT
+18:37:52   3  pair
+18:37:52   4  ,ydate
+18:37:52   5  ,prdate
+18:37:52   6  ,rnum
+18:37:52   7  ,lg4
+18:37:52   8  ,lg8
+18:37:52   9  ,lg12
+18:37:52  10  ,ld4
+18:37:52  11  ,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
+18:37:52  12  -- step by 1
+18:37:52  13  ,clse-lg1 d01
+18:37:52  14  ,lg1-lg2	d12
+18:37:52  15  ,lg2-lg3	d23
+18:37:52  16  ,lg3-lg4	d34
+18:37:52  17  ,lg4-lg5	d45
+18:37:52  18  ,lg5-lg6	d56
+18:37:52  19  ,lg6-lg7	d67
+18:37:52  20  ,lg7-lg8	d78
+18:37:52  21  ,lg8-lg9	d89
+18:37:52  22  -- step by 2
+18:37:52  23  ,clse-lg2 d02
+18:37:52  24  ,lg2-lg4 d24
+18:37:52  25  ,lg4-lg6 d46
+18:37:52  26  ,lg6-lg8 d68
+18:37:52  27  -- step by 3
+18:37:52  28  ,clse-lg3 d03
+18:37:52  29  ,lg3-lg6	d36
+18:37:52  30  ,lg6-lg9	d69
+18:37:52  31  ,lg9-lg12 d912
+18:37:52  32  -- step by 4
+18:37:52  33  ,clse-lg4 d04
+18:37:52  34  ,lg4-lg8	d48
+18:37:52  35  ,lg8-lg12 d812
+18:37:52  36  ,lg6-lg12 d612
+18:37:52  37  ,lg12-lg18 d1218
+18:37:52  38  --
+18:37:52  39  ,ABS(clse-lg1)dc1
+18:37:52  40  ,ABS(clse-lg2)dc2
+18:37:52  41  ,ABS(clse-lg3)dc3
+18:37:52  42  ,ABS(clse-lg4)dc4
+18:37:52  43  ,ABS(clse-lg5)dc5
+18:37:52  44  ,ABS(clse-lg6)dc6
+18:37:52  45  ,ABS(clse-lg7)dc7
+18:37:52  46  ,ABS(clse-lg8)dc8
+18:37:52  47  ,ABS(clse-lg9)dc9
+18:37:52  48  ,ABS(clse-lg12)dc12
+18:37:52  49  ,ABS(clse-lg18)dc18
+18:37:52  50  ,ABS(clse-lg24)dc24
+18:37:52  51  ,ABS(clse-lg72)dc72
+18:37:52  52  ,(ld4-clse) ug4
+18:37:52  53  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*2  PRECEDING AND CURRENT ROW)crr2
+18:37:52  54  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*3  PRECEDING AND CURRENT ROW)crr3
+18:37:52  55  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*4  PRECEDING AND CURRENT ROW)crr4
+18:37:52  56  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*5  PRECEDING AND CURRENT ROW)crr5
+18:37:52  57  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*6  PRECEDING AND CURRENT ROW)crr6
+18:37:52  58  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*7  PRECEDING AND CURRENT ROW)crr7
+18:37:52  59  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*8  PRECEDING AND CURRENT ROW)crr8
+18:37:52  60  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*9  PRECEDING AND CURRENT ROW)crr9
+18:37:52  61  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*12 PRECEDING AND CURRENT ROW)crr12
+18:37:52  62  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*24 PRECEDING AND CURRENT ROW)crr24
+18:37:52  63  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*72 PRECEDING AND CURRENT ROW)crr72
+18:37:52  64  ,0+TO_CHAR(ydate,'HH24')hh
+18:37:52  65  ,0+TO_CHAR(ydate,'D')d
+18:37:52  66  ,0+TO_CHAR(ydate,'W')w
+18:37:52  67  FROM q11
+18:37:52  68  -- I dont want any NULL values from the LAG() functions:
+18:37:52  69  WHERE lg72 > 0
+18:37:52  70  ORDER BY pair,ydate
+18:37:52  71  /
+
+Table created.
+
+Elapsed: 00:00:01.42
+18:37:53 SQL> 
+18:37:53 SQL> -- rpt
+18:37:53 SQL> SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
+
+     TREND COUNT(PRDATE)
+---------- -------------
+	 1	    8115
+	-1	   10097
+
+Elapsed: 00:00:00.08
+18:37:53 SQL> 
+18:37:53 SQL> -- Calc gains and ntiles
+18:37:53 SQL> DROP TABLE q15;
+
+Table dropped.
+
+Elapsed: 00:00:00.13
+18:37:53 SQL> CREATE TABLE q15 COMPRESS AS
+18:37:53   2  SELECT
+18:37:53   3  pair
+18:37:53   4  ,ydate
+18:37:53   5  ,prdate -- Should be unique
+18:37:53   6  ,trend -- +1 or -1
+18:37:53   7  ,dc12 -- next statement needs this
+18:37:53   8  -- Use NTILE() to derive some attributes
+18:37:53   9  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))		 att00
+18:37:53  10  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))		 att01
+18:37:53  11  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))		 att02
+18:37:53  12  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))		 att03
+18:37:53  13  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))		 att04
+18:37:53  14  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))		 att05
+18:37:53  15  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))		 att06
+18:37:53  16  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))		 att07
+18:37:53  17  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912)) 	 att08
+18:37:53  18  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)		 att09
+18:37:53  19  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)		 att10
+18:37:53  20  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)		 att11
+18:37:53  21  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)		 att12
+18:37:53  22  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)		 att13
+18:37:53  23  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)		 att14
+18:37:53  24  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)		 att15
+18:37:53  25  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)		 att16
+18:37:53  26  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)		 att17
+18:37:53  27  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)		 att18
+18:37:53  28  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)		 att19
+18:37:53  29  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
+18:37:53  30  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
+18:37:53  31  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
+18:37:53  32  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
+18:37:53  33  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
+18:37:53  34  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
+18:37:53  35  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
+18:37:53  36  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
+18:37:53  37  -- date related integers: hour of day, day of week, week of month:
+18:37:53  38  ,hh    att28
+18:37:53  39  ,d     att29
+18:37:53  40  ,w     att30
+18:37:53  41  ,trend att31
+18:37:53  42  ,ug4 g4
+18:37:53  43  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
+18:37:53  44  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
+18:37:53  45  FROM q13
+18:37:53  46  ORDER BY pair,ydate
+18:37:53  47  /
+
+Table created.
+
+Elapsed: 00:00:03.47
+18:37:57 SQL> 
+18:37:57 SQL> -- rpt
+18:37:57 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
+18:37:57   2  GROUP BY pair,trend,gatt,gattn
+18:37:57   3  ORDER BY pair,trend,gatt,gattn
+18:37:57   4  /
+
+PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
+------- ---------- --- --- ---------- ---------- -------------
+usd_jpy 	-1 nup nup	    0	     245
+usd_jpy 	-1 nup up  -.15411024	    4962    .024281394
+usd_jpy 	-1 up  nup .146742936	    4884    .048544695
+usd_jpy 	-1			       0
+usd_jpy 	 1 nup nup	    0	     175
+usd_jpy 	 1 nup up  -.15667279	    4358    -.05120202
+usd_jpy 	 1 up  nup .157254489	    3564    .144901157
+usd_jpy 	 1			       0
+
+8 rows selected.
+
+Elapsed: 00:00:00.04
+18:37:57 SQL> 
+18:37:57 SQL> -- rpt
+18:37:57 SQL> SELECT pair,max(ydate)from q15 group by pair;
+
+PAIR	MAX(YDATE)
+------- -------------------
+usd_jpy 2010-12-15 17:50:00
+
+Elapsed: 00:00:00.01
+18:37:57 SQL> 
+18:37:57 SQL> DROP TABLE modsrc;
+
+Table dropped.
+
+Elapsed: 00:00:00.12
+18:37:57 SQL> CREATE TABLE modsrc COMPRESS AS
+18:37:57   2  SELECT
+18:37:57   3  pair
+18:37:57   4  ,ydate
+18:37:57   5  ,prdate
+18:37:57   6  ,trend
+18:37:57   7  ,g4
+18:37:57   8  ,gatt
+18:37:57   9  ,gattn
+18:37:57  10  ,dc12
+18:37:57  11  FROM q15
+18:37:57  12  /
+
+Table created.
+
+Elapsed: 00:00:00.08
+18:37:57 SQL> 
+18:37:57 SQL> ANALYZE TABLE modsrc COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.20
+18:37:57 SQL> 
+18:37:57 SQL> -- rpt
+18:37:57 SQL> 
+18:37:57 SQL> SELECT COUNT(pair)FROM q11;
+
+COUNT(PAIR)
+-----------
+      18644
+
+Elapsed: 00:00:00.30
+18:37:57 SQL> SELECT COUNT(pair)FROM q13;
+
+COUNT(PAIR)
+-----------
+      18212
+
+Elapsed: 00:00:00.01
+18:37:57 SQL> SELECT COUNT(pair)FROM q15;
+
+COUNT(PAIR)
+-----------
+      18212
+
+Elapsed: 00:00:00.00
+18:37:57 SQL> SELECT COUNT(pair)FROM modsrc;
+
+COUNT(PAIR)
+-----------
+      18212
+
+Elapsed: 00:00:00.01
+18:37:57 SQL> 
+18:37:57 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
+18:37:57   2  GROUP BY pair,trend,gatt,gattn
+18:37:57   3  ORDER BY pair,trend,gatt,gattn
+18:37:57   4  /
+
+PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
+------- ---------- --- --- ---------- ---------- -------------
+usd_jpy 	-1 nup nup	    0	     245
+usd_jpy 	-1 nup up  -.15411024	    4962    .024281394
+usd_jpy 	-1 up  nup .146742936	    4884    .048544695
+usd_jpy 	-1			       0
+usd_jpy 	 1 nup nup	    0	     175
+usd_jpy 	 1 nup up  -.15667279	    4358    -.05120202
+usd_jpy 	 1 up  nup .157254489	    3564    .144901157
+usd_jpy 	 1			       0
+
+8 rows selected.
+
+Elapsed: 00:00:00.02
+18:37:58 SQL> 
+18:37:58 SQL> DROP   TABLE jpy_ms10 ;
+
+Table dropped.
+
+Elapsed: 00:00:00.08
+18:37:58 SQL> CREATE TABLE jpy_ms10 COMPRESS AS
+18:37:58   2  SELECT
+18:37:58   3  ydate
+18:37:58   4  ,trend jpy_trend
+18:37:58   5  ,g4    jpy_g4
+18:37:58   6  ,gatt  jpy_gatt
+18:37:58   7  ,gattn	jpy_gattn
+18:37:58   8  FROM modsrc
+18:37:58   9  /
+
+Table created.
+
+Elapsed: 00:00:00.05
+18:37:58 SQL> 
+18:37:58 SQL> ANALYZE TABLE jpy_ms10 COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.16
+18:37:58 SQL> 
+18:37:58 SQL> -- rpt
+18:37:58 SQL> SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
+
+     TREND MIN(YDATE)	       MAX(YDATE)	    COUNT(G4)	 MIN(G4)    MAX(G4)
+---------- ------------------- ------------------- ---------- ---------- ----------
+	 1 2010-06-21 14:50:01 2010-12-15 17:50:00	 8097	   -1.07       1.04
+	-1 2010-06-22 06:20:01 2010-12-15 15:10:00	10091	   -1.18       1.99
+
+Elapsed: 00:00:00.02
+18:37:58 SQL> SELECT jpy_trend,MIN(ydate),MAX(ydate),COUNT(jpy_trend),MIN(jpy_g4),MAX(jpy_g4)FROM jpy_ms10 GROUP BY jpy_trend;
+
+ JPY_TREND MIN(YDATE)	       MAX(YDATE)	   COUNT(JPY_TREND) MIN(JPY_G4) MAX(JPY_G4)
+---------- ------------------- ------------------- ---------------- ----------- -----------
+	 1 2010-06-21 14:50:01 2010-12-15 17:50:00	       8115	  -1.07        1.04
+	-1 2010-06-22 06:20:01 2010-12-15 15:10:00	      10097	  -1.18        1.99
+
+Elapsed: 00:00:00.01
+18:37:58 SQL> 
+18:37:58 SQL> -- I need a copy of q15 attributes
+18:37:58 SQL> 
+18:37:58 SQL> DROP   TABLE jpy_att;
+
+Table dropped.
+
+Elapsed: 00:00:00.17
+18:37:58 SQL> CREATE TABLE jpy_att COMPRESS AS
+18:37:58   2  SELECT
+18:37:58   3  ydate
+18:37:58   4  ,att00 jpy_att00
+18:37:58   5  ,att01 jpy_att01
+18:37:58   6  ,att02 jpy_att02
+18:37:58   7  ,att03 jpy_att03
+18:37:58   8  ,att04 jpy_att04
+18:37:58   9  ,att05 jpy_att05
+18:37:58  10  ,att06 jpy_att06
+18:37:58  11  ,att07 jpy_att07
+18:37:58  12  ,att08 jpy_att08
+18:37:58  13  ,att09 jpy_att09
+18:37:58  14  ,att10 jpy_att10
+18:37:58  15  ,att11 jpy_att11
+18:37:58  16  ,att12 jpy_att12
+18:37:58  17  ,att13 jpy_att13
+18:37:58  18  ,att14 jpy_att14
+18:37:58  19  ,att15 jpy_att15
+18:37:58  20  ,att16 jpy_att16
+18:37:58  21  ,att17 jpy_att17
+18:37:58  22  ,att18 jpy_att18
+18:37:58  23  ,att19 jpy_att19
+18:37:58  24  ,att20 jpy_att20
+18:37:58  25  ,att21 jpy_att21
+18:37:58  26  ,att22 jpy_att22
+18:37:58  27  ,att23 jpy_att23
+18:37:58  28  ,att24 jpy_att24
+18:37:58  29  ,att25 jpy_att25
+18:37:58  30  ,att26 jpy_att26
+18:37:58  31  ,att27 jpy_att27
+18:37:58  32  ,att28 jpy_att28
+18:37:58  33  ,att29 jpy_att29
+18:37:58  34  ,att30 jpy_att30
+18:37:58  35  ,att31 jpy_att31
+18:37:58  36  FROM q15
+18:37:58  37  /
+
+Table created.
+
+Elapsed: 00:00:00.12
+18:37:58 SQL> 
+18:37:58 SQL> ANALYZE TABLE jpy_att COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.40
+18:37:59 SQL> 
+18:37:59 SQL> -- rpt
+18:37:59 SQL> SELECT COUNT(*)FROM jpy_att;
+
+  COUNT(*)
+----------
+     18212
+
+Elapsed: 00:00:00.00
+18:37:59 SQL> 
+18:37:59 SQL> --
+18:37:59 SQL> -- cad10.sql
+18:37:59 SQL> --
+18:37:59 SQL> 
+18:37:59 SQL> -- Creates views and tables for backtesting a forex SVM strategy
+18:37:59 SQL> 
+18:37:59 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.39
+18:37:59 SQL> 
+18:37:59 SQL> -- I created di5min here:
+18:37:59 SQL> -- /pt/s/rlk/svm4hp/update_di5min.sql
+18:37:59 SQL> 
+18:37:59 SQL> CREATE OR REPLACE VIEW q11 AS
+18:37:59   2  SELECT
+18:37:59   3  pair
+18:37:59   4  ,ydate
+18:37:59   5  ,prdate
+18:37:59   6  ,rownum rnum -- acts as t in my time-series
+18:37:59   7  ,clse
+18:37:59   8  ,LAG(clse,6*1,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg1
+18:37:59   9  ,LAG(clse,6*2,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg2
+18:37:59  10  ,LAG(clse,6*3,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg3
+18:37:59  11  ,LAG(clse,6*4,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg4
+18:37:59  12  ,LAG(clse,6*5,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg5
+18:37:59  13  ,LAG(clse,6*6,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg6
+18:37:59  14  ,LAG(clse,6*7,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg7
+18:37:59  15  ,LAG(clse,6*8,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg8
+18:37:59  16  ,LAG(clse,6*9,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg9
+18:37:59  17  ,LAG(clse,6*12,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg12
+18:37:59  18  ,LAG(clse,6*18,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg18
+18:37:59  19  ,LAG(clse,6*24,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg24
+18:37:59  20  ,LAG(clse,6*72,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg72
+18:37:59  21  ,LEAD(clse,6*4,NULL)OVER(PARTITION BY pair ORDER BY ydate) ld4
+18:37:59  22  FROM di5min WHERE pair LIKE'%cad%'
+18:37:59  23  ORDER BY ydate
+18:37:59  24  /
+
+View created.
+
+Elapsed: 00:00:00.05
+18:37:59 SQL> 
+18:37:59 SQL> -- rpt
+18:37:59 SQL> SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
+
+PAIR	COUNT(YDATE)
+------- ------------
+usd_cad        18644
+
+Elapsed: 00:00:00.31
+18:37:59 SQL> 
+18:37:59 SQL> -- Calc deltas and gains
+18:37:59 SQL> DROP TABLE q13;
+
+Table dropped.
+
+Elapsed: 00:00:00.27
+18:38:00 SQL> 
+18:38:00 SQL> CREATE TABLE q13 COMPRESS AS
+18:38:00   2  SELECT
+18:38:00   3  pair
+18:38:00   4  ,ydate
+18:38:00   5  ,prdate
+18:38:00   6  ,rnum
+18:38:00   7  ,lg4
+18:38:00   8  ,lg8
+18:38:00   9  ,lg12
+18:38:00  10  ,ld4
+18:38:00  11  ,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
+18:38:00  12  -- step by 1
+18:38:00  13  ,clse-lg1 d01
+18:38:00  14  ,lg1-lg2	d12
+18:38:00  15  ,lg2-lg3	d23
+18:38:00  16  ,lg3-lg4	d34
+18:38:00  17  ,lg4-lg5	d45
+18:38:00  18  ,lg5-lg6	d56
+18:38:00  19  ,lg6-lg7	d67
+18:38:00  20  ,lg7-lg8	d78
+18:38:00  21  ,lg8-lg9	d89
+18:38:00  22  -- step by 2
+18:38:00  23  ,clse-lg2 d02
+18:38:00  24  ,lg2-lg4 d24
+18:38:00  25  ,lg4-lg6 d46
+18:38:00  26  ,lg6-lg8 d68
+18:38:00  27  -- step by 3
+18:38:00  28  ,clse-lg3 d03
+18:38:00  29  ,lg3-lg6	d36
+18:38:00  30  ,lg6-lg9	d69
+18:38:00  31  ,lg9-lg12 d912
+18:38:00  32  -- step by 4
+18:38:00  33  ,clse-lg4 d04
+18:38:00  34  ,lg4-lg8	d48
+18:38:00  35  ,lg8-lg12 d812
+18:38:00  36  ,lg6-lg12 d612
+18:38:00  37  ,lg12-lg18 d1218
+18:38:00  38  --
+18:38:00  39  ,ABS(clse-lg1)dc1
+18:38:00  40  ,ABS(clse-lg2)dc2
+18:38:00  41  ,ABS(clse-lg3)dc3
+18:38:00  42  ,ABS(clse-lg4)dc4
+18:38:00  43  ,ABS(clse-lg5)dc5
+18:38:00  44  ,ABS(clse-lg6)dc6
+18:38:00  45  ,ABS(clse-lg7)dc7
+18:38:00  46  ,ABS(clse-lg8)dc8
+18:38:00  47  ,ABS(clse-lg9)dc9
+18:38:00  48  ,ABS(clse-lg12)dc12
+18:38:00  49  ,ABS(clse-lg18)dc18
+18:38:00  50  ,ABS(clse-lg24)dc24
+18:38:00  51  ,ABS(clse-lg72)dc72
+18:38:00  52  ,(ld4-clse) ug4
+18:38:00  53  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*2  PRECEDING AND CURRENT ROW)crr2
+18:38:00  54  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*3  PRECEDING AND CURRENT ROW)crr3
+18:38:00  55  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*4  PRECEDING AND CURRENT ROW)crr4
+18:38:00  56  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*5  PRECEDING AND CURRENT ROW)crr5
+18:38:00  57  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*6  PRECEDING AND CURRENT ROW)crr6
+18:38:00  58  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*7  PRECEDING AND CURRENT ROW)crr7
+18:38:00  59  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*8  PRECEDING AND CURRENT ROW)crr8
+18:38:00  60  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*9  PRECEDING AND CURRENT ROW)crr9
+18:38:00  61  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*12 PRECEDING AND CURRENT ROW)crr12
+18:38:00  62  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*24 PRECEDING AND CURRENT ROW)crr24
+18:38:00  63  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*72 PRECEDING AND CURRENT ROW)crr72
+18:38:00  64  ,0+TO_CHAR(ydate,'HH24')hh
+18:38:00  65  ,0+TO_CHAR(ydate,'D')d
+18:38:00  66  ,0+TO_CHAR(ydate,'W')w
+18:38:00  67  FROM q11
+18:38:00  68  -- I dont want any NULL values from the LAG() functions:
+18:38:00  69  WHERE lg72 > 0
+18:38:00  70  ORDER BY pair,ydate
+18:38:00  71  /
+
+Table created.
+
+Elapsed: 00:00:01.44
+18:38:01 SQL> 
+18:38:01 SQL> -- rpt
+18:38:01 SQL> SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
+
+     TREND COUNT(PRDATE)
+---------- -------------
+	 1	    8479
+	-1	    9733
+
+Elapsed: 00:00:00.03
+18:38:01 SQL> 
+18:38:01 SQL> -- Calc gains and ntiles
+18:38:01 SQL> DROP TABLE q15;
+
+Table dropped.
+
+Elapsed: 00:00:00.20
+18:38:01 SQL> CREATE TABLE q15 COMPRESS AS
+18:38:01   2  SELECT
+18:38:01   3  pair
+18:38:01   4  ,ydate
+18:38:01   5  ,prdate -- Should be unique
+18:38:01   6  ,trend -- +1 or -1
+18:38:01   7  ,dc12 -- next statement needs this
+18:38:01   8  -- Use NTILE() to derive some attributes
+18:38:01   9  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))		 att00
+18:38:01  10  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))		 att01
+18:38:01  11  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))		 att02
+18:38:01  12  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))		 att03
+18:38:01  13  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))		 att04
+18:38:01  14  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))		 att05
+18:38:01  15  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))		 att06
+18:38:01  16  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))		 att07
+18:38:01  17  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912)) 	 att08
+18:38:01  18  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)		 att09
+18:38:01  19  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)		 att10
+18:38:01  20  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)		 att11
+18:38:01  21  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)		 att12
+18:38:01  22  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)		 att13
+18:38:01  23  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)		 att14
+18:38:01  24  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)		 att15
+18:38:01  25  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)		 att16
+18:38:01  26  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)		 att17
+18:38:01  27  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)		 att18
+18:38:01  28  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)		 att19
+18:38:01  29  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
+18:38:01  30  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
+18:38:01  31  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
+18:38:01  32  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
+18:38:01  33  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
+18:38:01  34  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
+18:38:01  35  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
+18:38:01  36  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
+18:38:01  37  -- date related integers: hour of day, day of week, week of month:
+18:38:01  38  ,hh    att28
+18:38:01  39  ,d     att29
+18:38:01  40  ,w     att30
+18:38:01  41  ,trend att31
+18:38:01  42  ,ug4 g4
+18:38:01  43  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
+18:38:01  44  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
+18:38:01  45  FROM q13
+18:38:01  46  ORDER BY pair,ydate
+18:38:01  47  /
+
+Table created.
+
+Elapsed: 00:00:03.54
+18:38:05 SQL> 
+18:38:05 SQL> -- rpt
+18:38:05 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
+18:38:05   2  GROUP BY pair,trend,gatt,gattn
+18:38:05   3  ORDER BY pair,trend,gatt,gattn
+18:38:05   4  /
+
+PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
+------- ---------- --- --- ---------- ---------- -------------
+usd_cad 	-1 nup nup -.00000834	    2452    -.01478505
+usd_cad 	-1 nup up  -.00244882	    3747    .083035821
+usd_cad 	-1 up  nup .002592051	    3510    -.00285136
+usd_cad 	-1			       0
+usd_cad 	 1 nup nup -.00001803	    2010    -.00353745
+usd_cad 	 1 nup up  -.00258383	    3417    .030156712
+usd_cad 	 1 up  nup .002790719	    3052    .011338451
+
+7 rows selected.
+
+Elapsed: 00:00:00.04
+18:38:05 SQL> 
+18:38:05 SQL> -- rpt
+18:38:05 SQL> SELECT pair,max(ydate)from q15 group by pair;
+
+PAIR	MAX(YDATE)
+------- -------------------
+usd_cad 2010-12-15 17:50:00
+
+Elapsed: 00:00:00.01
+18:38:05 SQL> 
+18:38:05 SQL> DROP TABLE modsrc;
+
+Table dropped.
+
+Elapsed: 00:00:00.17
+18:38:05 SQL> CREATE TABLE modsrc COMPRESS AS
+18:38:05   2  SELECT
+18:38:05   3  pair
+18:38:05   4  ,ydate
+18:38:05   5  ,prdate
+18:38:05   6  ,trend
+18:38:05   7  ,g4
+18:38:05   8  ,gatt
+18:38:05   9  ,gattn
+18:38:05  10  ,dc12
+18:38:05  11  FROM q15
+18:38:05  12  /
+
+Table created.
+
+Elapsed: 00:00:00.09
+18:38:05 SQL> 
+18:38:05 SQL> ANALYZE TABLE modsrc COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.20
+18:38:05 SQL> 
+18:38:05 SQL> -- rpt
+18:38:05 SQL> 
+18:38:05 SQL> SELECT COUNT(pair)FROM q11;
+
+COUNT(PAIR)
+-----------
+      18644
+
+Elapsed: 00:00:00.31
+18:38:06 SQL> SELECT COUNT(pair)FROM q13;
+
+COUNT(PAIR)
+-----------
+      18212
+
+Elapsed: 00:00:00.01
+18:38:06 SQL> SELECT COUNT(pair)FROM q15;
+
+COUNT(PAIR)
+-----------
+      18212
+
+Elapsed: 00:00:00.03
+18:38:06 SQL> SELECT COUNT(pair)FROM modsrc;
+
+COUNT(PAIR)
+-----------
+      18212
+
+Elapsed: 00:00:00.00
+18:38:06 SQL> 
+18:38:06 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
+18:38:06   2  GROUP BY pair,trend,gatt,gattn
+18:38:06   3  ORDER BY pair,trend,gatt,gattn
+18:38:06   4  /
+
+PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
+------- ---------- --- --- ---------- ---------- -------------
+usd_cad 	-1 nup nup -.00000834	    2452    -.01478505
+usd_cad 	-1 nup up  -.00244882	    3747    .083035821
+usd_cad 	-1 up  nup .002592051	    3510    -.00285136
+usd_cad 	-1			       0
+usd_cad 	 1 nup nup -.00001803	    2010    -.00353745
+usd_cad 	 1 nup up  -.00258383	    3417    .030156712
+usd_cad 	 1 up  nup .002790719	    3052    .011338451
+
+7 rows selected.
+
+Elapsed: 00:00:00.03
+18:38:06 SQL> 
+18:38:06 SQL> DROP   TABLE cad_ms10 ;
+
+Table dropped.
+
+Elapsed: 00:00:00.13
+18:38:06 SQL> CREATE TABLE cad_ms10 COMPRESS AS
+18:38:06   2  SELECT
+18:38:06   3  ydate
+18:38:06   4  ,trend cad_trend
+18:38:06   5  ,g4    cad_g4
+18:38:06   6  ,gatt  cad_gatt
+18:38:06   7  ,gattn	cad_gattn
+18:38:06   8  FROM modsrc
+18:38:06   9  /
+
+Table created.
+
+Elapsed: 00:00:00.09
+18:38:06 SQL> 
+18:38:06 SQL> ANALYZE TABLE cad_ms10 COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.16
+18:38:06 SQL> 
+18:38:06 SQL> -- rpt
+18:38:06 SQL> SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
+
+     TREND MIN(YDATE)	       MAX(YDATE)	    COUNT(G4)	 MIN(G4)    MAX(G4)
+---------- ------------------- ------------------- ---------- ---------- ----------
+	 1 2010-06-21 17:30:01 2010-12-15 12:00:00	 8479	  -.0153      .0164
+	-1 2010-06-21 14:50:01 2010-12-15 17:50:00	 9709	  -.0127      .0151
+
+Elapsed: 00:00:00.01
+18:38:06 SQL> SELECT cad_trend,MIN(ydate),MAX(ydate),COUNT(cad_trend),MIN(cad_g4),MAX(cad_g4)FROM cad_ms10 GROUP BY cad_trend;
+
+ CAD_TREND MIN(YDATE)	       MAX(YDATE)	   COUNT(CAD_TREND) MIN(CAD_G4) MAX(CAD_G4)
+---------- ------------------- ------------------- ---------------- ----------- -----------
+	 1 2010-06-21 17:30:01 2010-12-15 12:00:00	       8479	 -.0153       .0164
+	-1 2010-06-21 14:50:01 2010-12-15 17:50:00	       9733	 -.0127       .0151
+
+Elapsed: 00:00:00.02
+18:38:06 SQL> 
+18:38:06 SQL> -- I need a copy of q15 attributes
+18:38:06 SQL> 
+18:38:06 SQL> DROP   TABLE cad_att;
+
+Table dropped.
+
+Elapsed: 00:00:00.11
+18:38:06 SQL> CREATE TABLE cad_att COMPRESS AS
+18:38:06   2  SELECT
+18:38:06   3  ydate
+18:38:06   4  ,att00 cad_att00
+18:38:06   5  ,att01 cad_att01
+18:38:06   6  ,att02 cad_att02
+18:38:06   7  ,att03 cad_att03
+18:38:06   8  ,att04 cad_att04
+18:38:06   9  ,att05 cad_att05
+18:38:06  10  ,att06 cad_att06
+18:38:06  11  ,att07 cad_att07
+18:38:06  12  ,att08 cad_att08
+18:38:06  13  ,att09 cad_att09
+18:38:06  14  ,att10 cad_att10
+18:38:06  15  ,att11 cad_att11
+18:38:06  16  ,att12 cad_att12
+18:38:06  17  ,att13 cad_att13
+18:38:06  18  ,att14 cad_att14
+18:38:06  19  ,att15 cad_att15
+18:38:06  20  ,att16 cad_att16
+18:38:06  21  ,att17 cad_att17
+18:38:06  22  ,att18 cad_att18
+18:38:06  23  ,att19 cad_att19
+18:38:06  24  ,att20 cad_att20
+18:38:06  25  ,att21 cad_att21
+18:38:06  26  ,att22 cad_att22
+18:38:06  27  ,att23 cad_att23
+18:38:06  28  ,att24 cad_att24
+18:38:06  29  ,att25 cad_att25
+18:38:06  30  ,att26 cad_att26
+18:38:06  31  ,att27 cad_att27
+18:38:06  32  ,att28 cad_att28
+18:38:06  33  ,att29 cad_att29
+18:38:06  34  ,att30 cad_att30
+18:38:06  35  ,att31 cad_att31
+18:38:06  36  FROM q15
+18:38:06  37  /
+
+Table created.
+
+Elapsed: 00:00:00.12
+18:38:06 SQL> 
+18:38:06 SQL> ANALYZE TABLE cad_att COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.39
+18:38:07 SQL> 
+18:38:07 SQL> -- rpt
+18:38:07 SQL> SELECT COUNT(*)FROM cad_att;
+
+  COUNT(*)
+----------
+     18212
+
+Elapsed: 00:00:00.02
+18:38:07 SQL> 
+18:38:07 SQL> --
+18:38:07 SQL> -- chf10.sql
+18:38:07 SQL> --
+18:38:07 SQL> 
+18:38:07 SQL> -- Creates views and tables for backtesting a forex SVM strategy
+18:38:07 SQL> 
+18:38:07 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.43
+18:38:07 SQL> 
+18:38:07 SQL> -- I created di5min here:
+18:38:07 SQL> -- /pt/s/rlk/svm4hp/update_di5min.sql
+18:38:07 SQL> 
+18:38:07 SQL> CREATE OR REPLACE VIEW q11 AS
+18:38:07   2  SELECT
+18:38:07   3  pair
+18:38:07   4  ,ydate
+18:38:07   5  ,prdate
+18:38:07   6  ,rownum rnum -- acts as t in my time-series
+18:38:07   7  ,clse
+18:38:07   8  ,LAG(clse,6*1,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg1
+18:38:07   9  ,LAG(clse,6*2,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg2
+18:38:07  10  ,LAG(clse,6*3,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg3
+18:38:07  11  ,LAG(clse,6*4,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg4
+18:38:07  12  ,LAG(clse,6*5,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg5
+18:38:07  13  ,LAG(clse,6*6,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg6
+18:38:07  14  ,LAG(clse,6*7,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg7
+18:38:07  15  ,LAG(clse,6*8,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg8
+18:38:07  16  ,LAG(clse,6*9,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg9
+18:38:07  17  ,LAG(clse,6*12,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg12
+18:38:07  18  ,LAG(clse,6*18,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg18
+18:38:07  19  ,LAG(clse,6*24,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg24
+18:38:07  20  ,LAG(clse,6*72,NULL)OVER(PARTITION BY pair ORDER BY ydate) lg72
+18:38:07  21  ,LEAD(clse,6*4,NULL)OVER(PARTITION BY pair ORDER BY ydate) ld4
+18:38:07  22  FROM di5min WHERE pair LIKE'%chf%'
+18:38:07  23  ORDER BY ydate
+18:38:07  24  /
+
+View created.
+
+Elapsed: 00:00:00.03
+18:38:07 SQL> 
+18:38:07 SQL> -- rpt
+18:38:07 SQL> SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
+
+PAIR	COUNT(YDATE)
+------- ------------
+usd_chf        18644
+
+Elapsed: 00:00:00.33
+18:38:07 SQL> 
+18:38:07 SQL> -- Calc deltas and gains
+18:38:07 SQL> DROP TABLE q13;
+
+Table dropped.
+
+Elapsed: 00:00:00.32
+18:38:08 SQL> 
+18:38:08 SQL> CREATE TABLE q13 COMPRESS AS
+18:38:08   2  SELECT
+18:38:08   3  pair
+18:38:08   4  ,ydate
+18:38:08   5  ,prdate
+18:38:08   6  ,rnum
+18:38:08   7  ,lg4
+18:38:08   8  ,lg8
+18:38:08   9  ,lg12
+18:38:08  10  ,ld4
+18:38:08  11  ,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
+18:38:08  12  -- step by 1
+18:38:08  13  ,clse-lg1 d01
+18:38:08  14  ,lg1-lg2	d12
+18:38:08  15  ,lg2-lg3	d23
+18:38:08  16  ,lg3-lg4	d34
+18:38:08  17  ,lg4-lg5	d45
+18:38:08  18  ,lg5-lg6	d56
+18:38:08  19  ,lg6-lg7	d67
+18:38:08  20  ,lg7-lg8	d78
+18:38:08  21  ,lg8-lg9	d89
+18:38:08  22  -- step by 2
+18:38:08  23  ,clse-lg2 d02
+18:38:08  24  ,lg2-lg4 d24
+18:38:08  25  ,lg4-lg6 d46
+18:38:08  26  ,lg6-lg8 d68
+18:38:08  27  -- step by 3
+18:38:08  28  ,clse-lg3 d03
+18:38:08  29  ,lg3-lg6	d36
+18:38:08  30  ,lg6-lg9	d69
+18:38:08  31  ,lg9-lg12 d912
+18:38:08  32  -- step by 4
+18:38:08  33  ,clse-lg4 d04
+18:38:08  34  ,lg4-lg8	d48
+18:38:08  35  ,lg8-lg12 d812
+18:38:08  36  ,lg6-lg12 d612
+18:38:08  37  ,lg12-lg18 d1218
+18:38:08  38  --
+18:38:08  39  ,ABS(clse-lg1)dc1
+18:38:08  40  ,ABS(clse-lg2)dc2
+18:38:08  41  ,ABS(clse-lg3)dc3
+18:38:08  42  ,ABS(clse-lg4)dc4
+18:38:08  43  ,ABS(clse-lg5)dc5
+18:38:08  44  ,ABS(clse-lg6)dc6
+18:38:08  45  ,ABS(clse-lg7)dc7
+18:38:08  46  ,ABS(clse-lg8)dc8
+18:38:08  47  ,ABS(clse-lg9)dc9
+18:38:08  48  ,ABS(clse-lg12)dc12
+18:38:08  49  ,ABS(clse-lg18)dc18
+18:38:08  50  ,ABS(clse-lg24)dc24
+18:38:08  51  ,ABS(clse-lg72)dc72
+18:38:08  52  ,(ld4-clse) ug4
+18:38:08  53  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*2  PRECEDING AND CURRENT ROW)crr2
+18:38:08  54  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*3  PRECEDING AND CURRENT ROW)crr3
+18:38:08  55  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*4  PRECEDING AND CURRENT ROW)crr4
+18:38:08  56  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*5  PRECEDING AND CURRENT ROW)crr5
+18:38:08  57  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*6  PRECEDING AND CURRENT ROW)crr6
+18:38:08  58  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*7  PRECEDING AND CURRENT ROW)crr7
+18:38:08  59  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*8  PRECEDING AND CURRENT ROW)crr8
+18:38:08  60  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*9  PRECEDING AND CURRENT ROW)crr9
+18:38:08  61  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*12 PRECEDING AND CURRENT ROW)crr12
+18:38:08  62  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*24 PRECEDING AND CURRENT ROW)crr24
+18:38:08  63  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 6*72 PRECEDING AND CURRENT ROW)crr72
+18:38:08  64  ,0+TO_CHAR(ydate,'HH24')hh
+18:38:08  65  ,0+TO_CHAR(ydate,'D')d
+18:38:08  66  ,0+TO_CHAR(ydate,'W')w
+18:38:08  67  FROM q11
+18:38:08  68  -- I dont want any NULL values from the LAG() functions:
+18:38:08  69  WHERE lg72 > 0
+18:38:08  70  ORDER BY pair,ydate
+18:38:08  71  /
+
+Table created.
+
+Elapsed: 00:00:01.46
+18:38:09 SQL> 
+18:38:09 SQL> -- rpt
+18:38:09 SQL> SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
+
+     TREND COUNT(PRDATE)
+---------- -------------
+	 1	    8178
+	-1	   10034
+
+Elapsed: 00:00:00.03
+18:38:09 SQL> 
+18:38:09 SQL> -- Calc gains and ntiles
+18:38:09 SQL> DROP TABLE q15;
+
+Table dropped.
+
+Elapsed: 00:00:00.13
+18:38:09 SQL> CREATE TABLE q15 COMPRESS AS
+18:38:09   2  SELECT
+18:38:09   3  pair
+18:38:09   4  ,ydate
+18:38:09   5  ,prdate -- Should be unique
+18:38:09   6  ,trend -- +1 or -1
+18:38:09   7  ,dc12 -- next statement needs this
+18:38:09   8  -- Use NTILE() to derive some attributes
+18:38:09   9  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))		 att00
+18:38:09  10  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))		 att01
+18:38:09  11  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))		 att02
+18:38:09  12  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))		 att03
+18:38:09  13  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))		 att04
+18:38:09  14  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))		 att05
+18:38:09  15  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))		 att06
+18:38:09  16  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))		 att07
+18:38:09  17  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912)) 	 att08
+18:38:09  18  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)		 att09
+18:38:09  19  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)		 att10
+18:38:09  20  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)		 att11
+18:38:09  21  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)		 att12
+18:38:09  22  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)		 att13
+18:38:09  23  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)		 att14
+18:38:09  24  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)		 att15
+18:38:09  25  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)		 att16
+18:38:09  26  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)		 att17
+18:38:09  27  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)		 att18
+18:38:09  28  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)		 att19
+18:38:09  29  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
+18:38:09  30  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
+18:38:09  31  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
+18:38:09  32  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
+18:38:09  33  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
+18:38:09  34  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
+18:38:09  35  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
+18:38:09  36  ,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
+18:38:09  37  -- date related integers: hour of day, day of week, week of month:
+18:38:09  38  ,hh    att28
+18:38:09  39  ,d     att29
+18:38:09  40  ,w     att30
+18:38:09  41  ,trend att31
+18:38:09  42  ,ug4 g4
+18:38:09  43  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
+18:38:09  44  ,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
+18:38:09  45  FROM q13
+18:38:09  46  ORDER BY pair,ydate
+18:38:09  47  /
+
+Table created.
+
+Elapsed: 00:00:03.46
+18:38:13 SQL> 
+18:38:13 SQL> -- rpt
+18:38:13 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
+18:38:13   2  GROUP BY pair,trend,gatt,gattn
+18:38:13   3  ORDER BY pair,trend,gatt,gattn
+18:38:13   4  /
+
+PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
+------- ---------- --- --- ---------- ---------- -------------
+usd_chf 	-1 nup nup .000028205	    2566     .05520731
+usd_chf 	-1 nup up   -.0029293	    3716    .069773965
+usd_chf 	-1 up  nup .002542579	    3736    -.11711552
+usd_chf 	-1			       0
+usd_chf 	 1 nup nup 1.8381E-06	    2013    .035355583
+usd_chf 	 1 nup up  -.00267545	    3433      .0982342
+usd_chf 	 1 up  nup .002536665	    2724    -.13498577
+usd_chf 	 1			       0
+
+8 rows selected.
+
+Elapsed: 00:00:00.04
+18:38:13 SQL> 
+18:38:13 SQL> -- rpt
+18:38:13 SQL> SELECT pair,max(ydate)from q15 group by pair;
+
+PAIR	MAX(YDATE)
+------- -------------------
+usd_chf 2010-12-15 17:50:00
+
+Elapsed: 00:00:00.01
+18:38:13 SQL> 
+18:38:13 SQL> DROP TABLE modsrc;
+
+Table dropped.
+
+Elapsed: 00:00:00.16
+18:38:13 SQL> CREATE TABLE modsrc COMPRESS AS
+18:38:13   2  SELECT
+18:38:13   3  pair
+18:38:13   4  ,ydate
+18:38:13   5  ,prdate
+18:38:13   6  ,trend
+18:38:13   7  ,g4
+18:38:13   8  ,gatt
+18:38:13   9  ,gattn
+18:38:13  10  ,dc12
+18:38:13  11  FROM q15
+18:38:13  12  /
+
+Table created.
+
+Elapsed: 00:00:00.08
+18:38:13 SQL> 
+18:38:13 SQL> ANALYZE TABLE modsrc COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.21
+18:38:13 SQL> 
+18:38:13 SQL> -- rpt
+18:38:13 SQL> 
+18:38:13 SQL> SELECT COUNT(pair)FROM q11;
+
+COUNT(PAIR)
+-----------
+      18644
+
+Elapsed: 00:00:00.31
+18:38:14 SQL> SELECT COUNT(pair)FROM q13;
+
+COUNT(PAIR)
+-----------
+      18212
+
+Elapsed: 00:00:00.00
+18:38:14 SQL> SELECT COUNT(pair)FROM q15;
+
+COUNT(PAIR)
+-----------
+      18212
+
+Elapsed: 00:00:00.01
+18:38:14 SQL> SELECT COUNT(pair)FROM modsrc;
+
+COUNT(PAIR)
+-----------
+      18212
+
+Elapsed: 00:00:00.00
+18:38:14 SQL> 
+18:38:14 SQL> SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
+18:38:14   2  GROUP BY pair,trend,gatt,gattn
+18:38:14   3  ORDER BY pair,trend,gatt,gattn
+18:38:14   4  /
+
+PAIR	     TREND GAT GAT    AVG(G4)  COUNT(G4) CORR(DC12,G4)
+------- ---------- --- --- ---------- ---------- -------------
+usd_chf 	-1 nup nup .000028205	    2566     .05520731
+usd_chf 	-1 nup up   -.0029293	    3716    .069773965
+usd_chf 	-1 up  nup .002542579	    3736    -.11711552
+usd_chf 	-1			       0
+usd_chf 	 1 nup nup 1.8381E-06	    2013    .035355583
+usd_chf 	 1 nup up  -.00267545	    3433      .0982342
+usd_chf 	 1 up  nup .002536665	    2724    -.13498577
+usd_chf 	 1			       0
+
+8 rows selected.
+
+Elapsed: 00:00:00.02
+18:38:14 SQL> 
+18:38:14 SQL> DROP   TABLE chf_ms10 ;
+
+Table dropped.
+
+Elapsed: 00:00:00.11
+18:38:14 SQL> CREATE TABLE chf_ms10 COMPRESS AS
+18:38:14   2  SELECT
+18:38:14   3  ydate
+18:38:14   4  ,trend chf_trend
+18:38:14   5  ,g4    chf_g4
+18:38:14   6  ,gatt  chf_gatt
+18:38:14   7  ,gattn	chf_gattn
+18:38:14   8  FROM modsrc
+18:38:14   9  /
 
 Table created.
 
 Elapsed: 00:00:00.06
-09:07:03 SQL> 
-09:07:03 SQL> ANALYZE TABLE chf_att COMPUTE STATISTICS;
+18:38:14 SQL> 
+18:38:14 SQL> ANALYZE TABLE chf_ms10 COMPUTE STATISTICS;
 
 Table analyzed.
 
-Elapsed: 00:00:00.10
-09:07:03 SQL> 
-09:07:03 SQL> -- rpt
-09:07:03 SQL> SELECT COUNT(*)FROM chf_att;
+Elapsed: 00:00:00.16
+18:38:14 SQL> 
+18:38:14 SQL> -- rpt
+18:38:14 SQL> SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
+
+     TREND MIN(YDATE)	       MAX(YDATE)	    COUNT(G4)	 MIN(G4)    MAX(G4)
+---------- ------------------- ------------------- ---------- ---------- ----------
+	 1 2010-06-21 16:40:01 2010-12-15 17:50:00	 8170	-.016775      .0136
+	-1 2010-06-21 14:50:01 2010-12-15 16:30:00	10018	  -.0166      .0149
+
+Elapsed: 00:00:00.02
+18:38:14 SQL> SELECT chf_trend,MIN(ydate),MAX(ydate),COUNT(chf_trend),MIN(chf_g4),MAX(chf_g4)FROM chf_ms10 GROUP BY chf_trend;
+
+ CHF_TREND MIN(YDATE)	       MAX(YDATE)	   COUNT(CHF_TREND) MIN(CHF_G4) MAX(CHF_G4)
+---------- ------------------- ------------------- ---------------- ----------- -----------
+	 1 2010-06-21 16:40:01 2010-12-15 17:50:00	       8178    -.016775       .0136
+	-1 2010-06-21 14:50:01 2010-12-15 16:30:00	      10034	 -.0166       .0149
+
+Elapsed: 00:00:00.01
+18:38:14 SQL> 
+18:38:14 SQL> -- I need a copy of q15 attributes
+18:38:14 SQL> 
+18:38:14 SQL> DROP   TABLE chf_att;
+
+Table dropped.
+
+Elapsed: 00:00:00.12
+18:38:14 SQL> CREATE TABLE chf_att COMPRESS AS
+18:38:14   2  SELECT
+18:38:14   3  ydate
+18:38:14   4  ,att00 chf_att00
+18:38:14   5  ,att01 chf_att01
+18:38:14   6  ,att02 chf_att02
+18:38:14   7  ,att03 chf_att03
+18:38:14   8  ,att04 chf_att04
+18:38:14   9  ,att05 chf_att05
+18:38:14  10  ,att06 chf_att06
+18:38:14  11  ,att07 chf_att07
+18:38:14  12  ,att08 chf_att08
+18:38:14  13  ,att09 chf_att09
+18:38:14  14  ,att10 chf_att10
+18:38:14  15  ,att11 chf_att11
+18:38:14  16  ,att12 chf_att12
+18:38:14  17  ,att13 chf_att13
+18:38:14  18  ,att14 chf_att14
+18:38:14  19  ,att15 chf_att15
+18:38:14  20  ,att16 chf_att16
+18:38:14  21  ,att17 chf_att17
+18:38:14  22  ,att18 chf_att18
+18:38:14  23  ,att19 chf_att19
+18:38:14  24  ,att20 chf_att20
+18:38:14  25  ,att21 chf_att21
+18:38:14  26  ,att22 chf_att22
+18:38:14  27  ,att23 chf_att23
+18:38:14  28  ,att24 chf_att24
+18:38:14  29  ,att25 chf_att25
+18:38:14  30  ,att26 chf_att26
+18:38:14  31  ,att27 chf_att27
+18:38:14  32  ,att28 chf_att28
+18:38:14  33  ,att29 chf_att29
+18:38:14  34  ,att30 chf_att30
+18:38:14  35  ,att31 chf_att31
+18:38:14  36  FROM q15
+18:38:14  37  /
+
+Table created.
+
+Elapsed: 00:00:00.12
+18:38:14 SQL> 
+18:38:14 SQL> ANALYZE TABLE chf_att COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.44
+18:38:15 SQL> 
+18:38:15 SQL> -- rpt
+18:38:15 SQL> SELECT COUNT(*)FROM chf_att;
 
   COUNT(*)
 ----------
-      3792
+     18212
 
-Elapsed: 00:00:00.00
-09:07:03 SQL> 
-09:07:03 SQL> Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+Elapsed: 00:00:00.01
+18:38:15 SQL> 
+18:38:15 SQL> Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options

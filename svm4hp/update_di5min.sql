@@ -4,6 +4,10 @@
 
 -- I use this script to keep the di5min table up to date.
 
+-- Currently I have access to data spread by 10 min.
+-- After I collect data for 6 months, I will have data spread by 5 min.
+-- At that time I will enhance this script (perhaps 2011-05-01).
+
 -- CREATE TABLE di5min0(prdate VARCHAR2(26),pair VARCHAR2(7),ydate DATE,clse NUMBER);
 -- CREATE TABLE di5min (prdate VARCHAR2(26),pair VARCHAR2(7),ydate DATE,clse NUMBER);
 
