@@ -11,18 +11,18 @@ cd $SVM4HP
 cd svm2/
 
 # jpy14t.txt will be the 'top' of jpy14.sql
-cat abc14t.txt | sed '1,$s/abc/jpy/g' > jpy14t.txt
+cat abc14t.txt | sed 's/abc/jpy/g' > jpy14t.txt
 
 # jpy14m.txt will be the 'middle' of jpy14.sql
-cat abcxyz.sql | sed '1,$s/abc/jpy/g' | sed '1,$s/xyz/eur/g' > jpy14m.txt
-cat abcxyz.sql | sed '1,$s/abc/jpy/g' | sed '1,$s/xyz/aud/g' >> jpy14m.txt
-cat abcxyz.sql | sed '1,$s/abc/jpy/g' | sed '1,$s/xyz/gbp/g' >> jpy14m.txt
-cat abcxyz.sql | sed '1,$s/abc/jpy/g' | sed '1,$s/xyz/jpy/g' >> jpy14m.txt
-cat abcxyz.sql | sed '1,$s/abc/jpy/g' | sed '1,$s/xyz/cad/g' >> jpy14m.txt
-cat abcxyz.sql | sed '1,$s/abc/jpy/g' | sed '1,$s/xyz/chf/g' >> jpy14m.txt
+cat abcxyz.sql | sed 's/abc/jpy/g' | sed 's/xyz/eur/g' > jpy14m.txt
+cat abcxyz.sql | sed 's/abc/jpy/g' | sed 's/xyz/aud/g' >> jpy14m.txt
+cat abcxyz.sql | sed 's/abc/jpy/g' | sed 's/xyz/gbp/g' >> jpy14m.txt
+cat abcxyz.sql | sed 's/abc/jpy/g' | sed 's/xyz/jpy/g' >> jpy14m.txt
+cat abcxyz.sql | sed 's/abc/jpy/g' | sed 's/xyz/cad/g' >> jpy14m.txt
+cat abcxyz.sql | sed 's/abc/jpy/g' | sed 's/xyz/chf/g' >> jpy14m.txt
 
 # jpy14b.txt will be the 'bottom' of jpy14.sql
-cat abc14b.txt | sed '1,$s/abc/jpy/g' > jpy14b.txt
+cat abc14b.txt | sed 's/abc/jpy/g' > jpy14b.txt
 
 # cat together 
 #   top,        middle,    bottom:

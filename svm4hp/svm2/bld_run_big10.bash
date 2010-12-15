@@ -4,8 +4,8 @@
 
 # Edit copies of abc10.sql to make gbp10.sql, etc.
 
-. /pt/s/oracle/.orcl
-. /pt/s/oracle/.jruby
+. /pt/s/rluck/svm4hp/.orcl
+. /pt/s/rluck/svm4hp/.jruby
 
 set -x
 

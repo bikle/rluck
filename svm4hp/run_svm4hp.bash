@@ -20,8 +20,6 @@ jruby sedem.rb
 # aud_ms10, aud_att, ... , chf_ms10, chf_att
 ./bld_run_big10.bash > /pt/s/cron/out/bld_run_big10.${myts}.txt 2>&1
 
-exit
-
 # Now, for each pair, run SVM and collect the scores:
 chmod +x *bash
 ./aud_svm2.bash > /pt/s/cron/out/aud_svm2.${myts}.txt 2>&1
