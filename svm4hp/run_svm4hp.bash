@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# svm4hp.bash
+# run_svm4hp.bash
 
 # I use this script as an entry point into a backtest of the svm4hp strategy.
 
