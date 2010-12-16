@@ -9,11 +9,11 @@
 set -x 
 cd $SVM4HP
 
-## while [ 1 ]
-## do
+while [ 1 ]
+do
   export myts=`date +%Y_%m_%d_%H_%M`
   date
   echo hello
   ./z2_every10.bash > /pt/s/cron/out/./z2_every10.${myts}.txt 2>&1
   date
-## done
+done
