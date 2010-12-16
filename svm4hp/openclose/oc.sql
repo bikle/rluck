@@ -4,7 +4,7 @@
 
 -- This script helps me open and close forex positions.
 
-INSERT INTO oc(pair,buysell,score,score2,trend,ydate,rundate,opdate,clsdate)
+INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
 
 SELECT
 prdate
