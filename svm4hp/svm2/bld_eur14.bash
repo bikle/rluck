@@ -5,6 +5,7 @@
 # This script builds a sql script.
 
 # This script is both a working script and a template.
+. /pt/s/rluck/svm4hp/.jruby
 
 set -x
 

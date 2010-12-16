@@ -4,6 +4,7 @@
 
 # This script builds a sql script.
 
+. /pt/s/rluck/svm4hp/.jruby
 
 set -x
 
