@@ -9,7 +9,7 @@ WHERE 'gbp'||ydate NOT IN (SELECT prdate FROM fxscores)
 -- For backtesting:
 AND ydate > (SELECT MIN(ydate)+35 FROM gbp_ms14)
 -- For cron:
--- AND ydate > sysdate - 0.5/24
+AND ydate > sysdate - 11/60/24
 ORDER BY ydate
 /
 
@@ -18,7 +18,7 @@ WHERE 'gbp'||ydate NOT IN (SELECT prdate FROM fxscores_gattn)
 -- For backtesting:
 AND ydate > (SELECT MIN(ydate)+35 FROM gbp_ms14)
 -- For cron:
--- AND ydate > sysdate - 0.5/24
+AND ydate > sysdate - 11/60/24
 ORDER BY ydate
 /
 
