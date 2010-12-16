@@ -33,6 +33,7 @@ class PlaceOrder
   end
 
   def self.place_order
+debugger
     if $*.size != 6
       p "I want you to give me 6 params"
       p "Usage: place_order.rb buy|sell size SYMBOL CURRENCY opendate closedate"
@@ -46,7 +47,8 @@ class PlaceOrder
     ut= SampleRfq.new(m_clientId, m_rfqId, mode)
 
     my_contract= Contract.new
-    buysell= $*[1]
+    my_order=  Order.new
+    buysell= $*[0]
 
     case
     when (buysell == "buy" or buysell == "BUY") then
@@ -57,18 +59,18 @@ class PlaceOrder
 
     ssize= 40*1000
     # For AUD, CAD, CHF, JPY, that is about $40,000
-    ssize= $*[2].to_i
+    ssize= $*[1].to_i
 
     my_contract.m_symbol  = jl_str "EUR"
-    my_contract.m_symbol  = jl_str $*[3]
+    my_contract.m_symbol  = jl_str $*[2]
     my_contract.m_currency= jl_str "USD"
-    my_contract.m_currency= jl_str $*[4]
+    my_contract.m_currency= jl_str $*[3]
     my_contract.m_secType = jl_str "CASH"
     my_contract.m_exchange= jl_str "IDEALPRO"
 
-    opdate = $*[6]
+    opdate = $*[4]
 
-    my_order=  Order.new
+
     # (my_order.methods - 1.methods).each{|m| p m}
     # I think that IB ignores my_order.m_orderId, so I set it to 10.
     my_order.m_orderId      = 10
