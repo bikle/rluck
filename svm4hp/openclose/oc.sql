@@ -32,7 +32,7 @@ prdate
   )
   THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
   WHEN 0+TO_CHAR((sysdate+4/24),'D') = 7
-  THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
+  THEN TRUNC(sysdate) + 2 + 9/24 + 11/60/24
   ELSE sysdate + 4/24 END clsdate
 FROM fxscores
 WHERE score > 0.75
@@ -67,7 +67,7 @@ prdate
   )
   THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
   WHEN 0+TO_CHAR((sysdate+4/24),'D') = 7
-  THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
+  THEN TRUNC(sysdate) + 2 + 9/24 + 11/60/24
   ELSE sysdate + 4/24 END clsdate
 FROM fxscores_gattn
 WHERE score > 0.75

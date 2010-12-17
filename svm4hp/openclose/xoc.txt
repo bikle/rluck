@@ -1,5 +1,5 @@
 
-SQL*Plus: Release 11.2.0.1.0 Production on Fri Dec 17 22:10:38 2010
+SQL*Plus: Release 11.2.0.1.0 Production on Fri Dec 17 22:15:47 2010
 
 Copyright (c) 1982, 2009, Oracle.  All rights reserved.
 
@@ -8,54 +8,56 @@ Connected to:
 Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 
-22:10:38 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+22:15:47 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
 
 Session altered.
 
-Elapsed: 00:00:00.00
-22:10:38 SQL> 22:10:38 SQL> --
-22:10:38 SQL> -- xoc.sql
-22:10:38 SQL> --
-22:10:38 SQL> 
-22:10:38 SQL> -- I use this script to help me execute open/close orders.
-22:10:38 SQL> 
-22:10:38 SQL> SELECT
-22:10:38   2  './place_order.bash '||buysell shell_cmd
-22:10:38   3  ,30000 ssize
-22:10:38   4  ,REPLACE(UPPER(pair),'_',' ') pair
-22:10:38   5  ,TO_CHAR(opdate,'YYYYMMDD_hh24:mi:ss')||'_GMT' xopdate
-22:10:38   6  ,TO_CHAR(clsdate,'YYYYMMDD_hh24:mi:ss')||'_GMT'xclsdate
-22:10:38   7  FROM oc
-22:10:38   8  WHERE opdate > sysdate - 15/60/24
-22:10:38   9  -- Try to avoid entering duplicate orders:
-22:10:38  10  AND prdate NOT IN(SELECT prdate FROM xoc)
-22:10:38  11  /
+Elapsed: 00:00:00.01
+22:15:47 SQL> 22:15:47 SQL> --
+22:15:47 SQL> -- xoc.sql
+22:15:47 SQL> --
+22:15:47 SQL> 
+22:15:47 SQL> -- I use this script to help me execute open/close orders.
+22:15:47 SQL> 
+22:15:47 SQL> SELECT
+22:15:47   2  './place_order.bash '||buysell shell_cmd
+22:15:47   3  ,30000 ssize
+22:15:47   4  ,REPLACE(UPPER(pair),'_',' ') pair
+22:15:47   5  -- Set opdate to recent-past to avoid clock skew.
+22:15:47   6  -- IB equates recent-past to right-now:
+22:15:47   7  ,TO_CHAR(opdate-1/24,'YYYYMMDD_hh24:mi:ss')||'_GMT' xopdate
+22:15:47   8  ,TO_CHAR(clsdate,'YYYYMMDD_hh24:mi:ss')||'_GMT'xclsdate
+22:15:47   9  FROM oc
+22:15:47  10  WHERE opdate > sysdate - 15/60/24
+22:15:47  11  -- Try to avoid entering duplicate orders:
+22:15:47  12  AND prdate NOT IN(SELECT prdate FROM xoc)
+22:15:47  13  /
 
 no rows selected
 
-Elapsed: 00:00:00.01
-22:10:38 SQL> 
-22:10:38 SQL> -- Try to avoid entering duplicate orders:
-22:10:38 SQL> INSERT INTO xoc(prdate,xocdate)
-22:10:38   2  SELECT prdate,sysdate FROM oc
-22:10:38   3  WHERE opdate > sysdate - 15/60/24
-22:10:38   4  /
+Elapsed: 00:00:00.05
+22:15:47 SQL> 
+22:15:47 SQL> -- Try to avoid entering duplicate orders:
+22:15:47 SQL> INSERT INTO xoc(prdate,xocdate)
+22:15:47   2  SELECT prdate,sysdate FROM oc
+22:15:47   3  WHERE opdate > sysdate - 15/60/24
+22:15:47   4  /
 
 1 row created.
 
 Elapsed: 00:00:00.00
-22:10:38 SQL> 
-22:10:38 SQL> -- How many orders have I entered?:
-22:10:38 SQL> SELECT COUNT(*)FROM xoc;
+22:15:47 SQL> 
+22:15:47 SQL> -- How many orders have I entered?:
+22:15:47 SQL> SELECT COUNT(*)FROM xoc;
 
   COUNT(*)
 ----------
-       145
+       146
 
 Elapsed: 00:00:00.00
-22:10:38 SQL> 
-22:10:38 SQL> -- recently?:
-22:10:38 SQL> SELECT * FROM xoc WHERE xocdate > sysdate - 1;
+22:15:47 SQL> 
+22:15:47 SQL> -- recently?:
+22:15:47 SQL> SELECT * FROM xoc WHERE xocdate > sysdate - 1;
 
 PRDATE			       XOCDATE
 ------------------------------ -------------------
@@ -201,11 +203,12 @@ eur2010-12-17 19:50:00	       2010-12-17 20:17:35
 gbp2010-12-17 19:55:00	       2010-12-17 20:17:35
 gbp2010-12-17 19:55:00	       2010-12-17 20:24:02
 gbp2010-12-17 21:50:00	       2010-12-17 22:10:38
+gbp2010-12-17 21:50:00	       2010-12-17 22:15:47
 
-139 rows selected.
+140 rows selected.
 
 Elapsed: 00:00:00.01
-22:10:38 SQL> 
-22:10:38 SQL> exit
+22:15:47 SQL> 
+22:15:47 SQL> exit
 Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
