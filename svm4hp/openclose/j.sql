@@ -1,12 +1,34 @@
---
--- oc.sql
---
 
--- This script helps me open and close forex positions.
+select
+sysdate now
+, TO_CHAR(sysdate,'D') ddy
+,sysdate + 4/24 x4hr_from_now
+,TRUNC(sysdate) + 21/24 + 50/60/24 ddline
+,TRUNC(sysdate) + 3 + 9/24 + 11/60/24 mon_morn
+,CASE WHEN
+  (
+  0+TO_CHAR((sysdate),'D') = 6
+  AND
+  sysdate+4 > TRUNC(sysdate) + 21/24 + 50/60/24
+  )
+  THEN'sell_mon1'
+  WHEN 0+TO_CHAR((sysdate+4/24),'D') = 7
+  THEN'sell_mon2'
+ELSE'sell_in_4'END selltime
+,CASE WHEN
+  (
+  0+TO_CHAR((sysdate),'D') = 6
+  AND
+  sysdate+4 > TRUNC(sysdate) + 21/24 + 50/60/24
+  )
+  THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
+  WHEN 0+TO_CHAR((sysdate+4/24),'D') = 7
+  THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
+  ELSE sysdate + 4/24 END clsdate
+from dual
+/
 
-COLUMN prdate FORMAT A22
 
-INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
 SELECT
 prdate
 ,CASE WHEN SUBSTR(prdate,1,3)='aud'THEN'aud_usd'
@@ -22,6 +44,7 @@ prdate
 ,score
 ,rundate
 ,sysdate       opdate
+
 ,CASE WHEN
   (
   0+TO_CHAR((sysdate),'D') = 6
@@ -32,6 +55,8 @@ prdate
   WHEN 0+TO_CHAR((sysdate+4/24),'D') = 7
   THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
   ELSE sysdate + 4/24 END clsdate
+
+
 FROM fxscores
 WHERE score > 0.75
 AND rundate > sysdate - 1/24
@@ -39,7 +64,7 @@ AND prdate NOT IN(SELECT prdate FROM oc)
 ORDER BY rundate
 /
 
-INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
+
 SELECT
 prdate
 ,CASE WHEN SUBSTR(prdate,1,3)='aud'THEN'aud_usd'
@@ -72,13 +97,3 @@ AND prdate NOT IN(SELECT prdate FROM oc)
 ORDER BY rundate
 /
 
--- rpt:
-
-SELECT
-prdate,buysell,score,rundate,opdate,clsdate
-FROM oc
-WHERE rundate > sysdate - 1
-ORDER BY rundate
-/
-
-exit
