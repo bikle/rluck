@@ -17,4 +17,5 @@ cd $SVM4HP
 cd openclose/
 
 echo jruby place_order.rb $@
-jruby --debug place_order.rb $@
+## jruby --debug place_order.rb $@
+jruby place_order.rb $@
