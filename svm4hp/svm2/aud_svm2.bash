@@ -34,3 +34,11 @@ grep score1day aud_scorem.txt | grep -v SELECT > aud_scorem.sql
 sqt>out_of_aud_scorem.txt<<EOF
 @aud_scorem.sql
 EOF
+
+# act on the scores:
+
+cd $SVM4HP
+cd openclose/
+./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
+
+exit

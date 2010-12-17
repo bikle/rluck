@@ -34,3 +34,11 @@ grep score1day eur_scorem.txt | grep -v SELECT > eur_scorem.sql
 sqt>out_of_eur_scorem.txt<<EOF
 @eur_scorem.sql
 EOF
+
+# act on the scores:
+
+cd $SVM4HP
+cd openclose/
+./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
+
+exit

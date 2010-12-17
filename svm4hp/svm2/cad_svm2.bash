@@ -34,3 +34,11 @@ grep score1day cad_scorem.txt | grep -v SELECT > cad_scorem.sql
 sqt>out_of_cad_scorem.txt<<EOF
 @cad_scorem.sql
 EOF
+
+# act on the scores:
+
+cd $SVM4HP
+cd openclose/
+./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
+
+exit

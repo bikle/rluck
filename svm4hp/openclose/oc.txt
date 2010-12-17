@@ -1,0 +1,100 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Fri Dec 17 03:37:24 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+03:37:24 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+03:37:24 SQL> 03:37:24 SQL> --
+03:37:24 SQL> -- oc.sql
+03:37:24 SQL> --
+03:37:24 SQL> 
+03:37:24 SQL> -- This script helps me open and close forex positions.
+03:37:24 SQL> 
+03:37:24 SQL> COLUMN prdate FORMAT A22
+03:37:24 SQL> 
+03:37:24 SQL> INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
+03:37:24   2  SELECT
+03:37:24   3  prdate
+03:37:24   4  ,CASE WHEN SUBSTR(prdate,1,3)='aud'THEN'aud_usd'
+03:37:24   5  	    WHEN SUBSTR(prdate,1,3)='eur'THEN'eur_usd'
+03:37:24   6  	    WHEN SUBSTR(prdate,1,3)='gbp'THEN'gbp_usd'
+03:37:24   7  	    WHEN SUBSTR(prdate,1,3)='cad'THEN'usd_cad'
+03:37:24   8  	    WHEN SUBSTR(prdate,1,3)='chf'THEN'usd_chf'
+03:37:24   9  	    WHEN SUBSTR(prdate,1,3)='jpy'THEN'usd_jpy'
+03:37:24  10  	ELSE SUBSTR(prdate,1,3)
+03:37:24  11  	END pair
+03:37:24  12  ,TO_DATE(SUBSTR(prdate,4,19))ydate
+03:37:24  13  ,'buy'	     buysell
+03:37:24  14  ,score
+03:37:24  15  ,rundate
+03:37:24  16  ,sysdate	     opdate
+03:37:24  17  ,sysdate +4/24 clsdate
+03:37:24  18  FROM fxscores
+03:37:24  19  WHERE score > 0.75
+03:37:24  20  AND rundate > sysdate - 1/24
+03:37:24  21  AND prdate NOT IN(SELECT prdate FROM oc)
+03:37:24  22  ORDER BY rundate
+03:37:24  23  /
+
+0 rows created.
+
+Elapsed: 00:00:00.00
+03:37:24 SQL> 
+03:37:24 SQL> INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
+03:37:24   2  SELECT
+03:37:24   3  prdate
+03:37:24   4  ,CASE WHEN SUBSTR(prdate,1,3)='aud'THEN'aud_usd'
+03:37:24   5  	    WHEN SUBSTR(prdate,1,3)='eur'THEN'eur_usd'
+03:37:24   6  	    WHEN SUBSTR(prdate,1,3)='gbp'THEN'gbp_usd'
+03:37:24   7  	    WHEN SUBSTR(prdate,1,3)='cad'THEN'usd_cad'
+03:37:24   8  	    WHEN SUBSTR(prdate,1,3)='chf'THEN'usd_chf'
+03:37:24   9  	    WHEN SUBSTR(prdate,1,3)='jpy'THEN'usd_jpy'
+03:37:24  10  	ELSE SUBSTR(prdate,1,3)
+03:37:24  11  	END pair
+03:37:24  12  ,TO_DATE(SUBSTR(prdate,4,19))ydate
+03:37:24  13  ,'sell'	      buysell
+03:37:24  14  ,score
+03:37:24  15  ,rundate
+03:37:24  16  ,sysdate	     opdate
+03:37:24  17  ,sysdate +4/24 clsdate
+03:37:24  18  FROM fxscores_gattn
+03:37:24  19  WHERE score > 0.75
+03:37:24  20  AND rundate > sysdate - 1/24
+03:37:24  21  AND prdate NOT IN(SELECT prdate FROM oc)
+03:37:24  22  ORDER BY rundate
+03:37:24  23  /
+
+0 rows created.
+
+Elapsed: 00:00:00.01
+03:37:24 SQL> 
+03:37:24 SQL> -- rpt:
+03:37:24 SQL> 
+03:37:24 SQL> SELECT
+03:37:24   2  prdate,buysell,score,rundate,opdate,clsdate
+03:37:24   3  FROM oc
+03:37:24   4  WHERE rundate > sysdate - 1
+03:37:24   5  ORDER BY rundate
+03:37:24   6  /
+
+PRDATE		       BUYSELL	    SCORE RUNDATE	      OPDATE		  CLSDATE
+---------------------- ------- ---------- ------------------- ------------------- -------------------
+jpy2010-12-16 19:20:00 buy     .795887141 2010-12-16 19:32:01 2010-12-16 20:06:12 2010-12-17 00:06:12
+aud2010-12-16 19:25:00 sell    .758402993 2010-12-16 19:38:43 2010-12-16 20:09:32 2010-12-17 00:09:32
+chf2010-12-16 19:50:00 buy	.79566451 2010-12-16 20:03:41 2010-12-16 20:06:12 2010-12-17 00:06:12
+chf2010-12-17 02:05:00 sell    .774479936 2010-12-17 02:19:31 2010-12-17 02:19:32 2010-12-17 06:19:32
+
+Elapsed: 00:00:00.02
+03:37:24 SQL> 
+03:37:24 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options

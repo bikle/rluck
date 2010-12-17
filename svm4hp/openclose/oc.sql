@@ -54,8 +54,13 @@ AND prdate NOT IN(SELECT prdate FROM oc)
 ORDER BY rundate
 /
 
+-- rpt:
+
 SELECT
 prdate,buysell,score,rundate,opdate,clsdate
 FROM oc
-ORDER BY prdate
+WHERE rundate > sysdate - 1
+ORDER BY rundate
 /
+
+exit

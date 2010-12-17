@@ -15,10 +15,13 @@ sqt>xoc.txt<<EOF
 @xoc.sql
 EOF
 
+export myts=`date +%Y_%m_%d_%H_%M`
+cp -p xoc.txt /pt/s/cron/out/xoc.${myts}.txt
+
 grep place_order.bash xoc.txt | grep -v shell_cmd > an_order.bash
 chmod +x an_order.bash
 cat ./an_order.bash
-# not yet: ./an_order.bash
+./an_order.bash
 
 exit
 

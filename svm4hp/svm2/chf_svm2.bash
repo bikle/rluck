@@ -34,3 +34,11 @@ grep score1day chf_scorem.txt | grep -v SELECT > chf_scorem.sql
 sqt>out_of_chf_scorem.txt<<EOF
 @chf_scorem.sql
 EOF
+
+# act on the scores:
+
+cd $SVM4HP
+cd openclose/
+./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
+
+exit
