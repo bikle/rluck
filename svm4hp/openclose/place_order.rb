@@ -1,8 +1,8 @@
 #! /usr/bin/env jruby
 # /pt/s/api/fd/place_order.rb
 
-# Usage: place_order.rb SYMBOL CURRENCY buy|sell rundate
-# Demo: place_order.rb EUR USD buy 20101027_09:58:12_GMT
+# Usage: place_order.rb SYMBOL CURRENCY buy|sell opendate closedate
+# Demo: place_order.rb EUR USD buy 20110206_20:06:12_GMT 20110207_00:06:12_GMT
 
 require 'rubygems' 
 require 'ruby-debug' 
