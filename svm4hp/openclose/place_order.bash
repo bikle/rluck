@@ -5,7 +5,7 @@
 # I use this script to place orders with IB via their API.
 
 # Usage: 
-# place_order.rb buy|sell size SYMBOL CURRENCY opendate closedate"
+# place_order.bash buy|sell size SYMBOL CURRENCY opendate closedate"
 # Demo:
 # place_order.bash buy 30000 USD JPY 20110216_20:06:12_GMT 20110217_00:06:12_GMT
 
