@@ -1,5 +1,5 @@
 #!/bin/bash
-
+sleep 123456
 # z2_every10.bash
 
 # I run this script frequently, perhaps every 10 minutes.
@@ -31,6 +31,11 @@ jruby sedem.rb
 # Now, for each pair, run SVM and collect the scores:
 chmod +x *bash
 ./aud_svm2.bash > /pt/s/cron/out/aud_svm2.${myts}.txt 2>&1
+# act on the scores:
+cd $SVM4HP
+cd openclose/
+./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
+
 
 # Now do eur_usd:
 cd $SVM4HP
@@ -43,6 +48,10 @@ EOF
 cd svm2/
 ./bld_run_big10.bash > /pt/s/cron/out/bld_run_big10.${myts}.txt 2>&1
 ./eur_svm2.bash > /pt/s/cron/out/eur_svm2.${myts}.txt 2>&1
+# act on the scores:
+cd $SVM4HP
+cd openclose/
+./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
 
 # Now do gbp_usd:
 cd $SVM4HP
@@ -55,6 +64,10 @@ EOF
 cd svm2/
 ./bld_run_big10.bash > /pt/s/cron/out/bld_run_big10.${myts}.txt 2>&1
 ./gbp_svm2.bash > /pt/s/cron/out/gbp_svm2.${myts}.txt 2>&1
+# act on the scores:
+cd $SVM4HP
+cd openclose/
+./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
 
 # Now do usd_cad:
 cd $SVM4HP
@@ -67,6 +80,10 @@ EOF
 cd svm2/
 ./bld_run_big10.bash > /pt/s/cron/out/bld_run_big10.${myts}.txt 2>&1
 ./cad_svm2.bash > /pt/s/cron/out/cad_svm2.${myts}.txt 2>&1
+# act on the scores:
+cd $SVM4HP
+cd openclose/
+./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
 
 # Now do usd_chf:
 cd $SVM4HP
@@ -79,6 +96,10 @@ EOF
 cd svm2/
 ./bld_run_big10.bash > /pt/s/cron/out/bld_run_big10.${myts}.txt 2>&1
 ./chf_svm2.bash > /pt/s/cron/out/chf_svm2.${myts}.txt 2>&1
+# act on the scores:
+cd $SVM4HP
+cd openclose/
+./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
 
 # Now do usd_jpy:
 cd $SVM4HP
@@ -91,5 +112,9 @@ EOF
 cd svm2/
 ./bld_run_big10.bash > /pt/s/cron/out/bld_run_big10.${myts}.txt 2>&1
 ./jpy_svm2.bash > /pt/s/cron/out/jpy_svm2.${myts}.txt 2>&1
+# act on the scores:
+cd $SVM4HP
+cd openclose/
+./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
 
 exit
