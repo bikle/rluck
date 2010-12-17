@@ -8,7 +8,9 @@ SELECT
 './place_order.bash '||buysell shell_cmd
 ,30000 ssize
 ,REPLACE(UPPER(pair),'_',' ') pair
-,TO_CHAR(opdate,'YYYYMMDD_hh24:mi:ss')||'_GMT' xopdate
+-- Set opdate to recent-past to avoid clock skew.
+-- IB equates recent-past to right-now:
+,TO_CHAR(opdate-1/24,'YYYYMMDD_hh24:mi:ss')||'_GMT' xopdate
 ,TO_CHAR(clsdate,'YYYYMMDD_hh24:mi:ss')||'_GMT'xclsdate
 FROM oc
 WHERE opdate > sysdate - 15/60/24

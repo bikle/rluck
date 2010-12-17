@@ -18,10 +18,12 @@ prdate
   ELSE SUBSTR(prdate,1,3)
   END pair
 ,TO_DATE(SUBSTR(prdate,4,19))ydate
-,'buy'         buysell
+,'buy'        buysell
 ,score
 ,rundate
-,sysdate       opdate
+,sysdate opdate
+-- Deal with Fri-afternoon.
+-- I want to close Fri-afternoon orders on Mon Morn 09:11 GMT:
 ,CASE WHEN
   (
   0+TO_CHAR((sysdate),'D') = 6
@@ -54,7 +56,9 @@ prdate
 ,'sell'         buysell
 ,score
 ,rundate
-,sysdate       opdate
+,sysdate opdate
+-- Deal with Fri-afternoon.
+-- I want to close Fri-afternoon orders on Mon Morn 09:11 GMT:
 ,CASE WHEN
   (
   0+TO_CHAR((sysdate),'D') = 6

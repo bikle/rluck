@@ -1,5 +1,5 @@
 
-SQL*Plus: Release 11.2.0.1.0 Production on Fri Dec 17 21:57:51 2010
+SQL*Plus: Release 11.2.0.1.0 Production on Fri Dec 17 22:10:38 2010
 
 Copyright (c) 1982, 2009, Oracle.  All rights reserved.
 
@@ -8,101 +8,103 @@ Connected to:
 Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 
-21:57:51 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+22:10:38 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
 
 Session altered.
 
 Elapsed: 00:00:00.00
-21:57:51 SQL> 21:57:51 SQL> --
-21:57:51 SQL> -- oc.sql
-21:57:51 SQL> --
-21:57:51 SQL> 
-21:57:51 SQL> -- This script helps me open and close forex positions.
-21:57:51 SQL> 
-21:57:51 SQL> COLUMN prdate FORMAT A22
-21:57:51 SQL> 
-21:57:51 SQL> INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
-21:57:51   2  SELECT
-21:57:51   3  prdate
-21:57:51   4  ,CASE WHEN SUBSTR(prdate,1,3)='aud'THEN'aud_usd'
-21:57:51   5  	    WHEN SUBSTR(prdate,1,3)='eur'THEN'eur_usd'
-21:57:51   6  	    WHEN SUBSTR(prdate,1,3)='gbp'THEN'gbp_usd'
-21:57:51   7  	    WHEN SUBSTR(prdate,1,3)='cad'THEN'usd_cad'
-21:57:51   8  	    WHEN SUBSTR(prdate,1,3)='chf'THEN'usd_chf'
-21:57:51   9  	    WHEN SUBSTR(prdate,1,3)='jpy'THEN'usd_jpy'
-21:57:51  10  	ELSE SUBSTR(prdate,1,3)
-21:57:51  11  	END pair
-21:57:51  12  ,TO_DATE(SUBSTR(prdate,4,19))ydate
-21:57:51  13  ,'buy'	     buysell
-21:57:51  14  ,score
-21:57:51  15  ,rundate
-21:57:51  16  ,sysdate	     opdate
-21:57:51  17  ,CASE WHEN
-21:57:51  18  	(
-21:57:51  19  	0+TO_CHAR((sysdate),'D') = 6
-21:57:51  20  	AND
-21:57:51  21  	sysdate+4 > TRUNC(sysdate) + 21/24 + 50/60/24
-21:57:51  22  	)
-21:57:51  23  	THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
-21:57:51  24  	WHEN 0+TO_CHAR((sysdate+4/24),'D') = 7
-21:57:51  25  	THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
-21:57:51  26  	ELSE sysdate + 4/24 END clsdate
-21:57:51  27  FROM fxscores
-21:57:51  28  WHERE score > 0.75
-21:57:51  29  AND rundate > sysdate - 1/24
-21:57:51  30  AND prdate NOT IN(SELECT prdate FROM oc)
-21:57:51  31  ORDER BY rundate
-21:57:51  32  /
+22:10:38 SQL> 22:10:38 SQL> --
+22:10:38 SQL> -- oc.sql
+22:10:38 SQL> --
+22:10:38 SQL> 
+22:10:38 SQL> -- This script helps me open and close forex positions.
+22:10:38 SQL> 
+22:10:38 SQL> COLUMN prdate FORMAT A22
+22:10:38 SQL> 
+22:10:38 SQL> INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
+22:10:38   2  SELECT
+22:10:38   3  prdate
+22:10:38   4  ,CASE WHEN SUBSTR(prdate,1,3)='aud'THEN'aud_usd'
+22:10:38   5  	    WHEN SUBSTR(prdate,1,3)='eur'THEN'eur_usd'
+22:10:38   6  	    WHEN SUBSTR(prdate,1,3)='gbp'THEN'gbp_usd'
+22:10:38   7  	    WHEN SUBSTR(prdate,1,3)='cad'THEN'usd_cad'
+22:10:38   8  	    WHEN SUBSTR(prdate,1,3)='chf'THEN'usd_chf'
+22:10:38   9  	    WHEN SUBSTR(prdate,1,3)='jpy'THEN'usd_jpy'
+22:10:38  10  	ELSE SUBSTR(prdate,1,3)
+22:10:38  11  	END pair
+22:10:38  12  ,TO_DATE(SUBSTR(prdate,4,19))ydate
+22:10:38  13  ,'buy'	    buysell
+22:10:38  14  ,score
+22:10:38  15  ,rundate
+22:10:38  16  -- Set opdate to recent past to avoid clock skew:
+22:10:38  17  ,sysdate -1/24 opdate
+22:10:38  18  ,CASE WHEN
+22:10:38  19  	(
+22:10:38  20  	0+TO_CHAR((sysdate),'D') = 6
+22:10:38  21  	AND
+22:10:38  22  	sysdate+4 > TRUNC(sysdate) + 21/24 + 50/60/24
+22:10:38  23  	)
+22:10:38  24  	THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
+22:10:38  25  	WHEN 0+TO_CHAR((sysdate+4/24),'D') = 7
+22:10:38  26  	THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
+22:10:38  27  	ELSE sysdate + 4/24 END clsdate
+22:10:38  28  FROM fxscores
+22:10:38  29  WHERE score > 0.75
+22:10:38  30  AND rundate > sysdate - 1/24
+22:10:38  31  AND prdate NOT IN(SELECT prdate FROM oc)
+22:10:38  32  ORDER BY rundate
+22:10:38  33  /
 
 0 rows created.
 
-Elapsed: 00:00:00.02
-21:57:51 SQL> 
-21:57:51 SQL> INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
-21:57:51   2  SELECT
-21:57:51   3  prdate
-21:57:51   4  ,CASE WHEN SUBSTR(prdate,1,3)='aud'THEN'aud_usd'
-21:57:51   5  	    WHEN SUBSTR(prdate,1,3)='eur'THEN'eur_usd'
-21:57:51   6  	    WHEN SUBSTR(prdate,1,3)='gbp'THEN'gbp_usd'
-21:57:51   7  	    WHEN SUBSTR(prdate,1,3)='cad'THEN'usd_cad'
-21:57:51   8  	    WHEN SUBSTR(prdate,1,3)='chf'THEN'usd_chf'
-21:57:51   9  	    WHEN SUBSTR(prdate,1,3)='jpy'THEN'usd_jpy'
-21:57:51  10  	ELSE SUBSTR(prdate,1,3)
-21:57:51  11  	END pair
-21:57:51  12  ,TO_DATE(SUBSTR(prdate,4,19))ydate
-21:57:51  13  ,'sell'	      buysell
-21:57:51  14  ,score
-21:57:51  15  ,rundate
-21:57:51  16  ,sysdate	     opdate
-21:57:51  17  ,CASE WHEN
-21:57:51  18  	(
-21:57:51  19  	0+TO_CHAR((sysdate),'D') = 6
-21:57:51  20  	AND
-21:57:51  21  	sysdate+4 > TRUNC(sysdate) + 21/24 + 50/60/24
-21:57:51  22  	)
-21:57:51  23  	THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
-21:57:51  24  	WHEN 0+TO_CHAR((sysdate+4/24),'D') = 7
-21:57:51  25  	THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
-21:57:51  26  	ELSE sysdate + 4/24 END clsdate
-21:57:51  27  FROM fxscores_gattn
-21:57:51  28  WHERE score > 0.75
-21:57:51  29  AND rundate > sysdate - 1/24
-21:57:51  30  AND prdate NOT IN(SELECT prdate FROM oc)
-21:57:51  31  ORDER BY rundate
-21:57:51  32  /
+Elapsed: 00:00:00.04
+22:10:38 SQL> 
+22:10:38 SQL> INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
+22:10:38   2  SELECT
+22:10:38   3  prdate
+22:10:38   4  ,CASE WHEN SUBSTR(prdate,1,3)='aud'THEN'aud_usd'
+22:10:38   5  	    WHEN SUBSTR(prdate,1,3)='eur'THEN'eur_usd'
+22:10:38   6  	    WHEN SUBSTR(prdate,1,3)='gbp'THEN'gbp_usd'
+22:10:38   7  	    WHEN SUBSTR(prdate,1,3)='cad'THEN'usd_cad'
+22:10:38   8  	    WHEN SUBSTR(prdate,1,3)='chf'THEN'usd_chf'
+22:10:38   9  	    WHEN SUBSTR(prdate,1,3)='jpy'THEN'usd_jpy'
+22:10:38  10  	ELSE SUBSTR(prdate,1,3)
+22:10:38  11  	END pair
+22:10:38  12  ,TO_DATE(SUBSTR(prdate,4,19))ydate
+22:10:38  13  ,'sell'	      buysell
+22:10:38  14  ,score
+22:10:38  15  ,rundate
+22:10:38  16  -- Set opdate to recent past to avoid clock skew:
+22:10:38  17  ,sysdate -1/24 opdate
+22:10:38  18  ,CASE WHEN
+22:10:38  19  	(
+22:10:38  20  	0+TO_CHAR((sysdate),'D') = 6
+22:10:38  21  	AND
+22:10:38  22  	sysdate+4 > TRUNC(sysdate) + 21/24 + 50/60/24
+22:10:38  23  	)
+22:10:38  24  	THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
+22:10:38  25  	WHEN 0+TO_CHAR((sysdate+4/24),'D') = 7
+22:10:38  26  	THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
+22:10:38  27  	ELSE sysdate + 4/24 END clsdate
+22:10:38  28  FROM fxscores_gattn
+22:10:38  29  WHERE score > 0.75
+22:10:38  30  AND rundate > sysdate - 1/24
+22:10:38  31  AND prdate NOT IN(SELECT prdate FROM oc)
+22:10:38  32  ORDER BY rundate
+22:10:38  33  /
 
 0 rows created.
 
 Elapsed: 00:00:00.01
-21:57:51 SQL> 
-21:57:51 SQL> -- rpt:
-21:57:51 SQL> 
-21:57:51 SQL> SELECT
-21:57:51   2  prdate,buysell,score,rundate,opdate,clsdate
-21:57:51   3  FROM oc
-21:57:51   4  WHERE rundate > sysdate - 1
-21:57:51   5  ORDER BY rundate
-21:57:51   6  /
+22:10:38 SQL> 
+22:10:38 SQL> -- rpt:
+22:10:38 SQL> 
+22:10:38 SQL> SELECT
+22:10:38   2  prdate,buysell,score,rundate,opdate,clsdate
+22:10:38   3  FROM oc
+22:10:38   4  WHERE rundate > sysdate - 1
+22:10:38   5  ORDER BY rundate
+22:10:38   6  /
 
 PRDATE		       BUYSELL	    SCORE RUNDATE	      OPDATE		  CLSDATE
 ---------------------- ------- ---------- ------------------- ------------------- -------------------
@@ -152,11 +154,12 @@ eur2010-12-17 19:50:00 sell    .779133301 2010-12-17 20:03:11 2010-12-17 20:03:1
 gbp2010-12-17 19:55:00 sell    .827267922 2010-12-17 20:09:42 2010-12-17 20:09:43 2010-12-18 00:09:43
 chf2010-12-17 20:50:00 sell	.80129539 2010-12-17 21:01:42 2010-12-17 21:01:42 2010-12-18 01:01:42
 gbp2010-12-17 21:15:00 buy     .769303006 2010-12-17 21:26:13 2010-12-17 21:26:51 2010-12-18 01:26:51
+gbp2010-12-17 21:50:00 sell    .755550362 2010-12-17 22:03:59 2010-12-17 22:04:00 2010-12-20 09:11:00
 
-46 rows selected.
+47 rows selected.
 
 Elapsed: 00:00:00.00
-21:57:51 SQL> 
-21:57:51 SQL> exit
+22:10:38 SQL> 
+22:10:38 SQL> exit
 Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
