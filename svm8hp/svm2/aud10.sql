@@ -37,8 +37,6 @@ ORDER BY ydate
 -- rpt
 SELECT pair,COUNT(ydate) FROM q11 GROUP BY pair;
 
-exit
-
 -- Calc deltas and gains
 DROP TABLE q13;
 
@@ -48,75 +46,59 @@ pair
 ,ydate
 ,prdate
 ,rnum
-,lg4
-,lg8
-,lg12
-,ld4
-,CASE WHEN(clse-lg12)>0 then 1 ELSE -1 END trend
--- step by 1
-,clse-lg1 d01
-,lg1-lg2  d12
-,lg2-lg3  d23
-,lg3-lg4  d34
-,lg4-lg5  d45
-,lg5-lg6  d56
-,lg6-lg7  d67
-,lg7-lg8  d78
-,lg8-lg9  d89
+,ld8
+,CASE WHEN(clse-lg8)>0 then 1 ELSE -1 END trend
 -- step by 2
-,clse-lg2 d02
-,lg2-lg4 d24
-,lg4-lg6 d46
-,lg6-lg8 d68
--- step by 3
-,clse-lg3 d03
-,lg3-lg6  d36
-,lg6-lg9  d69
-,lg9-lg12 d912
+,clse-lg6  d06
+,lg6 -lg8  d68
+,lg8 -lg10 d810
+,lg10-lg12 d1012
+,lg12-lg14 d1214
+,lg14-lg16 d1416
+,lg16-lg18 d1618
 -- step by 4
-,clse-lg4 d04
-,lg4-lg8  d48
-,lg8-lg12 d812
-,lg6-lg12 d612
-,lg12-lg18 d1218
+,lg6 -lg10 d610
+,lg8 -lg12 d812
+,lg10-lg14 d1014
+,lg12-lg16 d1216
 --
-,ABS(clse-lg1)dc1
-,ABS(clse-lg2)dc2
-,ABS(clse-lg3)dc3
-,ABS(clse-lg4)dc4
-,ABS(clse-lg5)dc5
-,ABS(clse-lg6)dc6
-,ABS(clse-lg7)dc7
-,ABS(clse-lg8)dc8
-,ABS(clse-lg9)dc9
+,ABS(clse-lg6 )dc6 
+,ABS(clse-lg8 )dc8 
+,ABS(clse-lg10)dc10
 ,ABS(clse-lg12)dc12
+,ABS(clse-lg14)dc14
+,ABS(clse-lg16)dc16
 ,ABS(clse-lg18)dc18
-,ABS(clse-lg24)dc24
-,ABS(clse-lg72)dc72
-,(ld4-clse) ug4
-,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*2  PRECEDING AND CURRENT ROW)crr2
-,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*3  PRECEDING AND CURRENT ROW)crr3
-,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*4  PRECEDING AND CURRENT ROW)crr4
-,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*5  PRECEDING AND CURRENT ROW)crr5
-,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*6  PRECEDING AND CURRENT ROW)crr6
-,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*7  PRECEDING AND CURRENT ROW)crr7
-,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*8  PRECEDING AND CURRENT ROW)crr8
-,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*9  PRECEDING AND CURRENT ROW)crr9
+,ABS(clse-lg20)dc20
+,ABS(clse-lg22)dc22
+,(ld8-clse) ug8
+,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*6  PRECEDING AND CURRENT ROW)crr6 
+,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*8  PRECEDING AND CURRENT ROW)crr8 
+,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*10 PRECEDING AND CURRENT ROW)crr10
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*12 PRECEDING AND CURRENT ROW)crr12
+,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*14 PRECEDING AND CURRENT ROW)crr14
+,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*16 PRECEDING AND CURRENT ROW)crr16
+,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)crr18
+,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*20 PRECEDING AND CURRENT ROW)crr20
+,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*22 PRECEDING AND CURRENT ROW)crr22
 ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*24 PRECEDING AND CURRENT ROW)crr24
-,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*72 PRECEDING AND CURRENT ROW)crr72
+,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*26 PRECEDING AND CURRENT ROW)crr26
+,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*28 PRECEDING AND CURRENT ROW)crr28
+,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*32 PRECEDING AND CURRENT ROW)crr32
 ,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
 ,0+TO_CHAR(ydate,'D')d
 ,0+TO_CHAR(ydate,'W')w
 ,ROUND( (ydate - trunc(ydate))*24*60 )mpm
 FROM q11
 -- I dont want any NULL values from the LAG() functions:
-WHERE lg72 > 0
+WHERE lg32 > 0
 ORDER BY pair,ydate
 /
 
 -- rpt
 SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
+
+exit
 
 -- Calc gains and ntiles
 DROP TABLE q15;
