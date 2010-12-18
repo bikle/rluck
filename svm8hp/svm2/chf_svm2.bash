@@ -17,7 +17,7 @@ cd svm2/
 
 # Run script to build chf_ms14
 sqt>out2chf.txt<<EOF
-@chf14.sql
+-- @chf14.sql
 EOF
 # Look for errors
 grep -i error out2chf.txt | wc -l
@@ -29,6 +29,8 @@ EOF
 
 # Massage the output txt into a sql script
 grep score1day chf_scorem.txt | grep -v SELECT > chf_scorem.sql
+
+exit
 
 # Run scorem
 sqt>out_of_chf_scorem.txt<<EOF

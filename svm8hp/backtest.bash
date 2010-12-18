@@ -31,7 +31,7 @@ chmod +x *bash
 
 exit
 
-./aud_svm2.bash > /pt/s/cron/out/aud_svm2.${myts}.txt 2>&1
+./chf_svm2.bash > /pt/s/cron/out/chf_svm2.${myts}.txt 2>&1
 
 # Now do eur_usd:
 
