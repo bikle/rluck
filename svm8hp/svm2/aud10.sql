@@ -153,8 +153,6 @@ FROM q13
 ORDER BY pair,ydate
 /
 
-ANALYZE TABLE q15 COMPUTE STATISTICS;
-
 -- rpt
 SELECT pair,trend,gatt,gattn,AVG(g8),COUNT(g8)FROM q15
 GROUP BY pair,trend,gatt,gattn
@@ -163,8 +161,6 @@ ORDER BY pair,trend,gatt,gattn
 
 -- rpt
 SELECT pair,max(ydate)from q15 group by pair;
-
-exit
 
 DROP TABLE modsrc;
 CREATE TABLE modsrc COMPRESS AS
@@ -187,11 +183,6 @@ SELECT COUNT(pair)FROM q11;
 SELECT COUNT(pair)FROM q13;
 SELECT COUNT(pair)FROM q15;
 SELECT COUNT(pair)FROM modsrc;
-
-SELECT pair,trend,gatt,gattn,AVG(g8),COUNT(g8),CORR(dc12,g8)FROM modsrc
-GROUP BY pair,trend,gatt,gattn
-ORDER BY pair,trend,gatt,gattn
-/
 
 DROP   TABLE aud_ms10 ;
 CREATE TABLE aud_ms10 COMPRESS AS
@@ -249,6 +240,10 @@ ydate
 ,att30 aud_att30
 ,att31 aud_att31
 ,att32 aud_att32
+,att32 aud_att33
+,att32 aud_att34
+,att32 aud_att35
+,att32 aud_att36
 FROM q15
 /
 
