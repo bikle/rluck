@@ -1,0 +1,129 @@
+/pt/s/rluck/svm4hp/results2010_1218.txt
+
+The results displayed below are for data which has 60 min between each time-series-point.
+
+The data comes from the middle of June to the middle of December in 2010.
+
+I could get the software from this commit on the master branch:
+
+commit acf71c9e55068239f5ac668e71198a5ad3f10533
+
+The data is from a bearish strategy on USD/CHF which is bearish on USD and bullish on CHF (Swiss Franc).
+
+The holding period of each trade is 4 hours.
+
+Basically it shows that SVM is very good at helping me pick short positions of USD/CHF.
+
+If I had followed the predictions from this model where scores are greater than 0.7,
+I would have easily averaged over 12 pips per trade.
+
+
+Here are the details:
+
+oracle@hp2:/pt/s/rluck/svm4hp/svm2$ sqt @chf_rpt_gattn
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sat Dec 18 21:52:17 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+21:52:18 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+21:52:18 SQL> --
+21:52:18 SQL> -- chf_rpt_gattn.sql
+21:52:18 SQL> --
+21:52:18 SQL> 
+21:52:18 SQL> -- Joins scores with chf_ms14.
+21:52:18 SQL> 
+21:52:18 SQL> CREATE OR REPLACE VIEW chf_rpt AS
+21:52:18   2  SELECT
+21:52:18   3  s.prdate
+21:52:18   4  ,m.ydate
+21:52:18   5  ,score
+21:52:18   6  ,ROUND(score,1)rscore
+21:52:18   7  ,chf_g4
+21:52:18   8  FROM fxscores_gattn s, chf_ms14 m
+21:52:18   9  WHERE s.ydate = m.ydate
+21:52:18  10  AND s.pair='chf'
+21:52:18  11  AND score>0
+21:52:18  12  /
+
+View created.
+
+Elapsed: 00:00:00.05
+21:52:18 SQL> 
+21:52:18 SQL> -- rpt
+21:52:18 SQL> SELECT CORR(score,chf_g4)FROM chf_rpt WHERE score > 0.5;
+
+CORR(SCORE,CHF_G4)
+------------------
+        -.14895394
+
+Elapsed: 00:00:00.04
+21:52:18 SQL> SELECT
+21:52:18   2  TO_CHAR(ydate,'YYYY-MM')
+21:52:18   3  ,CORR(score,chf_g4)
+21:52:18   4  FROM chf_rpt
+21:52:18   5  GROUP BY TO_CHAR(ydate,'YYYY-MM')
+21:52:18   6  ORDER BY TO_CHAR(ydate,'YYYY-MM')
+21:52:18   7  /
+
+TO_CHAR CORR(SCORE,CHF_G4)
+------- ------------------
+2010-06         -.29517163
+2010-07         -.34790499
+2010-08         -.28649595
+2010-09         -.29755856
+2010-10         -.21970305
+2010-11         -.24020853
+2010-12         -.26624395
+
+7 rows selected.
+
+Elapsed: 00:00:00.04
+21:52:18 SQL> COLUMN rscore  FORMAT 999.9
+21:52:18 SQL> COLUMN cnt     FORMAT 999999
+21:52:18 SQL> COLUMN corr_sg FORMAT 999.99
+21:52:18 SQL> 
+21:52:18 SQL> SELECT
+21:52:18   2  rscore
+21:52:18   3  ,ROUND(AVG(chf_g4),4)    avg_chf_g4
+21:52:18   4  ,COUNT(score)            cnt
+21:52:18   5  ,ROUND(MIN(chf_g4),4)    min_chf_g4
+21:52:18   6  ,ROUND(STDDEV(chf_g4),4) std_chf_g4
+21:52:18   7  ,ROUND(MAX(chf_g4),4)    max_chf_g4
+21:52:18   8  ,ROUND(CORR(score,chf_g4),2)corr_sg
+21:52:18   9  ,MIN(ydate)              min_ydate
+21:52:18  10  ,MAX(ydate)              max_ydate
+21:52:18  11  FROM chf_rpt
+21:52:18  12  GROUP BY rscore
+21:52:18  13  ORDER BY rscore
+21:52:18  14  /
+
+RSCORE AVG_CHF_G4     CNT MIN_CHF_G4 STD_CHF_G4 MAX_CHF_G4 CORR_SG MIN_YDATE           MAX_YDATE
+------ ---------- ------- ---------- ---------- ---------- ------- ------------------- -------------------
+    .0      .0015      28      -.004      .0026      .0062     .19 2010-08-24 14:00:00 2010-12-12 22:00:00
+    .1      .0008     317     -.0095      .0025      .0095    -.10 2010-06-17 16:00:00 2010-12-14 01:00:00
+    .2      .0006     451     -.0081      .0026      .0145     .00 2010-06-15 20:00:00 2010-12-14 14:00:00
+    .3      .0005     561     -.0139      .0029      .0131    -.02 2010-06-15 18:00:00 2010-12-15 00:00:00
+    .4     -.0001     501     -.0111       .003      .0126     .01 2010-06-15 16:00:00 2010-12-14 23:00:00
+    .5     -.0005     410     -.0135       .003      .0126    -.13 2010-06-15 14:00:00 2010-12-14 15:00:00
+    .6     -.0009     391     -.0131      .0029      .0106     .03 2010-06-16 00:00:00 2010-12-14 21:00:00
+    .7     -.0012     316      -.016      .0029      .0103    -.07 2010-06-16 08:00:00 2010-12-14 13:00:00
+    .8     -.0025     163     -.0179      .0041      .0046    -.05 2010-06-16 05:00:00 2010-12-14 09:00:00
+    .9     -.0022      43     -.0115      .0028      .0028    -.04 2010-06-16 02:00:00 2010-12-10 13:00:00
+
+10 rows selected.
+
+Elapsed: 00:00:00.04
+21:52:18 SQL> 
+21:52:18 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
