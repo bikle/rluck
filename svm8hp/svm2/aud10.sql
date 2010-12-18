@@ -1,5 +1,5 @@
 --
--- abc10.sql
+-- aud10.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy
@@ -30,7 +30,7 @@ pair
 ,LAG(clse,12*28,NULL)OVER(PARTITION BY pair ORDER BY ydate)lg28
 ,LAG(clse,12*32,NULL)OVER(PARTITION BY pair ORDER BY ydate)lg32
 ,LEAD(clse,12*8,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld8
-FROM di5min WHERE pair LIKE'%abc%'
+FROM di5min WHERE pair LIKE'%aud%'
 ORDER BY ydate
 /
 
@@ -206,68 +206,68 @@ GROUP BY pair,trend,gatt,gattn
 ORDER BY pair,trend,gatt,gattn
 /
 
-DROP   TABLE abc_ms10 ;
-CREATE TABLE abc_ms10 COMPRESS AS
+DROP   TABLE aud_ms10 ;
+CREATE TABLE aud_ms10 COMPRESS AS
 SELECT
 ydate
-,trend abc_trend
-,g4    abc_g4
-,gatt  abc_gatt
-,gattn abc_gattn
+,trend aud_trend
+,g4    aud_g4
+,gatt  aud_gatt
+,gattn aud_gattn
 FROM modsrc
 /
 
-ANALYZE TABLE abc_ms10 COMPUTE STATISTICS;
+ANALYZE TABLE aud_ms10 COMPUTE STATISTICS;
 
 -- rpt
 SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
-SELECT abc_trend,MIN(ydate),MAX(ydate),COUNT(abc_trend),MIN(abc_g4),MAX(abc_g4)FROM abc_ms10 GROUP BY abc_trend;
+SELECT aud_trend,MIN(ydate),MAX(ydate),COUNT(aud_trend),MIN(aud_g4),MAX(aud_g4)FROM aud_ms10 GROUP BY aud_trend;
 
 -- I need a copy of q15 attributes
 
-DROP   TABLE abc_att;
-CREATE TABLE abc_att COMPRESS AS
+DROP   TABLE aud_att;
+CREATE TABLE aud_att COMPRESS AS
 SELECT
 ydate
-,att00 abc_att00
-,att01 abc_att01
-,att02 abc_att02
-,att03 abc_att03
-,att04 abc_att04
-,att05 abc_att05
-,att06 abc_att06
-,att07 abc_att07
-,att08 abc_att08
-,att09 abc_att09
-,att10 abc_att10
-,att11 abc_att11
-,att12 abc_att12
-,att13 abc_att13
-,att14 abc_att14
-,att15 abc_att15
-,att16 abc_att16
-,att17 abc_att17
-,att18 abc_att18
-,att19 abc_att19
-,att20 abc_att20
-,att21 abc_att21
-,att22 abc_att22
-,att23 abc_att23
-,att24 abc_att24
-,att25 abc_att25
-,att26 abc_att26
-,att27 abc_att27
-,att28 abc_att28
-,att29 abc_att29
-,att30 abc_att30
-,att31 abc_att31
-,att32 abc_att32
+,att00 aud_att00
+,att01 aud_att01
+,att02 aud_att02
+,att03 aud_att03
+,att04 aud_att04
+,att05 aud_att05
+,att06 aud_att06
+,att07 aud_att07
+,att08 aud_att08
+,att09 aud_att09
+,att10 aud_att10
+,att11 aud_att11
+,att12 aud_att12
+,att13 aud_att13
+,att14 aud_att14
+,att15 aud_att15
+,att16 aud_att16
+,att17 aud_att17
+,att18 aud_att18
+,att19 aud_att19
+,att20 aud_att20
+,att21 aud_att21
+,att22 aud_att22
+,att23 aud_att23
+,att24 aud_att24
+,att25 aud_att25
+,att26 aud_att26
+,att27 aud_att27
+,att28 aud_att28
+,att29 aud_att29
+,att30 aud_att30
+,att31 aud_att31
+,att32 aud_att32
 FROM q15
 /
 
-ANALYZE TABLE abc_att COMPUTE STATISTICS;
+ANALYZE TABLE aud_att COMPUTE STATISTICS;
 
 -- rpt 
-SELECT COUNT(*)FROM abc_att;
+SELECT COUNT(*)FROM aud_att;
 
 exit
