@@ -229,6 +229,10 @@ SELECT
 ,chf_g34
 ,chf_g35
 ,chf_g36
+,chf_g37
+,chf_g38
+,chf_g39
+,chf_g40
 FROM abc_ms14 m
 WHERE m.ydate = '&1'||' '||'&2'
 /
@@ -466,6 +470,10 @@ SELECT
 ,chf_g34
 ,chf_g35
 ,chf_g36
+,chf_g37
+,chf_g38
+,chf_g39
+,chf_g40
 FROM abc_ms14 m
 WHERE gattn IN('nup','up')
 AND 1+m.ydate < '&1'||' '||'&2'
