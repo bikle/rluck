@@ -240,10 +240,10 @@ ydate
 ,att30 abc_att30
 ,att31 abc_att31
 ,att32 abc_att32
-,att32 abc_att33
-,att32 abc_att34
-,att32 abc_att35
-,att32 abc_att36
+,att33 abc_att33
+,att34 abc_att34
+,att35 abc_att35
+,att36 abc_att36
 FROM q15
 /
 

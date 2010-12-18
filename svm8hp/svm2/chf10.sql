@@ -240,10 +240,10 @@ ydate
 ,att30 chf_att30
 ,att31 chf_att31
 ,att32 chf_att32
-,att32 chf_att33
-,att32 chf_att34
-,att32 chf_att35
-,att32 chf_att36
+,att33 chf_att33
+,att34 chf_att34
+,att35 chf_att35
+,att36 chf_att36
 FROM q15
 /
 

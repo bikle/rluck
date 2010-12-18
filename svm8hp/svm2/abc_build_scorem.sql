@@ -10,7 +10,7 @@ WHERE 'abc'||ydate NOT IN (SELECT prdate FROM fxscores)
 AND ydate > (SELECT MIN(ydate)+35 FROM abc_ms14)
 -- For cron:
 -- AND ydate > sysdate - 15/60/24
-ORDER BY ydate
+ORDER BY ydate DESC
 /
 
 SELECT '@abc_score1day_gattn.sql ',ydate FROM abc_ms14
@@ -19,6 +19,6 @@ WHERE 'abc'||ydate NOT IN (SELECT prdate FROM fxscores_gattn)
 AND ydate > (SELECT MIN(ydate)+35 FROM abc_ms14)
 -- For cron:
 AND ydate > sysdate - 15/60/24
-ORDER BY ydate
+ORDER BY ydate DESC
 /
 

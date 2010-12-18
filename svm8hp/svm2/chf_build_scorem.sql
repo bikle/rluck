@@ -10,7 +10,7 @@ WHERE 'chf'||ydate NOT IN (SELECT prdate FROM fxscores)
 AND ydate > (SELECT MIN(ydate)+35 FROM chf_ms14)
 -- For cron:
 -- AND ydate > sysdate - 15/60/24
-ORDER BY ydate
+ORDER BY ydate DESC
 /
 
 SELECT '@chf_score1day_gattn.sql ',ydate FROM chf_ms14
@@ -19,6 +19,6 @@ WHERE 'chf'||ydate NOT IN (SELECT prdate FROM fxscores_gattn)
 AND ydate > (SELECT MIN(ydate)+35 FROM chf_ms14)
 -- For cron:
 AND ydate > sysdate - 15/60/24
-ORDER BY ydate
+ORDER BY ydate DESC
 /
 

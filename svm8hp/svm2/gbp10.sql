@@ -240,10 +240,10 @@ ydate
 ,att30 gbp_att30
 ,att31 gbp_att31
 ,att32 gbp_att32
-,att32 gbp_att33
-,att32 gbp_att34
-,att32 gbp_att35
-,att32 gbp_att36
+,att33 gbp_att33
+,att34 gbp_att34
+,att35 gbp_att35
+,att36 gbp_att36
 FROM q15
 /
 

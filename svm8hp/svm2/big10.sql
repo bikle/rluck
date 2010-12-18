@@ -240,10 +240,10 @@ ydate
 ,att30 eur_att30
 ,att31 eur_att31
 ,att32 eur_att32
-,att32 eur_att33
-,att32 eur_att34
-,att32 eur_att35
-,att32 eur_att36
+,att33 eur_att33
+,att34 eur_att34
+,att35 eur_att35
+,att36 eur_att36
 FROM q15
 /
 
@@ -494,10 +494,10 @@ ydate
 ,att30 aud_att30
 ,att31 aud_att31
 ,att32 aud_att32
-,att32 aud_att33
-,att32 aud_att34
-,att32 aud_att35
-,att32 aud_att36
+,att33 aud_att33
+,att34 aud_att34
+,att35 aud_att35
+,att36 aud_att36
 FROM q15
 /
 
@@ -748,10 +748,10 @@ ydate
 ,att30 gbp_att30
 ,att31 gbp_att31
 ,att32 gbp_att32
-,att32 gbp_att33
-,att32 gbp_att34
-,att32 gbp_att35
-,att32 gbp_att36
+,att33 gbp_att33
+,att34 gbp_att34
+,att35 gbp_att35
+,att36 gbp_att36
 FROM q15
 /
 
@@ -1002,10 +1002,10 @@ ydate
 ,att30 jpy_att30
 ,att31 jpy_att31
 ,att32 jpy_att32
-,att32 jpy_att33
-,att32 jpy_att34
-,att32 jpy_att35
-,att32 jpy_att36
+,att33 jpy_att33
+,att34 jpy_att34
+,att35 jpy_att35
+,att36 jpy_att36
 FROM q15
 /
 
@@ -1256,10 +1256,10 @@ ydate
 ,att30 cad_att30
 ,att31 cad_att31
 ,att32 cad_att32
-,att32 cad_att33
-,att32 cad_att34
-,att32 cad_att35
-,att32 cad_att36
+,att33 cad_att33
+,att34 cad_att34
+,att35 cad_att35
+,att36 cad_att36
 FROM q15
 /
 
@@ -1510,10 +1510,10 @@ ydate
 ,att30 chf_att30
 ,att31 chf_att31
 ,att32 chf_att32
-,att32 chf_att33
-,att32 chf_att34
-,att32 chf_att35
-,att32 chf_att36
+,att33 chf_att33
+,att34 chf_att34
+,att35 chf_att35
+,att36 chf_att36
 FROM q15
 /
 
