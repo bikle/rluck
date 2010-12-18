@@ -1,5 +1,5 @@
 --
--- abc10.sql
+-- eur10.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy
@@ -30,7 +30,7 @@ pair
 ,LAG(clse,12*28,NULL)OVER(PARTITION BY pair ORDER BY ydate)lg28
 ,LAG(clse,12*32,NULL)OVER(PARTITION BY pair ORDER BY ydate)lg32
 ,LEAD(clse,12*8,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld8
-FROM di5min WHERE pair LIKE'%abc%'
+FROM di5min WHERE pair LIKE'%eur%'
 ORDER BY ydate
 /
 
@@ -184,72 +184,72 @@ SELECT COUNT(pair)FROM q13;
 SELECT COUNT(pair)FROM q15;
 SELECT COUNT(pair)FROM modsrc;
 
-DROP   TABLE abc_ms10 ;
-CREATE TABLE abc_ms10 COMPRESS AS
+DROP   TABLE eur_ms10 ;
+CREATE TABLE eur_ms10 COMPRESS AS
 SELECT
 ydate
-,trend abc_trend
-,g8    abc_g8
-,gatt  abc_gatt
-,gattn abc_gattn
+,trend eur_trend
+,g8    eur_g8
+,gatt  eur_gatt
+,gattn eur_gattn
 FROM modsrc
 /
 
-ANALYZE TABLE abc_ms10 COMPUTE STATISTICS;
+ANALYZE TABLE eur_ms10 COMPUTE STATISTICS;
 
 -- rpt
 SELECT trend,MIN(ydate),MAX(ydate),COUNT(g8),MIN(g8),MAX(g8)FROM modsrc GROUP BY trend;
-SELECT abc_trend,MIN(ydate),MAX(ydate),COUNT(abc_trend),MIN(abc_g8),MAX(abc_g8)FROM abc_ms10 GROUP BY abc_trend;
+SELECT eur_trend,MIN(ydate),MAX(ydate),COUNT(eur_trend),MIN(eur_g8),MAX(eur_g8)FROM eur_ms10 GROUP BY eur_trend;
 
 -- I need a copy of q15 attributes
 
-DROP   TABLE abc_att;
-CREATE TABLE abc_att COMPRESS AS
+DROP   TABLE eur_att;
+CREATE TABLE eur_att COMPRESS AS
 SELECT
 ydate
-,att00 abc_att00
-,att01 abc_att01
-,att02 abc_att02
-,att03 abc_att03
-,att04 abc_att04
-,att05 abc_att05
-,att06 abc_att06
-,att07 abc_att07
-,att08 abc_att08
-,att09 abc_att09
-,att10 abc_att10
-,att11 abc_att11
-,att12 abc_att12
-,att13 abc_att13
-,att14 abc_att14
-,att15 abc_att15
-,att16 abc_att16
-,att17 abc_att17
-,att18 abc_att18
-,att19 abc_att19
-,att20 abc_att20
-,att21 abc_att21
-,att22 abc_att22
-,att23 abc_att23
-,att24 abc_att24
-,att25 abc_att25
-,att26 abc_att26
-,att27 abc_att27
-,att28 abc_att28
-,att29 abc_att29
-,att30 abc_att30
-,att31 abc_att31
-,att32 abc_att32
-,att32 abc_att33
-,att32 abc_att34
-,att32 abc_att35
-,att32 abc_att36
+,att00 eur_att00
+,att01 eur_att01
+,att02 eur_att02
+,att03 eur_att03
+,att04 eur_att04
+,att05 eur_att05
+,att06 eur_att06
+,att07 eur_att07
+,att08 eur_att08
+,att09 eur_att09
+,att10 eur_att10
+,att11 eur_att11
+,att12 eur_att12
+,att13 eur_att13
+,att14 eur_att14
+,att15 eur_att15
+,att16 eur_att16
+,att17 eur_att17
+,att18 eur_att18
+,att19 eur_att19
+,att20 eur_att20
+,att21 eur_att21
+,att22 eur_att22
+,att23 eur_att23
+,att24 eur_att24
+,att25 eur_att25
+,att26 eur_att26
+,att27 eur_att27
+,att28 eur_att28
+,att29 eur_att29
+,att30 eur_att30
+,att31 eur_att31
+,att32 eur_att32
+,att32 eur_att33
+,att32 eur_att34
+,att32 eur_att35
+,att32 eur_att36
 FROM q15
 /
 
-ANALYZE TABLE abc_att COMPUTE STATISTICS;
+ANALYZE TABLE eur_att COMPUTE STATISTICS;
 
 -- rpt 
-SELECT COUNT(*)FROM abc_att;
+SELECT COUNT(*)FROM eur_att;
 
 exit

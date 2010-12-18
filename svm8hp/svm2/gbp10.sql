@@ -1,5 +1,5 @@
 --
--- abc10.sql
+-- gbp10.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy
@@ -30,7 +30,7 @@ pair
 ,LAG(clse,12*28,NULL)OVER(PARTITION BY pair ORDER BY ydate)lg28
 ,LAG(clse,12*32,NULL)OVER(PARTITION BY pair ORDER BY ydate)lg32
 ,LEAD(clse,12*8,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld8
-FROM di5min WHERE pair LIKE'%abc%'
+FROM di5min WHERE pair LIKE'%gbp%'
 ORDER BY ydate
 /
 
@@ -184,72 +184,72 @@ SELECT COUNT(pair)FROM q13;
 SELECT COUNT(pair)FROM q15;
 SELECT COUNT(pair)FROM modsrc;
 
-DROP   TABLE abc_ms10 ;
-CREATE TABLE abc_ms10 COMPRESS AS
+DROP   TABLE gbp_ms10 ;
+CREATE TABLE gbp_ms10 COMPRESS AS
 SELECT
 ydate
-,trend abc_trend
-,g8    abc_g8
-,gatt  abc_gatt
-,gattn abc_gattn
+,trend gbp_trend
+,g8    gbp_g8
+,gatt  gbp_gatt
+,gattn gbp_gattn
 FROM modsrc
 /
 
-ANALYZE TABLE abc_ms10 COMPUTE STATISTICS;
+ANALYZE TABLE gbp_ms10 COMPUTE STATISTICS;
 
 -- rpt
 SELECT trend,MIN(ydate),MAX(ydate),COUNT(g8),MIN(g8),MAX(g8)FROM modsrc GROUP BY trend;
-SELECT abc_trend,MIN(ydate),MAX(ydate),COUNT(abc_trend),MIN(abc_g8),MAX(abc_g8)FROM abc_ms10 GROUP BY abc_trend;
+SELECT gbp_trend,MIN(ydate),MAX(ydate),COUNT(gbp_trend),MIN(gbp_g8),MAX(gbp_g8)FROM gbp_ms10 GROUP BY gbp_trend;
 
 -- I need a copy of q15 attributes
 
-DROP   TABLE abc_att;
-CREATE TABLE abc_att COMPRESS AS
+DROP   TABLE gbp_att;
+CREATE TABLE gbp_att COMPRESS AS
 SELECT
 ydate
-,att00 abc_att00
-,att01 abc_att01
-,att02 abc_att02
-,att03 abc_att03
-,att04 abc_att04
-,att05 abc_att05
-,att06 abc_att06
-,att07 abc_att07
-,att08 abc_att08
-,att09 abc_att09
-,att10 abc_att10
-,att11 abc_att11
-,att12 abc_att12
-,att13 abc_att13
-,att14 abc_att14
-,att15 abc_att15
-,att16 abc_att16
-,att17 abc_att17
-,att18 abc_att18
-,att19 abc_att19
-,att20 abc_att20
-,att21 abc_att21
-,att22 abc_att22
-,att23 abc_att23
-,att24 abc_att24
-,att25 abc_att25
-,att26 abc_att26
-,att27 abc_att27
-,att28 abc_att28
-,att29 abc_att29
-,att30 abc_att30
-,att31 abc_att31
-,att32 abc_att32
-,att32 abc_att33
-,att32 abc_att34
-,att32 abc_att35
-,att32 abc_att36
+,att00 gbp_att00
+,att01 gbp_att01
+,att02 gbp_att02
+,att03 gbp_att03
+,att04 gbp_att04
+,att05 gbp_att05
+,att06 gbp_att06
+,att07 gbp_att07
+,att08 gbp_att08
+,att09 gbp_att09
+,att10 gbp_att10
+,att11 gbp_att11
+,att12 gbp_att12
+,att13 gbp_att13
+,att14 gbp_att14
+,att15 gbp_att15
+,att16 gbp_att16
+,att17 gbp_att17
+,att18 gbp_att18
+,att19 gbp_att19
+,att20 gbp_att20
+,att21 gbp_att21
+,att22 gbp_att22
+,att23 gbp_att23
+,att24 gbp_att24
+,att25 gbp_att25
+,att26 gbp_att26
+,att27 gbp_att27
+,att28 gbp_att28
+,att29 gbp_att29
+,att30 gbp_att30
+,att31 gbp_att31
+,att32 gbp_att32
+,att32 gbp_att33
+,att32 gbp_att34
+,att32 gbp_att35
+,att32 gbp_att36
 FROM q15
 /
 
-ANALYZE TABLE abc_att COMPUTE STATISTICS;
+ANALYZE TABLE gbp_att COMPUTE STATISTICS;
 
 -- rpt 
-SELECT COUNT(*)FROM abc_att;
+SELECT COUNT(*)FROM gbp_att;
 
 exit

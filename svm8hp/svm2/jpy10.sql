@@ -1,5 +1,5 @@
 --
--- abc10.sql
+-- jpy10.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy
@@ -30,7 +30,7 @@ pair
 ,LAG(clse,12*28,NULL)OVER(PARTITION BY pair ORDER BY ydate)lg28
 ,LAG(clse,12*32,NULL)OVER(PARTITION BY pair ORDER BY ydate)lg32
 ,LEAD(clse,12*8,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld8
-FROM di5min WHERE pair LIKE'%abc%'
+FROM di5min WHERE pair LIKE'%jpy%'
 ORDER BY ydate
 /
 
@@ -184,72 +184,72 @@ SELECT COUNT(pair)FROM q13;
 SELECT COUNT(pair)FROM q15;
 SELECT COUNT(pair)FROM modsrc;
 
-DROP   TABLE abc_ms10 ;
-CREATE TABLE abc_ms10 COMPRESS AS
+DROP   TABLE jpy_ms10 ;
+CREATE TABLE jpy_ms10 COMPRESS AS
 SELECT
 ydate
-,trend abc_trend
-,g8    abc_g8
-,gatt  abc_gatt
-,gattn abc_gattn
+,trend jpy_trend
+,g8    jpy_g8
+,gatt  jpy_gatt
+,gattn jpy_gattn
 FROM modsrc
 /
 
-ANALYZE TABLE abc_ms10 COMPUTE STATISTICS;
+ANALYZE TABLE jpy_ms10 COMPUTE STATISTICS;
 
 -- rpt
 SELECT trend,MIN(ydate),MAX(ydate),COUNT(g8),MIN(g8),MAX(g8)FROM modsrc GROUP BY trend;
-SELECT abc_trend,MIN(ydate),MAX(ydate),COUNT(abc_trend),MIN(abc_g8),MAX(abc_g8)FROM abc_ms10 GROUP BY abc_trend;
+SELECT jpy_trend,MIN(ydate),MAX(ydate),COUNT(jpy_trend),MIN(jpy_g8),MAX(jpy_g8)FROM jpy_ms10 GROUP BY jpy_trend;
 
 -- I need a copy of q15 attributes
 
-DROP   TABLE abc_att;
-CREATE TABLE abc_att COMPRESS AS
+DROP   TABLE jpy_att;
+CREATE TABLE jpy_att COMPRESS AS
 SELECT
 ydate
-,att00 abc_att00
-,att01 abc_att01
-,att02 abc_att02
-,att03 abc_att03
-,att04 abc_att04
-,att05 abc_att05
-,att06 abc_att06
-,att07 abc_att07
-,att08 abc_att08
-,att09 abc_att09
-,att10 abc_att10
-,att11 abc_att11
-,att12 abc_att12
-,att13 abc_att13
-,att14 abc_att14
-,att15 abc_att15
-,att16 abc_att16
-,att17 abc_att17
-,att18 abc_att18
-,att19 abc_att19
-,att20 abc_att20
-,att21 abc_att21
-,att22 abc_att22
-,att23 abc_att23
-,att24 abc_att24
-,att25 abc_att25
-,att26 abc_att26
-,att27 abc_att27
-,att28 abc_att28
-,att29 abc_att29
-,att30 abc_att30
-,att31 abc_att31
-,att32 abc_att32
-,att32 abc_att33
-,att32 abc_att34
-,att32 abc_att35
-,att32 abc_att36
+,att00 jpy_att00
+,att01 jpy_att01
+,att02 jpy_att02
+,att03 jpy_att03
+,att04 jpy_att04
+,att05 jpy_att05
+,att06 jpy_att06
+,att07 jpy_att07
+,att08 jpy_att08
+,att09 jpy_att09
+,att10 jpy_att10
+,att11 jpy_att11
+,att12 jpy_att12
+,att13 jpy_att13
+,att14 jpy_att14
+,att15 jpy_att15
+,att16 jpy_att16
+,att17 jpy_att17
+,att18 jpy_att18
+,att19 jpy_att19
+,att20 jpy_att20
+,att21 jpy_att21
+,att22 jpy_att22
+,att23 jpy_att23
+,att24 jpy_att24
+,att25 jpy_att25
+,att26 jpy_att26
+,att27 jpy_att27
+,att28 jpy_att28
+,att29 jpy_att29
+,att30 jpy_att30
+,att31 jpy_att31
+,att32 jpy_att32
+,att32 jpy_att33
+,att32 jpy_att34
+,att32 jpy_att35
+,att32 jpy_att36
 FROM q15
 /
 
-ANALYZE TABLE abc_att COMPUTE STATISTICS;
+ANALYZE TABLE jpy_att COMPUTE STATISTICS;
 
 -- rpt 
-SELECT COUNT(*)FROM abc_att;
+SELECT COUNT(*)FROM jpy_att;
 
 exit
