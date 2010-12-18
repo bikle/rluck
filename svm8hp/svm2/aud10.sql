@@ -88,6 +88,7 @@ pair
 ,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
 ,0+TO_CHAR(ydate,'D')d
 ,0+TO_CHAR(ydate,'W')w
+-- mpm stands for minutes-past-midnight:
 ,ROUND( (ydate - trunc(ydate))*24*60 )mpm
 FROM q11
 -- I dont want any NULL values from the LAG() functions:
@@ -98,8 +99,6 @@ ORDER BY pair,ydate
 -- rpt
 SELECT trend,COUNT(prdate)FROM q13 GROUP BY trend;
 
-exit
-
 -- Calc gains and ntiles
 DROP TABLE q15;
 CREATE TABLE q15 COMPRESS AS
@@ -108,57 +107,64 @@ pair
 ,ydate
 ,prdate -- Should be unique
 ,trend -- +1 or -1
-,dc12 -- next statement needs this
 -- Use NTILE() to derive some attributes
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d12))           att00
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d23))           att01
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d34))           att02
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d45))           att03
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d56))           att04
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d67))           att05
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d78))           att06
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d89))           att07
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d912))          att08
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc2)                att09
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc3)                att10
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc4)                att11
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc5)                att12
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6)                att13
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc7)                att14 
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8)                att15 
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc9)                att16 
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)               att17 
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc24)               att18 
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc72)               att19 
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr2,7))) att20
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr3,7))) att21
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr4,7))) att22
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr5,7))) att23
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6,7))) att24
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att25
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att26
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr72,7)))att27
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d68	))         att00 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d810	))         att01 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d1012))         att02 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d1214))         att03 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d1416))         att04 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d1618))         att05 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d610	))         att06 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d812	))         att07 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d1014))         att08 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(d1216))         att09 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc6 )               att10 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc8 )               att11 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc10)               att12 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc12)               att13 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc14)               att14 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc16)               att15  
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc18)               att16  
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc20)               att17  
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY dc22)               att18  
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr6 ,7)))att19 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr8 ,7)))att20 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr10,7)))att21 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr12,7)))att22 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr14,7)))att23 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr16,7)))att24 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr18,7)))att25 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr20,7)))att26 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr22,7)))att27 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr24,7)))att28 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr26,7)))att29 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr28,7)))att30 
+,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ABS(ROUND(crr32,7)))att31 
 -- date related integers: hour of day, day of week, week of month, minutes-past-midnight:
-,hh    att28
-,d     att29
-,w     att30
-,mpm   att31
-,trend att32
-,ug4 g4
-,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4 > 0.0006 THEN 'up' ELSE 'nup' END gatt
-,CASE WHEN ug4 IS NULL THEN NULL WHEN ug4< -0.0006 THEN 'up' ELSE 'nup' END gattn
+,hh    att32
+,d     att33
+,w     att34
+,mpm   att35
+,trend att36
+,ug8 g8
+,CASE WHEN ug8 IS NULL THEN NULL WHEN ug8 > 0.0020 THEN 'up' ELSE 'nup' END gatt
+,CASE WHEN ug8 IS NULL THEN NULL WHEN ug8< -0.0020 THEN 'up' ELSE 'nup' END gattn
 FROM q13
 ORDER BY pair,ydate
 /
 
+ANALYZE TABLE q15 COMPUTE STATISTICS;
+
 -- rpt
-SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM q15
+SELECT pair,trend,gatt,gattn,AVG(g8),COUNT(g8)FROM q15
 GROUP BY pair,trend,gatt,gattn
 ORDER BY pair,trend,gatt,gattn
 /
 
 -- rpt
 SELECT pair,max(ydate)from q15 group by pair;
+
+exit
 
 DROP TABLE modsrc;
 CREATE TABLE modsrc COMPRESS AS
@@ -167,10 +173,9 @@ pair
 ,ydate      
 ,prdate     
 ,trend      
-,g4
+,g8
 ,gatt
 ,gattn
-,dc12
 FROM q15
 /
 
@@ -183,7 +188,7 @@ SELECT COUNT(pair)FROM q13;
 SELECT COUNT(pair)FROM q15;
 SELECT COUNT(pair)FROM modsrc;
 
-SELECT pair,trend,gatt,gattn,AVG(g4),COUNT(g4),CORR(dc12,g4)FROM modsrc
+SELECT pair,trend,gatt,gattn,AVG(g8),COUNT(g8),CORR(dc12,g8)FROM modsrc
 GROUP BY pair,trend,gatt,gattn
 ORDER BY pair,trend,gatt,gattn
 /
@@ -193,7 +198,7 @@ CREATE TABLE aud_ms10 COMPRESS AS
 SELECT
 ydate
 ,trend aud_trend
-,g4    aud_g4
+,g8    aud_g8
 ,gatt  aud_gatt
 ,gattn aud_gattn
 FROM modsrc
@@ -202,8 +207,8 @@ FROM modsrc
 ANALYZE TABLE aud_ms10 COMPUTE STATISTICS;
 
 -- rpt
-SELECT trend,MIN(ydate),MAX(ydate),COUNT(g4),MIN(g4),MAX(g4)FROM modsrc GROUP BY trend;
-SELECT aud_trend,MIN(ydate),MAX(ydate),COUNT(aud_trend),MIN(aud_g4),MAX(aud_g4)FROM aud_ms10 GROUP BY aud_trend;
+SELECT trend,MIN(ydate),MAX(ydate),COUNT(g8),MIN(g8),MAX(g8)FROM modsrc GROUP BY trend;
+SELECT aud_trend,MIN(ydate),MAX(ydate),COUNT(aud_trend),MIN(aud_g8),MAX(aud_g8)FROM aud_ms10 GROUP BY aud_trend;
 
 -- I need a copy of q15 attributes
 
