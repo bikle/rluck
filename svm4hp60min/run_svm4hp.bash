@@ -4,8 +4,8 @@
 
 # I use this script as an entry point into a backtest of the svm4hp strategy.
 
-. /pt/s/rluck/svm4hp/.orcl
-. /pt/s/rluck/svm4hp/.jruby
+. /pt/s/rluck/svm4hp60min/.orcl
+. /pt/s/rluck/svm4hp60min/.jruby
 
 set -x
 cd $SVM4HP

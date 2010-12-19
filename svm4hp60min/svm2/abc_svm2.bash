@@ -4,8 +4,8 @@
 
 # Runs svm for a specific pair: abc
 
-. /pt/s/rluck/svm4hp/.orcl
-. /pt/s/rluck/svm4hp/.jruby
+. /pt/s/rluck/svm4hp60min/.orcl
+. /pt/s/rluck/svm4hp60min/.jruby
 
 set -x
 

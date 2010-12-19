@@ -2,7 +2,7 @@
 
 # chf_scorem.bash
 
-. /pt/s/rluck/svm4hp/.orcl
+. /pt/s/rluck/svm4hp60min/.orcl
 
 date
 

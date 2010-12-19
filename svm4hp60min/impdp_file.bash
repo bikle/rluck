@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# /pt/s/rluck/svm4hp/impdp_file.bash
+# impdp_file.bash
 
-. /pt/s/rluck/svm4hp/.orcl
+. /pt/s/rluck/svm4hp60min/.orcl
 
 # I copy the dpdump file to where Oracle can read it:
 cp -p expdp_some.z2.2010_12_15_02_32.dpdmp.gz  ${ORACLE_BASE}/admin/orcl/dpdump/
