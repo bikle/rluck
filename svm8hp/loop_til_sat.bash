@@ -10,7 +10,8 @@ do
   echo hello
   the_day=`date +"%A"`
   echo Today is $the_day
-  sleep 9
+  ./loop_once.bash
+  sleep 2
 done
 
   
