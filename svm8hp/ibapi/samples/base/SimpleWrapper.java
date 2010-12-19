@@ -187,7 +187,7 @@ public class SimpleWrapper implements EWrapper {
 
    public void historicalData(int reqId, String date, double open, double high, double low,
       double close, int volume, int count, double WAP, boolean hasGaps) {
-      logIn("hdata, "+reqId+","+date+","+open+","+high+","+low+","+close+","+volume+",has gaps:,"+hasGaps);
+      logIn(","+date+","+close+",has gaps:,"+hasGaps);
       // this does not work:  System.out.println(date);
 
    }
