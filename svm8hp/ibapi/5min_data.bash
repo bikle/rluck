@@ -23,14 +23,13 @@ export myts=`date +%Y_%m_%d_%H_%M`
 # Now I load the data into table, ibf5min:
 ./load5min.bash > /pt/s/cron/out/load5min.${myts}.txt 2>&1
 
+exit
+
 # Look at data in ibf5min
 
 sqt>qry_ibf5min.txt<<EOF
 @qry_ibf5min.sql
 EOF
 cp -p qry_ibf5min.txt /pt/s/cron/out/qry_ibf5min.${myts}.txt
-
-# Next, I generate trade signals from the new data:
-./jumpy_trade.bash > /pt/s/cron/out/jumpy_trade.${myts}.txt 2>&1
 
 exit

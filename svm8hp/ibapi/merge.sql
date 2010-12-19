@@ -34,12 +34,20 @@ FROM ibf_dups
 GROUP BY pair,ydate
 /
 
+-- I distrust the data before 2010-11-30
+DELETE ibf5min WHERE ydate < '2010-11-30';
+
 ANALYZE TABLE ibf5min COMPUTE STATISTICS;
 
 -- I should see less than 60 min:
-SELECT pair,(sysdate - MAX(ydate))*24*60 min FROM ibf5min GROUP BY pair;
+SELECT
+pair
+,(sysdate - MAX(ydate))*24*60 minutes_age
+,MIN(ydate)
+,COUNT(ydate)
+,MAX(ydate)FROM
+ibf5min
+GROUP BY pair
+/
 
 exit
-
-
-
