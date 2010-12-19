@@ -133,3 +133,110 @@ Elapsed: 00:00:00.07
 Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 oracle@z2:/pt/s/rluck/svm8hp/svm2$ 
+
+
+More results:
+
+
+oracle@z2:/pt/s/rluck/svm8hp/svm2$ sqt @chf_rpt_gattn
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Dec 19 23:06:16 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+23:06:17 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+23:06:17 SQL> --
+23:06:17 SQL> -- chf_rpt_gattn.sql
+23:06:17 SQL> --
+23:06:17 SQL> 
+23:06:17 SQL> -- Joins scores with chf_ms14.
+23:06:17 SQL> 
+23:06:17 SQL> CREATE OR REPLACE VIEW chf_rpt AS
+23:06:17   2  SELECT
+23:06:17   3  s.prdate
+23:06:17   4  ,m.ydate
+23:06:17   5  ,score
+23:06:17   6  ,ROUND(score,1)rscore
+23:06:17   7  ,chf_g8
+23:06:17   8  FROM fxscores8hp_gattn s, chf_ms14 m
+23:06:17   9  WHERE s.ydate = m.ydate
+23:06:17  10  AND s.pair='chf'
+23:06:17  11  AND score>0
+23:06:17  12  /
+
+View created.
+
+Elapsed: 00:00:00.11
+23:06:17 SQL> 
+23:06:17 SQL> -- rpt
+23:06:17 SQL> SELECT CORR(score,chf_g8)FROM chf_rpt WHERE score > 0.5;
+
+CORR(SCORE,CHF_G8)
+------------------
+         -.1738166
+
+Elapsed: 00:00:00.07
+23:06:17 SQL> SELECT
+23:06:17   2  TO_CHAR(ydate,'YYYY-MM')
+23:06:17   3  ,CORR(score,chf_g8)
+23:06:17   4  FROM chf_rpt
+23:06:17   5  GROUP BY TO_CHAR(ydate,'YYYY-MM')
+23:06:17   6  ORDER BY TO_CHAR(ydate,'YYYY-MM')
+23:06:17   7  /
+
+TO_CHAR CORR(SCORE,CHF_G8)
+------- ------------------
+2010-12         -.29016457
+
+Elapsed: 00:00:00.03
+23:06:17 SQL> 
+23:06:17 SQL> COLUMN rscore  FORMAT 999.9
+23:06:17 SQL> COLUMN cnt     FORMAT 999999
+23:06:17 SQL> COLUMN corr_sg FORMAT 999.99
+23:06:17 SQL> 
+23:06:17 SQL> SELECT
+23:06:17   2  rscore
+23:06:17   3  ,ROUND(AVG(chf_g8),4)    avg_chf_g8
+23:06:17   4  ,COUNT(score)            cnt
+23:06:17   5  ,ROUND(MIN(chf_g8),4)    min_chf_g8
+23:06:17   6  ,ROUND(STDDEV(chf_g8),4) std_chf_g8
+23:06:17   7  ,ROUND(MAX(chf_g8),4)    max_chf_g8
+23:06:17   8  ,ROUND(CORR(score,chf_g8),2)corr_sg
+23:06:17   9  ,MIN(ydate)        min_ydate
+23:06:17  10  ,MAX(ydate)        max_ydate
+23:06:17  11  FROM chf_rpt
+23:06:17  12  GROUP BY rscore
+23:06:17  13  ORDER BY rscore
+23:06:17  14  /
+
+RSCORE AVG_CHF_G8     CNT MIN_CHF_G8 STD_CHF_G8 MAX_CHF_G8 CORR_SG MIN_YDATE           MAX_YDATE
+------ ---------- ------- ---------- ---------- ---------- ------- ------------------- -------------------
+    .1      .0015      40     -.0071      .0049      .0118     .05 2010-12-08 11:55:00 2010-12-17 11:30:00
+    .2      .0014     140      -.007      .0045      .0137     .01 2010-12-08 11:50:00 2010-12-17 11:25:00
+    .3      .0003     252      -.014      .0042      .0145    -.06 2010-12-08 12:05:00 2010-12-17 11:50:00
+    .4     -.0003     333     -.0143      .0043      .0126    -.04 2010-12-08 12:35:00 2010-12-17 11:45:00
+    .5     -.0007     372     -.0147      .0043      .0129    -.07 2010-12-08 12:55:00 2010-12-17 11:05:00
+    .6     -.0016     355     -.0159       .005      .0116    -.05 2010-12-08 13:00:00 2010-12-17 08:40:00
+    .7     -.0029     275     -.0171      .0049      .0105     .00 2010-12-08 12:25:00 2010-12-17 08:35:00
+    .8     -.0032     146     -.0178      .0047       .011     .03 2010-12-08 23:50:00 2010-12-17 08:10:00
+    .9     -.0036      30     -.0081      .0033      .0025     .08 2010-12-08 17:35:00 2010-12-16 12:10:00
+   1.0      -.004       1      -.004          0      -.004         2010-12-14 06:10:00 2010-12-14 06:10:00
+
+10 rows selected.
+
+Elapsed: 00:00:00.05
+23:06:17 SQL> 
+23:06:17 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z2:/pt/s/rluck/svm8hp/svm2$ 
+oracle@z2:/pt/s/rluck/svm8hp/svm2$ 
