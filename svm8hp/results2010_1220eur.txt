@@ -1,0 +1,104 @@
+/pt/s/rluck/svm8hp/results2010_1220eur.txt
+
+This file contains backtest results for the EUR/USD pair which I ran on my 6 year old hp which is really slow.
+
+The results look good:
+
+oracle@hp2:/pt/s/rluck/svm8hp/svm2$ sqt @eur_rpt
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Dec 20 17:46:12 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+17:46:13 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.04
+17:46:13 SQL> --
+17:46:13 SQL> -- eur_rpt.sql
+17:46:13 SQL> --
+17:46:13 SQL> 
+17:46:13 SQL> -- Joins scores with eur_ms14.
+17:46:13 SQL> 
+17:46:13 SQL> CREATE OR REPLACE VIEW eur_rpt AS
+17:46:13   2  SELECT
+17:46:13   3  s.prdate
+17:46:13   4  ,m.ydate
+17:46:13   5  ,score
+17:46:13   6  ,ROUND(score,1)rscore
+17:46:13   7  ,eur_g8
+17:46:13   8  FROM fxscores8hp s, eur_ms14 m
+17:46:13   9  WHERE s.ydate = m.ydate
+17:46:13  10  AND s.pair='eur'
+17:46:13  11  AND score>0
+17:46:13  12  /
+
+View created.
+
+Elapsed: 00:00:00.17
+17:46:14 SQL> 
+17:46:14 SQL> -- rpt
+17:46:14 SQL> SELECT CORR(score,eur_g8)FROM eur_rpt WHERE score > 0.5;
+
+CORR(SCORE,EUR_G8)
+------------------
+	.453030603
+
+Elapsed: 00:00:00.13
+17:46:14 SQL> SELECT
+17:46:14   2  TO_CHAR(ydate,'YYYY-MM')
+17:46:14   3  ,CORR(score,eur_g8)
+17:46:14   4  FROM eur_rpt
+17:46:14   5  GROUP BY TO_CHAR(ydate,'YYYY-MM')
+17:46:14   6  ORDER BY TO_CHAR(ydate,'YYYY-MM')
+17:46:14   7  /
+
+TO_CHAR CORR(SCORE,EUR_G8)
+------- ------------------
+2010-12 	 .38871402
+
+Elapsed: 00:00:00.11
+17:46:14 SQL> COLUMN rscore  FORMAT 999.9
+17:46:14 SQL> COLUMN cnt     FORMAT 999999
+17:46:14 SQL> COLUMN corr_sg FORMAT 999.99
+17:46:14 SQL> 
+17:46:14 SQL> SELECT
+17:46:14   2  rscore
+17:46:14   3  ,ROUND(AVG(eur_g8),4)	 avg_eur_g8
+17:46:14   4  ,COUNT(score)	       cnt
+17:46:14   5  ,ROUND(MIN(eur_g8),4)	 min_eur_g8
+17:46:14   6  ,ROUND(STDDEV(eur_g8),4) std_eur_g8
+17:46:14   7  ,ROUND(MAX(eur_g8),4)	 max_eur_g8
+17:46:14   8  ,ROUND(CORR(score,eur_g8),2)corr_sg
+17:46:14   9  ,MIN(ydate)	 min_ydate
+17:46:14  10  ,MAX(ydate)	 max_ydate
+17:46:14  11  FROM eur_rpt
+17:46:14  12  GROUP BY rscore
+17:46:14  13  ORDER BY rscore
+17:46:14  14  /
+
+RSCORE AVG_EUR_G8     CNT MIN_EUR_G8 STD_EUR_G8 MAX_EUR_G8 CORR_SG MIN_YDATE	       MAX_YDATE
+------ ---------- ------- ---------- ---------- ---------- ------- ------------------- -------------------
+    .1	   -.0043      49     -.0172	  .0057      .0076     .17 2010-12-13 23:00:00 2010-12-17 10:50:00
+    .2	   -.0029     205     -.0204	  .0059      .0186    -.02 2010-12-13 01:35:00 2010-12-17 11:40:00
+    .3	   -.0012     280     -.0201	  .0066      .0196    -.03 2010-12-13 01:50:00 2010-12-17 11:30:00
+    .4	   -.0005     206     -.0197	  .0065      .0137     .07 2010-12-13 02:15:00 2010-12-17 11:55:00
+    .5	   -.0009     178     -.0168	  .0069      .0132     .00 2010-12-13 04:15:00 2010-12-17 11:45:00
+    .6	    .0007     149     -.0159	  .0067      .0181     .26 2010-12-13 08:15:00 2010-12-17 11:50:00
+    .7	     .005     107     -.0176	  .0075      .0183     .14 2010-12-13 07:05:00 2010-12-17 08:40:00
+    .8	    .0084      65     -.0097	  .0089      .0215     .15 2010-12-13 07:10:00 2010-12-17 06:55:00
+    .9	    .0097      21     -.0121	  .0103      .0217     .21 2010-12-13 10:10:00 2010-12-17 06:35:00
+
+9 rows selected.
+
+Elapsed: 00:00:00.16
+17:46:14 SQL> 
+17:46:14 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options

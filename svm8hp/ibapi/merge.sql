@@ -29,7 +29,7 @@ CREATE TABLE ibf5min COMPRESS AS
 SELECT
 pair
 ,ydate
-,MAX(clse)clse
+,AVG(clse)clse
 FROM ibf_dups
 GROUP BY pair,ydate
 /
