@@ -29,6 +29,7 @@ EOF
 
 # Massage the output txt into a sql script
 grep score1day cad_scorem.txt | grep -v SELECT > cad_scorem.sql
+cat  cad_scorem.txt
 
 # Run scorem
 sqt>out_of_cad_scorem.txt<<EOF

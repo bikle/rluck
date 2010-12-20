@@ -29,6 +29,7 @@ EOF
 
 # Massage the output txt into a sql script
 grep score1day jpy_scorem.txt | grep -v SELECT > jpy_scorem.sql
+cat  jpy_scorem.txt
 
 # Run scorem
 sqt>out_of_jpy_scorem.txt<<EOF

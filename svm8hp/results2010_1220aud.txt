@@ -1,0 +1,132 @@
+/pt/s/rluck/svm8hp/results2010_1220aud.txt
+
+These results are for a time series of 2230 points.
+
+The series starts at 2010-12-07 15:35:00 and ends at 2010-12-17 21:55:00.
+
+The points are associated with the AUD/USD pair and a bullish strategy.
+
+
+06:35:41 SQL> @qry_fxscores8hp.sql
+06:35:59 SQL> --
+06:35:59 SQL> -- qry_fxscores8hp.sql
+06:35:59 SQL> --
+06:35:59 SQL> 
+06:35:59 SQL> SELECT MIN(prdate),COUNT(prdate),MAX(prdate)FROM fxscores8hp WHERE prdate LIKE 'aud%';
+
+MIN(PRDATE)                    COUNT(PRDATE) MAX(PRDATE)
+------------------------------ ------------- ------------------------------
+aud2010-12-07 15:35:00                  2230 aud2010-12-17 21:55:00
+
+Elapsed: 00:00:00.01
+06:35:59 SQL> 
+06:35:59 SQL> 
+
+
+The results are not all that great but they do show a general positive correlation between SVM score and gain.
+
+
+
+
+oracle@zu:/pt/s/rluck/svm8hp/svm2$ sqt @aud_rpt
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Dec 20 06:27:36 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+06:27:36 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+06:27:36 SQL> --
+06:27:36 SQL> -- aud_rpt.sql
+06:27:36 SQL> --
+06:27:36 SQL> 
+06:27:36 SQL> -- Joins scores with aud_ms14.
+06:27:36 SQL> 
+06:27:36 SQL> CREATE OR REPLACE VIEW aud_rpt AS
+06:27:36   2  SELECT
+06:27:36   3  s.prdate
+06:27:36   4  ,m.ydate
+06:27:36   5  ,score
+06:27:36   6  ,ROUND(score,1)rscore
+06:27:36   7  ,aud_g8
+06:27:36   8  FROM fxscores8hp s, aud_ms14 m
+06:27:36   9  WHERE s.ydate = m.ydate
+06:27:36  10  AND s.pair='aud'
+06:27:36  11  AND score>0
+06:27:36  12  /
+
+View created.
+
+Elapsed: 00:00:00.05
+06:27:36 SQL> 
+06:27:36 SQL> -- rpt
+06:27:36 SQL> SELECT CORR(score,aud_g8)FROM aud_rpt WHERE score > 0.5;
+
+CORR(SCORE,AUD_G8)
+------------------
+        -.08718213
+
+Elapsed: 00:00:00.08
+06:27:36 SQL> SELECT
+06:27:36   2  TO_CHAR(ydate,'YYYY-MM')
+06:27:36   3  ,CORR(score,aud_g8)
+06:27:36   4  FROM aud_rpt
+06:27:36   5  GROUP BY TO_CHAR(ydate,'YYYY-MM')
+06:27:36   6  ORDER BY TO_CHAR(ydate,'YYYY-MM')
+06:27:36   7  /
+
+TO_CHAR CORR(SCORE,AUD_G8)
+------- ------------------
+2010-12         .183176252
+
+Elapsed: 00:00:00.05
+06:27:36 SQL> COLUMN rscore  FORMAT 999.9
+06:27:36 SQL> COLUMN cnt     FORMAT 999999
+06:27:36 SQL> COLUMN corr_sg FORMAT 999.99
+06:27:36 SQL> 
+06:27:36 SQL> SELECT
+06:27:36   2  rscore
+06:27:36   3  ,ROUND(AVG(aud_g8),4)      avg_aud_g8
+06:27:36   4  ,COUNT(score)            cnt
+06:27:36   5  ,ROUND(MIN(aud_g8),4)      min_aud_g8
+06:27:36   6  ,ROUND(STDDEV(aud_g8),4) std_aud_g8
+06:27:36   7  ,ROUND(MAX(aud_g8),4)      max_aud_g8
+06:27:36   8  ,ROUND(CORR(score,aud_g8),2)corr_sg
+06:27:36   9  ,MIN(ydate)        min_ydate
+06:27:36  10  ,MAX(ydate)        max_ydate
+06:27:36  11  FROM aud_rpt
+06:27:36  12  GROUP BY rscore
+06:27:36  13  ORDER BY rscore
+06:27:36  14  /
+
+RSCORE AVG_AUD_G8     CNT MIN_AUD_G8 STD_AUD_G8 MAX_AUD_G8 CORR_SG MIN_YDATE           MAX_YDATE
+------ ---------- ------- ---------- ---------- ---------- ------- ------------------- -------------------
+    .0      .0005       5     -.0032      .0029      .0034     .58 2010-12-09 05:00:00 2010-12-16 09:35:00
+    .1     -.0008     185     -.0074      .0026      .0043    -.02 2010-12-07 19:25:00 2010-12-17 21:55:00
+    .2      -.001     287     -.0086      .0033      .0088    -.02 2010-12-07 15:55:00 2010-12-17 11:35:00
+    .3     -.0009     330     -.0091      .0038      .0088     .07 2010-12-07 16:00:00 2010-12-17 11:30:00
+    .4     -.0004     368     -.0092      .0038      .0103     .13 2010-12-07 16:05:00 2010-12-17 11:55:00
+    .5      .0006     352     -.0096      .0041      .0103     .06 2010-12-07 17:25:00 2010-12-17 11:15:00
+    .6      .0015     344     -.0077      .0043      .0109     .01 2010-12-07 17:00:00 2010-12-17 11:50:00
+    .7      .0008     207     -.0067      .0039      .0114    -.08 2010-12-08 06:50:00 2010-12-17 11:25:00
+    .8      .0003     112     -.0054      .0032      .0091     .06 2010-12-08 07:10:00 2010-12-17 11:00:00
+    .9     -.0003      35      -.004      .0036      .0094    -.22 2010-12-08 16:55:00 2010-12-17 08:50:00
+   1.0      .0017       1      .0017          0      .0017         2010-12-10 06:00:00 2010-12-10 06:00:00
+
+11 rows selected.
+
+Elapsed: 00:00:00.06
+06:27:36 SQL> 
+06:27:36 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+
