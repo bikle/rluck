@@ -1,0 +1,79 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Dec 20 03:10:50 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+03:10:50 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.01
+03:10:50 SQL> 03:10:50 SQL> --
+03:10:50 SQL> -- xoc.sql
+03:10:50 SQL> --
+03:10:50 SQL> 
+03:10:50 SQL> -- I use this script to help me execute open/close orders.
+03:10:50 SQL> 
+03:10:50 SQL> SELECT
+03:10:50   2  './place_order.bash '||buysell shell_cmd
+03:10:50   3  ,30000 ssize
+03:10:50   4  ,REPLACE(UPPER(pair),'_',' ') pair
+03:10:50   5  -- Set opdate to recent-past to avoid clock skew.
+03:10:50   6  -- IB equates recent-past to right-now:
+03:10:50   7  ,TO_CHAR(opdate-1/24,'YYYYMMDD_hh24:mi:ss')||'_GMT' xopdate
+03:10:50   8  ,TO_CHAR(clsdate,'YYYYMMDD_hh24:mi:ss')||'_GMT'xclsdate
+03:10:50   9  FROM oc
+03:10:50  10  WHERE opdate > sysdate - 15/60/24
+03:10:50  11  -- Try to avoid entering duplicate orders:
+03:10:50  12  AND prdate NOT IN(SELECT prdate FROM xoc)
+03:10:50  13  /
+
+no rows selected
+
+Elapsed: 00:00:00.00
+03:10:50 SQL> 
+03:10:50 SQL> -- Try to avoid entering duplicate orders:
+03:10:50 SQL> INSERT INTO xoc(prdate,xocdate)
+03:10:50   2  SELECT prdate,sysdate FROM oc
+03:10:50   3  WHERE opdate > sysdate - 15/60/24
+03:10:50   4  /
+
+0 rows created.
+
+Elapsed: 00:00:00.00
+03:10:50 SQL> 
+03:10:50 SQL> -- How many orders have I entered?:
+03:10:50 SQL> SELECT COUNT(*)FROM xoc;
+
+  COUNT(*)
+----------
+       154
+
+Elapsed: 00:00:00.00
+03:10:50 SQL> 
+03:10:50 SQL> -- recently?:
+03:10:50 SQL> SELECT * FROM xoc WHERE xocdate > sysdate - 1;
+
+PRDATE			       XOCDATE
+------------------------------ -------------------
+aud2010-12-20 00:30:00	       2010-12-20 01:31:07
+aud2010-12-20 00:25:00	       2010-12-20 01:31:07
+aud2010-12-20 00:30:00	       2010-12-20 01:40:08
+aud2010-12-20 00:25:00	       2010-12-20 01:40:08
+chf2010-12-20 01:55:00	       2010-12-20 02:04:11
+chf2010-12-20 01:50:00	       2010-12-20 02:04:11
+chf2010-12-20 01:55:00	       2010-12-20 02:11:35
+chf2010-12-20 01:50:00	       2010-12-20 02:11:35
+
+8 rows selected.
+
+Elapsed: 00:00:00.00
+03:10:50 SQL> 
+03:10:50 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options

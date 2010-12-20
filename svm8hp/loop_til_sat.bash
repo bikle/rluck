@@ -8,6 +8,8 @@ the_day=`date +"%A"`
 while [ $the_day != 'Saturday' ]
 do
   echo hello
+  echo Now, it is:
+  date
   the_day=`date +"%A"`
   echo Today is $the_day
   ./loop_once.bash

@@ -5,11 +5,11 @@
 # I use this script to help me execute open/close orders.
 # Here I populate the oc table which is later acted upon by xoc.bash
 
-. /pt/s/rluck/svm4hp/.orcl
-. /pt/s/rluck/svm4hp/.jruby
+. /pt/s/rluck/svm8hp/.orcl
+. /pt/s/rluck/svm8hp/.jruby
 
 set -x 
-cd $SVM4HP
+cd $SVM8HP
 cd openclose/
 
 sqt>oc.txt<<EOF

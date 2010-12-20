@@ -16,25 +16,26 @@ prdate
       WHEN SUBSTR(prdate,1,3)='chf'THEN'usd_chf'
       WHEN SUBSTR(prdate,1,3)='jpy'THEN'usd_jpy'
   ELSE SUBSTR(prdate,1,3)
-  END pair
+  END    pair
 ,TO_DATE(SUBSTR(prdate,4,19))ydate
-,'buy'        buysell
+,'buy'   buysell
 ,score
 ,rundate
 ,sysdate opdate
 -- Deal with Fri-afternoon.
--- I want to close Fri-afternoon orders on Mon Morn 09:11 GMT:
+-- I want to close Late-Fri-afternoon orders on Mon Morn 01:11 GMT
+-- This is 09:11am in Tokyo:
 ,CASE WHEN
   (
   0+TO_CHAR((sysdate),'D') = 6
   AND
-  sysdate+4/24 > TRUNC(sysdate) + 21/24 + 50/60/24
+  sysdate+8/24 > TRUNC(sysdate) + 21/24 + 50/60/24
   )
-  THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
-  WHEN 0+TO_CHAR((sysdate+4/24),'D') = 7
-  THEN TRUNC(sysdate) + 2 + 9/24 + 11/60/24
-  ELSE sysdate + 4/24 END clsdate
-FROM fxscores
+  THEN TRUNC(sysdate) + 3 + 1/24 + 11/60/24
+  WHEN 0+TO_CHAR((sysdate+8/24),'D') = 7
+  THEN TRUNC(sysdate) + 2 + 1/24 + 11/60/24
+  ELSE sysdate + 8/24 END clsdate
+FROM fxscores8hp
 WHERE score > 0.75
 AND rundate > sysdate - 1/24
 AND prdate NOT IN(SELECT prdate FROM oc)
@@ -58,18 +59,18 @@ prdate
 ,rundate
 ,sysdate opdate
 -- Deal with Fri-afternoon.
--- I want to close Fri-afternoon orders on Mon Morn 09:11 GMT:
+-- I want to close Fri-afternoon orders on Mon Morn 01:11 GMT:
 ,CASE WHEN
   (
   0+TO_CHAR((sysdate),'D') = 6
   AND
-  sysdate+4/24 > TRUNC(sysdate) + 21/24 + 50/60/24
+  sysdate+8/24 > TRUNC(sysdate) + 21/24 + 50/60/24
   )
-  THEN TRUNC(sysdate) + 3 + 9/24 + 11/60/24
-  WHEN 0+TO_CHAR((sysdate+4/24),'D') = 7
-  THEN TRUNC(sysdate) + 2 + 9/24 + 11/60/24
-  ELSE sysdate + 4/24 END clsdate
-FROM fxscores_gattn
+  THEN TRUNC(sysdate) + 3 + 1/24 + 11/60/24
+  WHEN 0+TO_CHAR((sysdate+8/24),'D') = 7
+  THEN TRUNC(sysdate) + 2 + 1/24 + 11/60/24
+  ELSE sysdate + 8/24 END clsdate
+FROM fxscores8hp_gattn
 WHERE score > 0.75
 AND rundate > sysdate - 1/24
 AND prdate NOT IN(SELECT prdate FROM oc)
