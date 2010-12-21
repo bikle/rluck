@@ -6,6 +6,9 @@
 
 set -x
 
+# sleep for 15 min:
+sleep 915
+
 export myts=`date +%Y_%m_%d_%H_%M`
 
 cd /pt/s/rluck/svm8hp/ibapi/

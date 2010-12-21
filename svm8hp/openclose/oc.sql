@@ -36,7 +36,7 @@ prdate
   THEN TRUNC(sysdate) + 2 + 1/24 + 11/60/24
   ELSE sysdate + 8/24 END clsdate
 FROM fxscores8hp
-WHERE score > 0.75
+WHERE score > 0.85
 AND rundate > sysdate - 1/24
 AND prdate NOT IN(SELECT prdate FROM oc)
 ORDER BY rundate
@@ -71,7 +71,7 @@ prdate
   THEN TRUNC(sysdate) + 2 + 1/24 + 11/60/24
   ELSE sysdate + 8/24 END clsdate
 FROM fxscores8hp_gattn
-WHERE score > 0.75
+WHERE score > 0.85
 AND rundate > sysdate - 1/24
 AND prdate NOT IN(SELECT prdate FROM oc)
 ORDER BY rundate
