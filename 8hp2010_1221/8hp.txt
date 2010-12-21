@@ -1,0 +1,184 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Tue Dec 21 02:02:22 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+02:02:22 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.01
+02:02:22 SQL> 02:02:22 SQL> --
+02:02:22 SQL> -- 8hp.sql
+02:02:22 SQL> --
+02:02:22 SQL> 
+02:02:22 SQL> SET LINES 66
+02:02:22 SQL> DESC hourly
+ Name                             Null?    Type
+ -------------------------------- -------- -----------------------
+ PAIR                                      VARCHAR2(15)
+ YDATE                                     DATE
+ VOL                                       NUMBER
+ OPN                                       NUMBER
+ CLSE                                      NUMBER
+ MN                                        NUMBER
+ MX                                        NUMBER
+
+02:02:22 SQL> SET LINES 166
+02:02:22 SQL> 
+02:02:22 SQL> CREATE OR REPLACE VIEW hp10 AS
+02:02:22   2  SELECT
+02:02:22   3  pair
+02:02:22   4  -- ydate is granular down to the hour:
+02:02:22   5  ,ydate
+02:02:22   6  ,opn
+02:02:22   7  -- Derive an attribute I call "day_hour":
+02:02:22   8  ,TO_CHAR(ydate,'D')||'_'||TO_CHAR(ydate,'HH24')dhr
+02:02:22   9  -- Get ydate 8 hours in the future:
+02:02:22  10  ,LEAD(ydate,8,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ydate8
+02:02:22  11  -- Get closing price 8 hours in the future:
+02:02:22  12  ,LEAD(clse,5,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) clse8
+02:02:22  13  FROM hourly
+02:02:22  14  WHERE ydate > '2009-01-01'
+02:02:22  15  -- Prevent divide by zero:
+02:02:22  16  AND opn > 0
+02:02:22  17  ORDER BY pair,ydate
+02:02:22  18  /
+
+View created.
+
+Elapsed: 00:00:00.05
+02:02:22 SQL> 
+02:02:22 SQL> -- I derive more attributes:
+02:02:22 SQL> CREATE OR REPLACE VIEW hp12 AS
+02:02:22   2  SELECT
+02:02:22   3  pair
+02:02:22   4  ,ydate
+02:02:22   5  ,opn
+02:02:22   6  ,dhr
+02:02:22   7  ,ydate8
+02:02:22   8  ,clse8
+02:02:22   9  ,(clse8 - opn)/opn npg
+02:02:22  10  FROM hp10
+02:02:22  11  ORDER BY pair,ydate
+02:02:22  12  /
+
+View created.
+
+Elapsed: 00:00:00.06
+02:02:22 SQL> 
+02:02:22 SQL> --rpt
+02:02:22 SQL> SELECT
+02:02:22   2  pair
+02:02:22   3  ,MIN(ydate)
+02:02:22   4  ,COUNT(ydate)
+02:02:22   5  ,MAX(ydate)
+02:02:22   6  FROM hp10
+02:02:22   7  GROUP BY pair
+02:02:22   8  ORDER BY pair
+02:02:22   9  /
+
+PAIR            MIN(YDATE)          COUNT(YDATE) MAX(YDATE)
+--------------- ------------------- ------------ -------------------
+aud_usd         2009-01-01 01:00:00        12310 2010-12-13 07:00:00
+eur_usd         2009-01-01 01:00:00        12310 2010-12-13 07:00:00
+gbp_usd         2009-01-01 01:00:00        12298 2010-12-13 07:00:00
+usd_cad         2009-01-01 01:00:00        12310 2010-12-13 07:00:00
+usd_chf         2009-01-01 01:00:00        12310 2010-12-13 07:00:00
+usd_jpy         2009-01-01 01:00:00        12310 2010-12-13 07:00:00
+
+6 rows selected.
+
+Elapsed: 00:00:00.28
+02:02:22 SQL> 
+02:02:22 SQL> SELECT AVG(ydate8 - ydate), MIN(ydate8 - ydate),MAX(ydate8 - ydate),COUNT(ydate)FROM hp12;
+
+AVG(YDATE8-YDATE) MIN(YDATE8-YDATE) MAX(YDATE8-YDATE) COUNT(YDATE)
+----------------- ----------------- ----------------- ------------
+       .462411924        .333333333        2.79166667        73848
+
+Elapsed: 00:00:00.44
+02:02:23 SQL> -- I should see no rows WHERE the date difference is less than 8 hours:
+02:02:23 SQL> SELECT COUNT(ydate)FROM hp12 WHERE (ydate8 - ydate) < 8/24;
+
+COUNT(YDATE)
+------------
+           0
+
+Elapsed: 00:00:00.29
+02:02:23 SQL> 
+02:02:23 SQL> -- I should see many rows WHERE the date difference is exactly 8 hours:
+02:02:23 SQL> SELECT COUNT(ydate)FROM hp12 WHERE (ydate8 - ydate) = 8/24;
+
+COUNT(YDATE)
+------------
+       68652
+
+Elapsed: 00:00:00.29
+02:02:23 SQL> 
+02:02:23 SQL> -- I should see some rows
+02:02:23 SQL> -- WHERE the date difference is greater than 8 hours due to Saturday getting sandwiched between some of the records.
+02:02:23 SQL> -- Also if I am missing some rows, counts will appear here:
+02:02:23 SQL> SELECT TO_CHAR(ydate,'Day'),MIN(ydate),COUNT(ydate),MAX(ydate)
+02:02:23   2  FROM hp12 WHERE (ydate8 - ydate) > 8/24
+02:02:23   3  GROUP BY TO_CHAR(ydate,'Day')
+02:02:23   4  ORDER BY COUNT(ydate)
+02:02:23   5  /
+
+TO_CHAR(Y MIN(YDATE)          COUNT(YDATE) MAX(YDATE)
+--------- ------------------- ------------ -------------------
+Sunday    2009-05-10 21:00:00           18 2009-05-10 23:00:00
+Monday    2009-05-11 00:00:00           18 2009-05-11 02:00:00
+Tuesday   2009-07-14 06:00:00           96 2009-08-18 21:00:00
+Thursday  2009-06-25 08:00:00          120 2010-11-18 13:00:00
+Friday    2009-01-02 14:00:00         4896 2010-12-10 21:00:00
+
+Elapsed: 00:00:00.30
+02:02:23 SQL> 
+02:02:23 SQL> -- Now I can aggregate:
+02:02:23 SQL> SELECT
+02:02:23   2  pair,dhr
+02:02:23   3  ,COUNT(npg)count_npg
+02:02:23   4  ,ROUND(MIN(npg),4)min_npg
+02:02:23   5  ,ROUND(AVG(npg),4)avg_npg
+02:02:23   6  ,ROUND(STDDEV(npg),4)stddev_npg
+02:02:23   7  ,ROUND(MAX(npg),4)max_npg
+02:02:23   8  ,ROUND(SUM(npg),4)sum_npg
+02:02:23   9  FROM hp12
+02:02:23  10  WHERE (ydate8 - ydate) = 8/24
+02:02:23  11  GROUP BY pair,dhr
+02:02:23  12  -- I want more than 1.0 pip / hr which is 8 pips:
+02:02:23  13  HAVING ABS(AVG(npg)) > 0.0008
+02:02:23  14  ORDER BY dhr,pair
+02:02:23  15  /
+
+PAIR            DHR   COUNT_NPG    MIN_NPG    AVG_NPG STDDEV_NPG    MAX_NPG    SUM_NPG
+--------------- ---- ---------- ---------- ---------- ---------- ---------- ----------
+eur_usd         2_07        101      -.027     -.0009      .0047      .0089     -.0896
+eur_usd         2_08        101      -.025     -.0008      .0048      .0131     -.0857
+gbp_usd         3_12        100     -.0117      .0009      .0053      .0232      .0859
+gbp_usd         3_14         99     -.0177      .0008      .0053      .0258      .0796
+eur_usd         4_05        101     -.0074      .0009       .003      .0083      .0882
+usd_cad         4_08        101     -.0151     -.0008      .0051      .0136     -.0824
+aud_usd         4_20        101     -.0126      .0008      .0042      .0124      .0858
+aud_usd         5_04        101     -.0134       .001      .0047      .0094      .1018
+aud_usd         5_05        101     -.0166      .0011      .0049      .0132      .1073
+aud_usd         5_06        101      -.011      .0012       .005      .0181      .1186
+aud_usd         5_20        101      -.011     -.0009      .0036      .0152     -.0873
+usd_chf         6_07        101     -.0074      .0008      .0039      .0155      .0838
+eur_usd         6_09        102     -.0176     -.0009      .0047      .0101     -.0937
+gbp_usd         6_09        102     -.0087     -.0008      .0038       .008     -.0863
+
+14 rows selected.
+
+Elapsed: 00:00:00.69
+02:02:24 SQL> 
+02:02:24 SQL> 
+02:02:24 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
