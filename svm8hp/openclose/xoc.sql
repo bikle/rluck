@@ -13,15 +13,17 @@ SELECT
 ,TO_CHAR(opdate-1/24,'YYYYMMDD_hh24:mi:ss')||'_GMT' xopdate
 ,TO_CHAR(clsdate,'YYYYMMDD_hh24:mi:ss')||'_GMT'xclsdate
 FROM oc
-WHERE opdate > sysdate - 30/60/24
+WHERE opdate > sysdate - 9/60/24
 -- Try to avoid entering duplicate orders:
 AND prdate NOT IN(SELECT prdate FROM xoc)
+-- disabled for now:
+AND 1 = 2
 /
 
 -- Try to avoid entering duplicate orders:
 INSERT INTO xoc(prdate,xocdate)
 SELECT prdate,sysdate FROM oc
-WHERE opdate > sysdate - 30/60/24
+WHERE opdate > sysdate - 9/60/24
 /
 
 -- How many orders have I entered?:
