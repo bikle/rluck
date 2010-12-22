@@ -37,3 +37,22 @@
 #   - This pair was last opened more than 1/4 hour ago
 # 
 
+
+require 'rubygems' 
+require 'ruby-debug'
+require 'ws'
+
+class OpenClosePosition
+  def self.opair
+    # Obtain the latest SVM-score for the pair:
+    sql = "#{SEL1} sysdate FROM dual"
+    ws(sql)
+    p(sout)
+  end # def
+
+
+end # class
+
+# Run this class now
+OpenClosePosition.opair
+
