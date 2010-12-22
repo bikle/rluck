@@ -49,8 +49,12 @@ class OpenClosePosition
     longscore = `sqt @latest_score4 #{pairname}|grep longscore|grep matchthis|awk '{print $2}'`
     p longscore.chomp
     # If the score is high enough, decide if I want to open a position:
-    if longscore.chomp.to_f > 0.7
-      p "I will decide if I want to open a position now."
+    if longscore.chomp.to_f > 0.5
+      p "The score is high. I will now decide if I want to open a position."
+      # Find out the avg gain of this pair where score is high and score is recent:
+      `cat qry_gain4recent_long_aud.sql|sed 's/aud/#{pairname}/g' >qry_gain4recent_long.sql`
+      avg_gain = `sqt @qry_gain4recent_long|grep avg_g8|grep matchthis|awk '{print $2}'`
+      p avg_gain.chomp
     else
       p "The latest score is too low for me to open a position now."
     end # if
