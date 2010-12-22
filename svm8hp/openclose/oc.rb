@@ -151,6 +151,12 @@ class OpenClosePosition
     end # case
     p "score_floor_short is #{score_floor_short}"
 
+    # Now I have what I need to call oc.sql
+    oc_cmd = "sqt @oc #{pairname} #{score_floor_long} #{score_floor_short}"
+    p oc_cmd
+    oc_out = `#{oc_cmd}`
+    p oc_out
+
   end # def
 
 end # class

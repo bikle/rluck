@@ -3,8 +3,17 @@
 --
 
 -- This script helps me open and close forex positions.
+-- Typically this script is called from oc.rb
+-- The script oc.rb uses a bit of logic to determine which cmd-line-args
+-- to supply to this script.
 
-COLUMN prdate FORMAT A22
+-- Demo:
+-- sqt @oc.sql aud 0.75  1.0
+
+-- 1st cmd-line-arg is a 3 letter code for pair: aud, eur, gbp, cad, chf, jpy, ech
+-- 2nd cmd-line-arg constrains the 1st INSERT
+-- 3rd cmd-line-arg constrains the 2nd INSERT
+
 
 INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
 SELECT
@@ -36,10 +45,15 @@ prdate
   THEN TRUNC(sysdate) + 2 + 1/24 + 11/60/24
   ELSE sysdate + 8/24 END clsdate
 FROM fxscores8hp
+-- The 2nd param corresponds to score_floor_long in oc.rb:
 WHERE score > '&2'
+-- The 1st param corresponds to pairname in oc.rb:
 AND pair = '&1'
 AND rundate > sysdate - 11/60/24
 AND prdate NOT IN(SELECT prdate FROM oc)
+-- Avoid entering too many orders close together:
+AND sysdate - 1/24 >
+  (SELECT MAX(opdate)FROM oc WHERE pair='&1'AND buysell='buy')
 ORDER BY rundate
 /
 
@@ -72,20 +86,26 @@ prdate
   THEN TRUNC(sysdate) + 2 + 1/24 + 11/60/24
   ELSE sysdate + 8/24 END clsdate
 FROM fxscores8hp_gattn
+-- The 3rd param corresponds to score_floor_short in oc.rb:
 WHERE score > '&3'
+-- The 1st param corresponds to pairname in oc.rb:
 AND pair = '&1'
 AND rundate > sysdate - 11/60/24
 AND prdate NOT IN(SELECT prdate FROM oc)
+-- Avoid entering too many orders close together:
+AND sysdate - 1/24 >
+  (SELECT MAX(opdate)FROM oc WHERE pair='&1'AND buysell='sell')
 ORDER BY rundate
 /
 
 -- rpt:
+
+COLUMN prdate FORMAT A22
 
 SELECT
 prdate,buysell,score,rundate,opdate,clsdate
 FROM oc
 WHERE rundate > sysdate - 1
 ORDER BY rundate
-/
 
 exit
