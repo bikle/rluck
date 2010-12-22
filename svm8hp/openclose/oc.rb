@@ -117,42 +117,57 @@ class OpenClosePosition
     end # if
 
     # Now act on the throttle values
+
     score_floor_long = 1.0
+    delay_long = (25.0/24).to_s.squeeze
     case throttle_long
     when 0
       p "0: throttle_long is #{throttle_long}"
       score_floor_long = 1.0
+      delay_long = (25.0/24).to_s.squeeze
     when 1
       p "1: throttle_long is #{throttle_long}"
       score_floor_long = 0.85
+      delay_long = (1.0/24).to_s.squeeze
     when 2
       p "2: throttle_long is #{throttle_long}"
       score_floor_long = 0.75
+      delay_long = (0.5/24).to_s.squeeze
     when 3
       p "3: throttle_long is #{throttle_long}"
       score_floor_long = 0.70
+      delay_long = (0.25/24).to_s.squeeze
     end # case
     p "score_floor_long is #{score_floor_long}"
+    p "delay_long is #{delay_long}"
 
+    # Now act on the throttle values
     score_floor_short = 1.0
+    delay_short = (25.0/24).to_s.squeeze
     case throttle_short
     when 0
       p "0: throttle_short is #{throttle_short}"
       score_floor_short = 1.0
+      delay_short = (25.0/24).to_s.squeeze
     when 1
       p "1: throttle_short is #{throttle_short}"
       score_floor_short = 0.85
+      delay_short = (1.0/24).to_s.squeeze
     when 2
       p "2: throttle_short is #{throttle_short}"
       score_floor_short = 0.75
+      delay_short = (0.5/24).to_s.squeeze
     when 3
       p "3: throttle_short is #{throttle_short}"
       score_floor_short = 0.70
+      delay_short = (0.25/24).to_s.squeeze
     end # case
     p "score_floor_short is #{score_floor_short}"
+    p "delay_short is #{delay_short}"
+
 
     # Now I have what I need to call oc.sql
-    oc_cmd = "sqt @oc #{pairname} #{score_floor_long} #{score_floor_short}"
+    oc_cmd = "sqt @oc #{pairname} #{score_floor_long} #{score_floor_short} #{delay_long} #{delay_short}"
     p oc_cmd
     oc_out = `#{oc_cmd}`
     p oc_out

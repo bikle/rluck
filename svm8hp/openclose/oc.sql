@@ -8,11 +8,13 @@
 -- to supply to this script.
 
 -- Demo:
--- sqt @oc.sql aud 0.75  1.0
+-- sqt @oc.sql aud 0.75  1.0 1.0 0.0416
 
 -- 1st cmd-line-arg is a 3 letter code for pair: aud, eur, gbp, cad, chf, jpy, ech
 -- 2nd cmd-line-arg constrains the 1st INSERT
 -- 3rd cmd-line-arg constrains the 2nd INSERT
+-- 4th cmd-line-arg constrains the 1st INSERT
+-- 5th cmd-line-arg constrains the 2nd INSERT
 
 
 INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
@@ -52,7 +54,7 @@ AND pair = '&1'
 AND rundate > sysdate - 11/60/24
 AND prdate NOT IN(SELECT prdate FROM oc)
 -- Avoid entering too many orders close together:
-AND sysdate - 1/24 >
+AND sysdate - '&4' >
   (SELECT MAX(opdate)FROM oc WHERE pair='&1'AND buysell='buy')
 ORDER BY rundate
 /
@@ -93,7 +95,7 @@ AND pair = '&1'
 AND rundate > sysdate - 11/60/24
 AND prdate NOT IN(SELECT prdate FROM oc)
 -- Avoid entering too many orders close together:
-AND sysdate - 1/24 >
+AND sysdate - '&5' >
   (SELECT MAX(opdate)FROM oc WHERE pair='&1'AND buysell='sell')
 ORDER BY rundate
 /
