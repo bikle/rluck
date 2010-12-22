@@ -36,4 +36,9 @@ sqt>out_of_jpy_scorem.txt<<EOF
 @jpy_scorem.sql
 EOF
 
+# Look at recent scores
+sqt<<EOF
+@qry_recent_fxscores.sql
+EOF
+
 exit

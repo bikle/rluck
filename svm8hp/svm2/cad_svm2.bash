@@ -36,4 +36,9 @@ sqt>out_of_cad_scorem.txt<<EOF
 @cad_scorem.sql
 EOF
 
+# Look at recent scores
+sqt<<EOF
+@qry_recent_fxscores.sql
+EOF
+
 exit

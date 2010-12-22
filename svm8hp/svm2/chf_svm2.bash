@@ -36,4 +36,9 @@ sqt>out_of_chf_scorem.txt<<EOF
 @chf_scorem.sql
 EOF
 
+# Look at recent scores
+sqt<<EOF
+@qry_recent_fxscores.sql
+EOF
+
 exit

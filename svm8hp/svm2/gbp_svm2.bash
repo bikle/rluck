@@ -36,4 +36,9 @@ sqt>out_of_gbp_scorem.txt<<EOF
 @gbp_scorem.sql
 EOF
 
+# Look at recent scores
+sqt<<EOF
+@qry_recent_fxscores.sql
+EOF
+
 exit

@@ -36,4 +36,9 @@ sqt>out_of_aud_scorem.txt<<EOF
 @aud_scorem.sql
 EOF
 
+# Look at recent scores
+sqt<<EOF
+@qry_recent_fxscores.sql
+EOF
+
 exit
