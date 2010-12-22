@@ -37,17 +37,23 @@
 #   - This pair was last opened more than 1/4 hour ago
 # 
 
-
 require 'rubygems' 
 require 'ruby-debug'
 require 'ws'
 
 class OpenClosePosition
   def self.opair
-    # Obtain the latest SVM-score for the pair:
-    sql = "#{SEL1} sysdate FROM dual"
-    ws(sql)
-    p(sout)
+    # Obtain the latest SVM-score for the pairname passed in via cmd-line:
+    pairname = 'aud'
+    pairname = $*[0]
+    longscore = `sqt @latest_score4 #{pairname}|grep longscore|grep matchthis|awk '{print $2}'`
+    p longscore.chomp
+    # If the score is high enough, decide if I want to open a position:
+    if longscore.chomp.to_f > 0.7
+      p "I will decide if I want to open a position now."
+    else
+      p "The latest score is too low for me to open a position now."
+    end # if
   end # def
 
 
