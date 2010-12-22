@@ -61,7 +61,7 @@ class OpenClosePosition
     # 1st assume the score is too low for me act on it:
     throttle_long = 0
 
-    # If the score is high enough, decide if I want to open a position:
+    # If the score (for a long position) is high enough, decide if I want to open a position:
     if longscore.chomp.to_f > 0.5
       p "The score is high. I will now decide if I want to open a long position."
       # Find out the avg gain of this pair where score is high and score is recent:
@@ -83,8 +83,75 @@ class OpenClosePosition
     else
       p "The latest longscore is too low for me to open a long position now."
     end # if
-  end # def
 
+    # Now look at and act on scores for short positions.
+    # Keep in mind that this is for short positions so large NEGATIVE gains are lucrative.
+    shortscore = `sqt @latest_score4 #{pairname}|grep shortscore|grep matchthis|awk '{print $2}'`
+    p shortscore.chomp
+
+    # 1st assume the score is too low for me act on it:
+    throttle_short = 0
+
+    # If the score (for a short position) is high enough, decide if I want to open a position:
+
+    if shortscore.chomp.to_f > 0.5
+      p "The score is high. I will now decide if I want to open a short position."
+      # Find out the avg gain of this pair where score is high and score is recent:
+      `cat qry_gain4recent_short_aud.sql|sed 's/aud/#{pairname}/g' >qry_gain4recent_short.sql`
+      avg_gain = `sqt @qry_gain4recent_short|grep avg_g8|grep matchthis|awk '{print $2}'`
+      p avg_gain.chomp
+      # Now that I know the gain, I can set and act on a throttle_short value.
+      throttle_short = 1
+      case
+      when(avg_gain.chomp.to_f < -0.0024)
+        throttle_short = 3
+      when(avg_gain.chomp.to_f < 0.0)
+        throttle_short = 2
+      else
+        throttle_short = 1
+      end # case
+      p "throttle_short is now:"
+      p throttle_short
+    else
+      p "The latest shortscore is too low for me to open a short position now."
+    end # if
+
+    # Now act on the throttle values
+    score_floor_long = 1.0
+    case throttle_long
+    when 0
+      p "0: throttle_long is #{throttle_long}"
+      score_floor_long = 1.0
+    when 1
+      p "1: throttle_long is #{throttle_long}"
+      score_floor_long = 0.85
+    when 2
+      p "2: throttle_long is #{throttle_long}"
+      score_floor_long = 0.75
+    when 3
+      p "3: throttle_long is #{throttle_long}"
+      score_floor_long = 0.70
+    end # case
+    p "score_floor_long is #{score_floor_long}"
+
+    score_floor_short = 1.0
+    case throttle_short
+    when 0
+      p "0: throttle_short is #{throttle_short}"
+      score_floor_short = 1.0
+    when 1
+      p "1: throttle_short is #{throttle_short}"
+      score_floor_short = 0.85
+    when 2
+      p "2: throttle_short is #{throttle_short}"
+      score_floor_short = 0.75
+    when 3
+      p "3: throttle_short is #{throttle_short}"
+      score_floor_short = 0.70
+    end # case
+    p "score_floor_short is #{score_floor_short}"
+
+  end # def
 
 end # class
 

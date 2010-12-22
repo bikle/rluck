@@ -1,5 +1,5 @@
 --
--- qry_gain4recent_long.sql
+-- qry_gain4recent_short.sql
 --
 
 -- I use this script as a prototype to query the gains for a pair
@@ -8,9 +8,9 @@
 SELECT
 'avg_g8'
 ||'matchthis'
-,AVG(aud_g8)
-FROM fxscores8hp s, aud_ms10 m
-WHERE s.pair = 'aud'
+,AVG(chf_g8)
+FROM fxscores8hp_gattn s, chf_ms10 m
+WHERE s.pair = 'chf'
 AND s.ydate = m.ydate
 AND score > 0.7
 AND s.ydate > sysdate - 1
