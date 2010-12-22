@@ -13,7 +13,7 @@ cd $SVM8HP
 cd openclose/
 
 sqt>oc.txt<<EOF
-@oc.sql
+@oc.sql aud 0.85 0.85
 EOF
 
 export myts=`date +%Y_%m_%d_%H_%M`
