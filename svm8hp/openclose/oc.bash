@@ -17,10 +17,16 @@ cd openclose/
 
 export myts=`date +%Y_%m_%d_%H_%M`
 jruby oc.rb $1 > /pt/s/cron/out/oc.rb.${myts}.txt 2>&1
-mv oc_sql_spool.txt oc_sql_spool.${myts}.txt
+cp oc_sql_spool.txt /pt/s/cron/out/oc_sql_spool.${myts}.txt
 
 # Now, xoc.bash will act on entries in the oc table.
 ## ./xoc.bash > /pt/s/cron/out/xoc.bash.${myts}.txt 2>&1
+
+sqt>qry_oc.txt<<EOF
+@qry_oc.sql
+EOF
+
+cp -p qry_oc.txt /pt/s/cron/out/qry_oc.${myts}.txt
 
 exit
 

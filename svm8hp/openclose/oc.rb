@@ -62,7 +62,7 @@ class OpenClosePosition
     throttle_long = 0
 
     # If the score (for a long position) is high enough, decide if I want to open a position:
-    if longscore.chomp.to_f > 0.5
+    if longscore.chomp.to_f > 0.7
       p "The score is high. I will now decide if I want to open a long position."
       # Find out the avg gain of this pair where score is high and score is recent:
       `cat qry_gain4recent_long_aud.sql|sed 's/aud/#{pairname}/g' >qry_gain4recent_long.sql`
@@ -94,7 +94,7 @@ class OpenClosePosition
 
     # If the score (for a short position) is high enough, decide if I want to open a position:
 
-    if shortscore.chomp.to_f > 0.5
+    if shortscore.chomp.to_f > 0.7
       p "The score is high. I will now decide if I want to open a short position."
       # Find out the avg gain of this pair where score is high and score is recent:
       `cat qry_gain4recent_short_aud.sql|sed 's/aud/#{pairname}/g' >qry_gain4recent_short.sql`

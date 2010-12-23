@@ -1,11 +1,11 @@
 --
--- abc_score1day.sql
+-- jpy_score1day_gattn.sql
 --
 
 CREATE OR REPLACE VIEW sme AS
 SELECT
-'abc'||m.ydate prdate
-,NULL gatt
+'jpy'||m.ydate prdate
+,NULL gattn
 ,m.ydate - TO_DATE('2000-01-01','YYYY-MM-DD')daycount
 ,eur_g00
 ,eur_g01
@@ -253,7 +253,7 @@ SELECT
 ,chf_g38
 ,chf_g39
 ,chf_g40
-FROM abc_ms14 m
+FROM jpy_ms14 m
 WHERE m.ydate = '&1'||' '||'&2'
 /
 
@@ -265,8 +265,8 @@ SELECT COUNT(prdate) FROM sme
 -- Build the model:
 CREATE OR REPLACE VIEW bme AS
 SELECT
-'abc'||m.ydate prdate
-,gatt
+'jpy'||m.ydate prdate
+,gattn
 ,m.ydate - TO_DATE('2000-01-01','YYYY-MM-DD')daycount
 ,eur_g00
 ,eur_g01
@@ -514,16 +514,16 @@ SELECT
 ,chf_g38
 ,chf_g39
 ,chf_g40
-FROM abc_ms14 m
-WHERE gatt IN('nup','up')
+FROM jpy_ms14 m
+WHERE gattn IN('nup','up')
 AND 1+m.ydate < '&1'||' '||'&2'
 /
 
 -- rpt
 
-SELECT gatt, COUNT(prdate) FROM bme GROUP BY gatt
+SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn
 
 SELECT MAX(prdate) FROM bme
 
 -- Now build model from bme and score sme
-@score1.sql
+@score1gattn.sql

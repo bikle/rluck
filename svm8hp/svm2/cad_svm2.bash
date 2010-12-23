@@ -22,6 +22,9 @@ EOF
 # Look for errors
 grep -i error out2cad.txt | wc -l
 
+# de_dup fxscores8hp, fxscores8hp_gattn
+./de_dup_fx.bash
+
 # Build script full of calls to scoring script
 sqt>cad_scorem.txt<<EOF
 @cad_build_scorem.sql

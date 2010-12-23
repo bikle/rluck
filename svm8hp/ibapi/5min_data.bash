@@ -32,4 +32,10 @@ sqt>qry_ibf5min.txt<<EOF
 EOF
 cp -p qry_ibf5min.txt /pt/s/cron/out/qry_ibf5min.${myts}.txt
 
+# Get a backup
+./expdp5min.bash
+
+# rm old csv files
+./rm_old_csv.bash
+
 exit
