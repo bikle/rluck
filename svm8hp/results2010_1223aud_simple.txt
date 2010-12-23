@@ -1,0 +1,118 @@
+/pt/s/rluck/svm8hp/results2010_1223aud_simple.txt
+
+This file contains the results of an SVM strategy which relies on a simpler method for deriving model attributes.
+
+The results are poor so I will continue using my more complex method
+which depends on an analytic function which collects a SUM() of g8 for
+a large set of attributes going back 22 days.
+
+The results for the complex method are here:
+
+results2010_1220aud.txt
+
+
+
+Here are the results of the simpler method:
+
+oracle@zu:/pt/s/rluck/svm8hp/svm2$ sqt @aud_rpt
+
+SQL*Plus: Release 11.2.0.1.0 Production on Thu Dec 23 01:43:53 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+01:43:54 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+01:43:54 SQL> --
+01:43:54 SQL> -- aud_rpt.sql
+01:43:54 SQL> --
+01:43:54 SQL> 
+01:43:54 SQL> -- Joins scores with aud_ms14.
+01:43:54 SQL> 
+01:43:54 SQL> CREATE OR REPLACE VIEW aud_rpt AS
+01:43:54   2  SELECT
+01:43:54   3  s.prdate
+01:43:54   4  ,m.ydate
+01:43:54   5  ,score
+01:43:54   6  ,ROUND(score,1)rscore
+01:43:54   7  ,aud_g8
+01:43:54   8  FROM fxscores8hp s, aud_ms14 m
+01:43:54   9  WHERE s.ydate = m.ydate
+01:43:54  10  AND s.pair='aud'
+01:43:54  11  AND score>0
+01:43:54  12  AND aud_g8 IS NOT NULL
+01:43:54  13  /
+
+View created.
+
+Elapsed: 00:00:01.16
+01:43:55 SQL> 
+01:43:55 SQL> -- rpt
+01:43:55 SQL> SELECT CORR(score,aud_g8)FROM aud_rpt WHERE score > 0.5;
+
+CORR(SCORE,AUD_G8)
+------------------
+        -.01291251
+
+Elapsed: 00:00:00.27
+01:43:55 SQL> SELECT
+01:43:55   2  TO_CHAR(ydate,'YYYY-MM')
+01:43:55   3  ,CORR(score,aud_g8)
+01:43:55   4  FROM aud_rpt
+01:43:55   5  GROUP BY TO_CHAR(ydate,'YYYY-MM')
+01:43:55   6  ORDER BY TO_CHAR(ydate,'YYYY-MM')
+01:43:55   7  /
+
+TO_CHAR CORR(SCORE,AUD_G8)
+------- ------------------
+2010-12         -.02781278
+
+Elapsed: 00:00:00.03
+01:43:55 SQL> COLUMN rscore  FORMAT 999.9
+01:43:55 SQL> COLUMN cnt     FORMAT 999999
+01:43:55 SQL> COLUMN corr_sg FORMAT 999.99
+01:43:55 SQL> 
+01:43:55 SQL> SELECT
+01:43:55   2  rscore
+01:43:55   3  ,ROUND(AVG(aud_g8),4)      avg_aud_g8
+01:43:55   4  ,COUNT(score)            cnt
+01:43:55   5  ,ROUND(MIN(aud_g8),4)      min_aud_g8
+01:43:55   6  ,ROUND(STDDEV(aud_g8),4) std_aud_g8
+01:43:55   7  ,ROUND(MAX(aud_g8),4)      max_aud_g8
+01:43:55   8  ,ROUND(CORR(score,aud_g8),2)corr_sg
+01:43:55   9  ,MIN(ydate)        min_ydate
+01:43:55  10  ,MAX(ydate)        max_ydate
+01:43:55  11  FROM aud_rpt
+01:43:55  12  GROUP BY rscore
+01:43:55  13  ORDER BY rscore
+01:43:55  14  /
+
+RSCORE AVG_AUD_G8     CNT MIN_AUD_G8 STD_AUD_G8 MAX_AUD_G8 CORR_SG MIN_YDATE           MAX_YDATE
+------ ---------- ------- ---------- ---------- ---------- ------- ------------------- -------------------
+    .0     -.0017      35     -.0077      .0033      .0032     .55 2010-12-07 15:55:00 2010-12-15 01:15:00
+    .1     -.0011     267     -.0082      .0038      .0114    -.09 2010-12-07 15:50:00 2010-12-17 13:35:00
+    .2      .0005     346     -.0083      .0048      .0103     .13 2010-12-07 15:45:00 2010-12-17 13:25:00
+    .3      .0012     338     -.0089      .0042      .0093    -.11 2010-12-07 15:35:00 2010-12-17 13:45:00
+    .4      .0002     271      -.008      .0036      .0097    -.14 2010-12-07 16:15:00 2010-12-17 13:55:00
+    .5      .0002     263     -.0086      .0035      .0099     .01 2010-12-07 16:00:00 2010-12-17 13:50:00
+    .6     -.0002     260     -.0092      .0033      .0094    -.20 2010-12-08 04:05:00 2010-12-17 13:05:00
+    .7     -.0009     219     -.0091      .0029      .0096     .15 2010-12-07 23:30:00 2010-12-17 12:50:00
+    .8     -.0006     163     -.0096      .0032      .0109     .01 2010-12-08 08:35:00 2010-12-17 12:55:00
+    .9      .0004      90     -.0049      .0025       .004     .09 2010-12-09 06:50:00 2010-12-17 11:25:00
+   1.0      .0038       1      .0038          0      .0038         2010-12-10 01:25:00 2010-12-10 01:25:00
+
+11 rows selected.
+
+Elapsed: 00:00:00.06
+01:43:55 SQL> 
+01:43:55 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@zu:/pt/s/rluck/svm8hp/svm2$ 
