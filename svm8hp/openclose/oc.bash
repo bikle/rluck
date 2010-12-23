@@ -16,17 +16,17 @@ cd $SVM8HP
 cd openclose/
 
 export myts=`date +%Y_%m_%d_%H_%M`
-jruby oc.rb $1 > /pt/s/cron/out/oc.rb.${myts}.txt 2>&1
-cp oc_sql_spool.txt /pt/s/cron/out/oc_sql_spool.${myts}.txt
+jruby oc.rb $1 > /pt/s/cron/out/oc.rb.${myts}.${1}.txt 2>&1
+cp oc_sql_spool.txt /pt/s/cron/out/oc_sql_spool.${myts}.${1}.txt
 
 # Now, xoc.bash will act on entries in the oc table.
 ## ./xoc.bash > /pt/s/cron/out/xoc.bash.${myts}.txt 2>&1
 
-sqt>qry_oc.txt<<EOF
+sqt>qry_oc.${1}.txt<<EOF
 @qry_oc.sql
 EOF
 
-cp -p qry_oc.txt /pt/s/cron/out/qry_oc.${myts}.txt
+cp -p qry_oc.${1}.txt /pt/s/cron/out/qry_oc.${myts}.${1}.txt
 
 exit
 
