@@ -16,8 +16,6 @@ FROM oc
 WHERE opdate > sysdate - 9/60/24
 -- Try to avoid entering duplicate orders:
 AND prdate NOT IN(SELECT prdate FROM xoc)
--- disabled for now:
-AND 1 = 2
 /
 
 -- Try to avoid entering duplicate orders:
