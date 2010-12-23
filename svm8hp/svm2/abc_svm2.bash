@@ -22,6 +22,9 @@ EOF
 # Look for errors
 grep -i error out2abc.txt | wc -l
 
+# de_dup fxscores8hp, fxscores8hp_gattn
+./de_dup_fx.bash
+
 # Build script full of calls to scoring script
 sqt>abc_scorem.txt<<EOF
 @abc_build_scorem.sql

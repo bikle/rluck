@@ -1,3 +1,4 @@
+SPOOL oc_sql_spool.txt
 --
 -- oc.sql
 --
