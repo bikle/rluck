@@ -32,7 +32,7 @@ chmod +x *bash
 ./aud_svm2.bash > /pt/s/cron/out/aud_svm2.${myts}.txt 2>&1
 # act on the scores:
 cd ../openclose/
-./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
+jruby oc.rb aud > /pt/s/cron/out/oc.rb.${myts}.txt 2>&1
 
 
 # Now do eur_usd:
@@ -50,7 +50,7 @@ chmod +x *bash
 ./eur_svm2.bash > /pt/s/cron/out/eur_svm2.${myts}.txt 2>&1
 # act on the scores:
 cd ../openclose/
-./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
+jruby oc.rb eur > /pt/s/cron/out/oc.rb.${myts}.txt 2>&1
 
 # Now do gbp_usd:
 cd $SVM8HP
@@ -67,7 +67,7 @@ chmod +x *bash
 ./gbp_svm2.bash > /pt/s/cron/out/gbp_svm2.${myts}.txt 2>&1
 # act on the scores:
 cd ../openclose/
-./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
+jruby oc.rb gbp > /pt/s/cron/out/oc.rb.${myts}.txt 2>&1
 
 # Now do usd_cad:
 cd $SVM8HP
@@ -84,7 +84,7 @@ chmod +x *bash
 ./cad_svm2.bash > /pt/s/cron/out/cad_svm2.${myts}.txt 2>&1
 # act on the scores:
 cd ../openclose/
-./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
+jruby oc.rb cad > /pt/s/cron/out/oc.rb.${myts}.txt 2>&1
 
 # Now do usd_chf:
 cd $SVM8HP
@@ -101,7 +101,7 @@ chmod +x *bash
 ./chf_svm2.bash > /pt/s/cron/out/chf_svm2.${myts}.txt 2>&1
 # act on the scores:
 cd ../openclose/
-./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
+jruby oc.rb chf > /pt/s/cron/out/oc.rb.${myts}.txt 2>&1
 
 # Now do usd_jpy:
 cd $SVM8HP
@@ -118,6 +118,6 @@ chmod +x *bash
 ./jpy_svm2.bash > /pt/s/cron/out/jpy_svm2.${myts}.txt 2>&1
 # act on the scores:
 cd ../openclose/
-./oc.bash  > /pt/s/cron/out/oc.bash.${myts}.txt 2>&1
+jruby oc.rb jpy > /pt/s/cron/out/oc.rb.${myts}.txt 2>&1
 
 exit
