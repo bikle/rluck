@@ -19,8 +19,8 @@ cd svm/
 # Now I generate some scripts from some templates:
 jruby sedem.rb
 # Now, for each pair, I create some tables full of model attributes:
-# aud_ms10, aud_att, ... , chf_ms10, chf_att
-./bld_run_big10.bash > /pt/s/cron/out/bld_run_big10.${myts}.txt 2>&1
+# aud_ms610, aud_att, ... , chf_ms610, chf_att
+./bld_run_big610.bash > /pt/s/cron/out/bld_run_big610.${myts}.txt 2>&1
 # Now, for each pair, run SVM and collect the scores:
 chmod +x *bash
 ./aud_svm.bash > /pt/s/cron/out/aud_svm.${myts}.txt 2>&1
