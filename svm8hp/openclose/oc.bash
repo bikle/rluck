@@ -20,7 +20,8 @@ jruby oc.rb $1 > /pt/s/cron/out/oc.rb.${myts}.${1}.txt 2>&1
 cp oc_sql_spool.txt /pt/s/cron/out/oc_sql_spool.${myts}.${1}.txt
 
 # Now, xoc.bash will act on entries in the oc table.
-./xoc.bash > /pt/s/cron/out/xoc.bash.${myts}.txt 2>&1
+## disabled for now:
+## ./xoc.bash > /pt/s/cron/out/xoc.bash.${myts}.txt 2>&1
 
 sqt>qry_oc.${1}.txt<<EOF
 @qry_oc.sql
