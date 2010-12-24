@@ -1,10 +1,6 @@
-@cad_score1day.sql  2010-12-24 00:55:00
-@cad_score1day.sql  2010-12-24 00:50:00
-@cad_score1day.sql  2010-12-24 00:45:00
-@cad_score1day.sql  2010-12-24 00:40:00
-@cad_score1day.sql  2010-12-24 00:35:00
-@cad_score1day_gattn.sql  2010-12-24 00:55:00
-@cad_score1day_gattn.sql  2010-12-24 00:50:00
-@cad_score1day_gattn.sql  2010-12-24 00:45:00
-@cad_score1day_gattn.sql  2010-12-24 00:40:00
-@cad_score1day_gattn.sql  2010-12-24 00:35:00
+@cad_score1day.sql  2010-12-24 05:45:00
+@cad_score1day.sql  2010-12-24 05:50:00
+@cad_score1day.sql  2010-12-24 05:55:00
+@cad_score1day_gattn.sql  2010-12-24 05:45:00
+@cad_score1day_gattn.sql  2010-12-24 05:50:00
+@cad_score1day_gattn.sql  2010-12-24 05:55:00

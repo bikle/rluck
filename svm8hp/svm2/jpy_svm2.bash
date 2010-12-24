@@ -41,7 +41,6 @@ EOF
 
 # Look at recent scores
 sqt<<EOF
-@sjp.sql
 @qry_recent_fxscores.sql
 EOF
 
