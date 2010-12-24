@@ -18,11 +18,13 @@ cd svm/
 exit
 
 # Run script to build aud_ms6
-sqt>out2aud.txt<<EOF
+sqt>aud6out.txt<<EOF
 @aud6.sql
 EOF
 # Look for errors
-grep -i error out2aud.txt | wc -l
+grep -i error aud6out.txt | wc -l
+
+exit
 
 # de_dup fxscores6, fxscores6_gattn
 ./de_dup_fx.bash

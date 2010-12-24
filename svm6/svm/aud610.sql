@@ -9,7 +9,7 @@ PURGE RECYCLEBIN;
 -- I created di5min here:
 -- /pt/s/rlk/svm8hp/update_di5min.sql
 
-CREATE OR REPLACE VIEW v10 AS
+CREATE OR REPLACE VIEW svm6102 AS
 SELECT
 pair
 ,ydate
@@ -56,13 +56,13 @@ pair
 ,MIN(clse),MAX(clse)
 ,MIN(avg6),MAX(avg6)
 ,MIN(ydate),MAX(ydate)
-FROM v10
+FROM svm6102
 GROUP BY pair
 /
 
 -- Derive trend, clse-relations, moving correlation of clse, and date related params:
-
-CREATE OR REPLACE VIEW v12 AS
+DROP TABLE svm6122;
+CREATE TABLE svm6122 COMPRESS AS
 SELECT
 pair
 ,ydate
@@ -118,7 +118,7 @@ pair
 ,ROUND( (ydate - trunc(ydate))*24*60 )mpm
 -- mph stands for minutes-past-hour:
 ,0+TO_CHAR(ydate,'MI')mph
-FROM v10
+FROM svm6102
 ORDER BY ydate
 /
 
@@ -129,13 +129,14 @@ pair
 ,COUNT(pair)
 ,MIN(clse),MAX(clse)
 ,MIN(ydate),MAX(ydate)
-FROM v12
+FROM svm6122
 GROUP BY pair
 /
 
 -- Prepare for derivation of NTILE based params:
 
-CREATE OR REPLACE VIEW v14 AS
+DROP TABLE svm6142;
+CREATE TABLE svm6142 COMPRESS AS
 SELECT
 pair
 ,ydate
@@ -188,7 +189,7 @@ pair
 ,w
 ,mpm
 ,mph
-FROM v12
+FROM svm6122
 ORDER BY ydate
 /
 
@@ -200,15 +201,16 @@ pair
 ,gatt
 ,COUNT(pair)
 ,AVG(g6)
-FROM v14
+FROM svm6142
 GROUP BY pair,trend,gatt
 ORDER BY pair,trend,gatt
 /
 
 
--- Prepare for derivation of NTILE based params:
+-- Derive NTILE based params:
 
-CREATE OR REPLACE VIEW v16 AS
+DROP TABLE svm6162;
+CREATE TABLE svm6162 COMPRESS AS
 SELECT
 pair
 ,ydate
@@ -218,45 +220,45 @@ pair
 ,gatt
 ,gattn
 ,trend
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cm4  )att00
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cm6  )att01
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cm8  )att02
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cm10 )att03
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cm12 )att04
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cm14 )att05
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cm16 )att06
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cm18 )att07
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ca4  )att08
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ca6  )att09
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ca8  )att10
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ca10 )att11
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ca12 )att12
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ca14 )att13
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ca16 )att14
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY ca18 )att15
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cx4  )att16
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cx6  )att17
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cx8  )att18
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cx10 )att19
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cx12 )att20
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cx14 )att21
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cx16 )att22
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY cx18 )att23
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY crr4 )att24
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY crr6 )att25
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY crr8 )att26
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY crr10)att27
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY crr12)att28
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY crr14)att29
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY crr16)att30
-,NTILE(6)OVER(PARTITION BY trend,pair ORDER BY crr18)att31
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm4  )att00
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm6  )att01
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm8  )att02
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm10 )att03
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm12 )att04
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm14 )att05
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm16 )att06
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm18 )att07
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca4  )att08
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca6  )att09
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca8  )att10
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca10 )att11
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca12 )att12
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca14 )att13
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca16 )att14
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca18 )att15
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx4  )att16
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx6  )att17
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx8  )att18
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx10 )att19
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx12 )att20
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx14 )att21
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx16 )att22
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx18 )att23
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr4 )att24
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr6 )att25
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr8 )att26
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr10)att27
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr12)att28
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr14)att29
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr16)att30
+,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr18)att31
 ,hh  att32
 ,d   att33
 ,w   att34
 ,mpm att35
 ,mph att36
 ,trend att37
-FROM v14
+FROM svm6142
 ORDER BY ydate
 /
 
@@ -268,8 +270,90 @@ pair
 ,gatt
 ,COUNT(pair)
 ,AVG(g6)
-FROM v16
+FROM svm6162
 GROUP BY pair,trend,gatt
 ORDER BY pair,trend,gatt
 /
+
+DROP TABLE modsrc;
+CREATE TABLE modsrc COMPRESS AS
+SELECT
+pair       
+,ydate      
+,prdate     
+,trend      
+,g6
+,gatt
+,gattn
+FROM svm6162
+/
+
+ANALYZE TABLE modsrc COMPUTE STATISTICS;
+
+DROP   TABLE aud_ms610 ;
+CREATE TABLE aud_ms610 COMPRESS AS
+SELECT
+ydate
+,trend aud_trend
+,g6    aud_g6
+,gatt  aud_gatt
+,gattn aud_gattn
+FROM modsrc
+/
+
+ANALYZE TABLE aud_ms610 COMPUTE STATISTICS;
+
+-- I need a copy of the attributes:
+
+
+DROP   TABLE aud_att;
+CREATE TABLE aud_att COMPRESS AS
+SELECT
+ydate
+,att00 aud_att00
+,att01 aud_att01
+,att02 aud_att02
+,att03 aud_att03
+,att04 aud_att04
+,att05 aud_att05
+,att06 aud_att06
+,att07 aud_att07
+,att08 aud_att08
+,att09 aud_att09
+,att10 aud_att10
+,att11 aud_att11
+,att12 aud_att12
+,att13 aud_att13
+,att14 aud_att14
+,att15 aud_att15
+,att16 aud_att16
+,att17 aud_att17
+,att18 aud_att18
+,att19 aud_att19
+,att20 aud_att20
+,att21 aud_att21
+,att22 aud_att22
+,att23 aud_att23
+,att24 aud_att24
+,att25 aud_att25
+,att26 aud_att26
+,att27 aud_att27
+,att28 aud_att28
+,att29 aud_att29
+,att30 aud_att30
+,att31 aud_att31
+,att32 aud_att32
+,att33 aud_att33
+,att34 aud_att34
+,att35 aud_att35
+,att36 aud_att36
+,att37 aud_att37
+FROM svm6162
+/
+
+ANALYZE TABLE aud_att COMPUTE STATISTICS;
+
+-- rpt 
+SELECT COUNT(*)FROM svm6102;
+SELECT COUNT(*)FROM aud_att;
 

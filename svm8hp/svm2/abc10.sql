@@ -250,6 +250,7 @@ FROM q15
 ANALYZE TABLE abc_att COMPUTE STATISTICS;
 
 -- rpt 
+
 SELECT COUNT(*)FROM abc_att;
 
 exit
