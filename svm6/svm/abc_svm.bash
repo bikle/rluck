@@ -15,6 +15,8 @@ cd svm/
 # Build abc6.sql
 ./bld_abc6.bash
 
+exit
+
 # Run script to build abc_ms6
 sqt>out2abc.txt<<EOF
 @abc6.sql

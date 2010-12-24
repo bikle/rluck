@@ -10,7 +10,7 @@
 set -x
 
 cd $SVM6
-cd svm2/
+cd svm/
 
 cat abc610.sql | sed 's/abc/eur/g' > eur610.sql
 cat abc610.sql | sed 's/abc/aud/g' > aud610.sql

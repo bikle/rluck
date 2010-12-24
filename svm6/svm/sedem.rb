@@ -5,7 +5,7 @@
 # This replaces sedem.bash
 # It uses sed to create other scripts.
 
-PAIRS=%w{eur aud gbp jpy cad chf}
+## PAIRS=%w{eur aud gbp jpy cad chf}
 PAIRS=%w{eur aud}
 
 # abc_svm.bash
