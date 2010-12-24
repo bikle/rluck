@@ -21,6 +21,17 @@ pair
 FROM di5min WHERE pair LIKE'%eur%'
 ORDER BY ydate
 /
+
+-- rpt
+
+SELECT
+pair
+,COUNT(pair)
+,MIN(clse),MAX(clse)
+,MIN(avg6),MAX(avg6)
+FROM v10
+GROUP BY pair
+/
 --
 -- aud10.sql
 --
@@ -43,6 +54,17 @@ pair
 ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
 FROM di5min WHERE pair LIKE'%aud%'
 ORDER BY ydate
+/
+
+-- rpt
+
+SELECT
+pair
+,COUNT(pair)
+,MIN(clse),MAX(clse)
+,MIN(avg6),MAX(avg6)
+FROM v10
+GROUP BY pair
 /
 --
 -- gbp10.sql
@@ -67,6 +89,17 @@ pair
 FROM di5min WHERE pair LIKE'%gbp%'
 ORDER BY ydate
 /
+
+-- rpt
+
+SELECT
+pair
+,COUNT(pair)
+,MIN(clse),MAX(clse)
+,MIN(avg6),MAX(avg6)
+FROM v10
+GROUP BY pair
+/
 --
 -- jpy10.sql
 --
@@ -89,6 +122,17 @@ pair
 ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
 FROM di5min WHERE pair LIKE'%jpy%'
 ORDER BY ydate
+/
+
+-- rpt
+
+SELECT
+pair
+,COUNT(pair)
+,MIN(clse),MAX(clse)
+,MIN(avg6),MAX(avg6)
+FROM v10
+GROUP BY pair
 /
 --
 -- cad10.sql
@@ -113,6 +157,17 @@ pair
 FROM di5min WHERE pair LIKE'%cad%'
 ORDER BY ydate
 /
+
+-- rpt
+
+SELECT
+pair
+,COUNT(pair)
+,MIN(clse),MAX(clse)
+,MIN(avg6),MAX(avg6)
+FROM v10
+GROUP BY pair
+/
 --
 -- chf10.sql
 --
@@ -135,4 +190,15 @@ pair
 ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
 FROM di5min WHERE pair LIKE'%chf%'
 ORDER BY ydate
+/
+
+-- rpt
+
+SELECT
+pair
+,COUNT(pair)
+,MIN(clse),MAX(clse)
+,MIN(avg6),MAX(avg6)
+FROM v10
+GROUP BY pair
 /

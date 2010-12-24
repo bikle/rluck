@@ -3,7 +3,7 @@
 
 #  /pt/s/rluck/svm8hp/ibapi/place_mkt_ordr_at.bash buy 30000 USD CHF 20101224_16:04:59_GMT
 #
-#  /pt/s/rluck/svm8hp/ibapi/place_mkt_ordr_at.bash sell 30000 USD JPY 20101224_16:19:59_GMT
+#  /pt/s/rluck/svm8hp/ibapi/place_mkt_ordr_at.bash sell 30000 USD JPY 20101224_17:09:59_GMT
 #
 #  /pt/s/rluck/svm8hp/ibapi/place_mkt_ordr_at.bash buy 30000 EUR USD 20101224_15:29:59_GMT
 #

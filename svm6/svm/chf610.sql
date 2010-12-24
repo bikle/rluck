@@ -21,3 +21,14 @@ pair
 FROM di5min WHERE pair LIKE'%chf%'
 ORDER BY ydate
 /
+
+-- rpt
+
+SELECT
+pair
+,COUNT(pair)
+,MIN(clse),MAX(clse)
+,MIN(avg6),MAX(avg6)
+FROM v10
+GROUP BY pair
+/
