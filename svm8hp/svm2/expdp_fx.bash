@@ -13,3 +13,6 @@ expdp trade/t dumpfile=fxscores8hp.${myts}.dpdmp tables=fxscores8hp,fxscores8hp_
 
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/fxscores8hp.${myts}.dpdmp z:/oracle/app/oracle/admin/orcl/dpdump/"
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/fxscores8hp.${myts}.dpdmp h:/oracle/app/oracle/admin/orcl/dpdump/"
+echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/fxscores8hp.${myts}.dpdmp z2:/oracle/app/oracle/admin/orcl/dpdump/"
+
+echo "impdp trade/t table_exists_action=append dumpfile=fxscores8hp.${myts}.dpdmp"

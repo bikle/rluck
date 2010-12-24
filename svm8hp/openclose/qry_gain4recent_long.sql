@@ -8,9 +8,9 @@
 SELECT
 'avg_g8'
 ||'matchthis'
-,AVG(chf_g8)
-FROM fxscores8hp s, chf_ms10 m
-WHERE s.pair = 'chf'
+,AVG(eur_g8)
+FROM fxscores8hp s, eur_ms10 m
+WHERE s.pair = 'eur'
 AND s.ydate = m.ydate
 AND score > 0.7
 AND s.ydate > sysdate - 1
