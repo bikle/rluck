@@ -15,7 +15,7 @@ set -x
 
 cd $SVM6
 export myts=`date +%Y_%m_%d_%H_%M`
-cd svm2/
+cd svm/
 # Now I generate some scripts from some templates:
 jruby sedem.rb
 # Now, for each pair, I create some tables full of model attributes:
@@ -23,4 +23,4 @@ jruby sedem.rb
 ./bld_run_big10.bash > /pt/s/cron/out/bld_run_big10.${myts}.txt 2>&1
 # Now, for each pair, run SVM and collect the scores:
 chmod +x *bash
-./aud_svm2.bash > /pt/s/cron/out/aud_svm2.${myts}.txt 2>&1
+./aud_svm.bash > /pt/s/cron/out/aud_svm.${myts}.txt 2>&1
