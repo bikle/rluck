@@ -1,4 +1,4 @@
-@aud_score1day.sql  2010-10-29 19:40:01
+
 @aud_score1day.sql  2010-12-14 03:30:00
 @aud_score1day.sql  2010-12-22 17:05:00
 @aud_score1day.sql  2010-12-08 16:40:00

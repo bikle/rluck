@@ -22,3 +22,9 @@ PAIRS.each{|pair| `cat abc_score1day.sql | sed 's/abc/#{pair}/g' > #{pair}_score
 
 # abc_score1day_gattn.sql
 PAIRS.each{|pair| `cat abc_score1day_gattn.sql | sed 's/abc/#{pair}/g' > #{pair}_score1day_gattn.sql`}
+
+# abc_rpt.sql
+PAIRS.each{|pair| `cat abc_rpt.sql | sed 's/abc/#{pair}/g' > #{pair}_rpt.sql`}
+
+# abc_rpt_gattn.sql
+PAIRS.each{|pair| `cat abc_rpt_gattn.sql | sed 's/abc/#{pair}/g' > #{pair}_rpt_gattn.sql`}
