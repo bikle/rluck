@@ -4,25 +4,25 @@
 
 # Runs svm for a specific pair: abc
 
-. /pt/s/rluck/svm6/.orcl
-. /pt/s/rluck/svm6/.jruby
+. /pt/s/rluck/svm4/.orcl
+. /pt/s/rluck/svm4/.jruby
 
 set -x
 
-cd $SVM6
+cd $SVM4
 cd svm/
 
-# Build abc6.sql
-./bld_abc6.bash
+# Build abc4.sql
+./bld_abc4.bash
 
-# Run script to build abc_ms6
-sqt>abc6out.txt<<EOF
-@abc6.sql
+# Run script to build abc_ms4
+sqt>abc4out.txt<<EOF
+@abc4.sql
 EOF
 # Look for errors
-grep -i error abc6out.txt | wc -l
+grep -i error abc4out.txt | wc -l
 
-# de_dup fxscores6, fxscores6_gattn
+# de_dup fxscores4, fxscores4_gattn
 ./de_dup_fx.bash
 
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# bld_run_big410.sql
+# bld_run_big410.bash
 
 # Edit copies of abc410.sql to make gbp410.sql, etc.
 

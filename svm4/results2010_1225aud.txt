@@ -1,0 +1,267 @@
+/pt/s/rluck/svm4/results2010_1225aud.txt
+
+18:53:54 SQL> --
+18:53:54 SQL> -- aud_rpt.sql
+18:53:54 SQL> --
+18:53:54 SQL> 
+18:53:54 SQL> -- Joins scores with aud_ms4.
+18:53:54 SQL> 
+18:53:54 SQL> CREATE OR REPLACE VIEW aud_rpt AS
+18:53:54   2  SELECT
+18:53:54   3  s.prdate
+18:53:54   4  ,m.ydate
+18:53:54   5  ,score
+18:53:54   6  ,ROUND(score,1)rscore
+18:53:54   7  ,aud_g4
+18:53:54   8  FROM fxscores4 s, aud_ms4 m
+18:53:54   9  WHERE s.ydate = m.ydate
+18:53:54  10  AND s.pair='aud'
+18:53:54  11  AND score>0
+18:53:54  12  /
+
+View created.
+
+Elapsed: 00:00:00.12
+18:53:54 SQL> 
+18:53:54 SQL> -- rpt
+18:53:54 SQL> SELECT
+18:53:54   2  COUNT(score)
+18:53:54   3  ,CORR(score,aud_g4)
+18:53:54   4  FROM aud_rpt WHERE score > 0.5
+18:53:54   5  /
+
+COUNT(SCORE) CORR(SCORE,AUD_G4)
+------------ ------------------
+         244         .100316726
+
+Elapsed: 00:00:00.08
+18:53:54 SQL> 
+18:53:54 SQL> SELECT
+18:53:54   2  TO_CHAR(ydate,'YYYY-MM')
+18:53:54   3  ,COUNT(score)
+18:53:54   4  ,CORR(score,aud_g4)
+18:53:54   5  FROM aud_rpt
+18:53:54   6  GROUP BY TO_CHAR(ydate,'YYYY-MM')
+18:53:54   7  ORDER BY TO_CHAR(ydate,'YYYY-MM')
+18:53:54   8  /
+
+TO_CHAR COUNT(SCORE) CORR(SCORE,AUD_G4)
+------- ------------ ------------------
+2010-10          123         .306783813
+2010-11          320         .268986704
+2010-12          327         .068643177
+
+Elapsed: 00:00:00.03
+18:53:54 SQL> 
+18:53:54 SQL> 
+18:53:54 SQL> SELECT
+18:53:54   2  ROUND(score,1)score
+18:53:54   3  ,ROUND(AVG(aud_g4),4)avg_gain
+18:53:54   4  ,COUNT(aud_g4)cnt
+18:53:54   5  ,MIN(TO_CHAR(ydate,'YYYY-MM-DD'))min_ydate
+18:53:54   6  ,MAX(ydate)max_ydate
+18:53:54   7  ,CORR(score,aud_g4)
+18:53:54   8  FROM aud_rpt
+18:53:54   9  GROUP BY ROUND(score,1)
+18:53:54  10  ORDER BY ROUND(score,1)
+18:53:54  11  
+18:53:54 SQL> -- recently
+18:53:54 SQL> SELECT
+18:53:54   2  ROUND(score,1)score
+18:53:54   3  ,ROUND(AVG(aud_g4),4)avg_gain
+18:53:54   4  ,COUNT(aud_g4)cnt
+18:53:54   5  ,MIN(TO_CHAR(ydate,'YYYY-MM-DD'))min_ydate
+18:53:54   6  ,MAX(ydate)max_ydate
+18:53:54   7  FROM aud_rpt
+18:53:54   8  WHERE ydate > sysdate - 3
+18:53:54   9  GROUP BY ROUND(score,1)
+18:53:54  10  ORDER BY ROUND(score,1)
+18:53:54  11  
+18:53:54 SQL> 
+18:53:54 SQL> -- Look at 0.65
+18:53:54 SQL> -- I should see a positive gain
+18:53:54 SQL> SELECT
+18:53:54   2  ROUND(SUM(aud_g4),4)sum_gain
+18:53:54   3  ,ROUND(AVG(aud_g4),4)avg_gain
+18:53:54   4  ,COUNT(aud_g4)cnt
+18:53:54   5  ,MIN(TO_CHAR(ydate,'YYYY-MM-DD'))min_ydate
+18:53:54   6  ,MAX(ydate)max_ydate
+18:53:54   7  ,CORR(score,aud_g4)
+18:53:54   8  FROM aud_rpt
+18:53:54   9  WHERE ydate > sysdate - 3
+18:53:54  10  AND score >0.65
+18:53:54  11  
+18:53:54 SQL> COLUMN rscore  FORMAT 999.9
+18:53:54 SQL> COLUMN cnt     FORMAT 999999
+18:53:54 SQL> COLUMN corr_sg FORMAT 999.99
+18:53:54 SQL> 
+18:53:54 SQL> SELECT
+18:53:54   2  rscore
+18:53:54   3  ,ROUND(AVG(aud_g4),4)      avg_aud_g4
+18:53:54   4  ,COUNT(score)            cnt
+18:53:54   5  ,ROUND(MIN(aud_g4),4)      min_aud_g4
+18:53:54   6  ,ROUND(STDDEV(aud_g4),4) std_aud_g4
+18:53:54   7  ,ROUND(MAX(aud_g4),4)      max_aud_g4
+18:53:54   8  ,ROUND(CORR(score,aud_g4),2)corr_sg
+18:53:54   9  ,MIN(ydate)        min_ydate
+18:53:54  10  ,MAX(ydate)        max_ydate
+18:53:54  11  FROM aud_rpt
+18:53:54  12  GROUP BY rscore
+18:53:54  13  ORDER BY rscore
+18:53:54  14  /
+
+RSCORE AVG_AUD_G4     CNT MIN_AUD_G4 STD_AUD_G4 MAX_AUD_G4 CORR_SG MIN_YDATE           MAX_YDATE
+------ ---------- ------- ---------- ---------- ---------- ------- ------------------- -------------------
+    .0     -.0038       4      -.012      .0058      .0006    -.40 2010-10-26 23:10:01 2010-11-05 08:20:01
+    .1     -.0006      56     -.0105      .0032      .0074    -.01 2010-10-21 09:05:01 2010-12-23 20:10:00
+    .2     -.0003      98     -.0083      .0032      .0108    -.06 2010-10-21 02:20:01 2010-12-24 17:40:00
+    .3     -.0009     156     -.0098      .0029      .0076     .09 2010-10-21 03:40:01 2010-12-24 21:20:00
+    .4     -.0002     147     -.0072      .0028      .0082     .01 2010-10-21 00:15:01 2010-12-24 15:45:00
+    .5      .0007     110     -.0067      .0029      .0082     .11 2010-10-21 04:05:01 2010-12-24 18:00:00
+    .6      .0006      97     -.0068      .0028      .0066     .10 2010-10-21 16:30:01 2010-12-24 18:55:00
+    .7      .0002      60     -.0046      .0023      .0052     .14 2010-10-21 05:50:01 2010-12-24 18:50:00
+    .8      .0023      27     -.0029      .0029      .0093     .47 2010-10-27 17:10:01 2010-12-24 03:50:00
+    .9      .0014      14     -.0033      .0029      .0064     .39 2010-10-22 09:35:01 2010-12-24 06:30:00
+   1.0     -.0021       1     -.0021          0     -.0021         2010-11-17 16:05:01 2010-11-17 16:05:01
+
+11 rows selected.
+
+Elapsed: 00:00:00.03
+18:53:54 SQL> 
+18:53:54 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z2:/pt/s/rluck/svm4/svm$ 
+
+
+18:58:29 SQL> -- aud_rpt_gattn.sql
+18:58:29 SQL> --
+18:58:29 SQL> 
+18:58:29 SQL> -- Joins scores with aud_ms4.
+18:58:29 SQL> 
+18:58:29 SQL> CREATE OR REPLACE VIEW aud_rpt_gattn AS
+18:58:29   2  SELECT
+18:58:29   3  s.prdate
+18:58:29   4  ,m.ydate
+18:58:29   5  ,score
+18:58:29   6  ,ROUND(score,1)rscore
+18:58:29   7  ,aud_g4
+18:58:29   8  FROM fxscores4_gattn s, aud_ms4 m
+18:58:29   9  WHERE s.ydate = m.ydate
+18:58:29  10  AND s.pair='aud'
+18:58:29  11  AND score>0
+18:58:29  12  /
+
+View created.
+
+Elapsed: 00:00:00.07
+18:58:29 SQL> 
+18:58:29 SQL> -- rpt
+18:58:29 SQL> SELECT
+18:58:29   2  COUNT(score)
+18:58:29   3  ,CORR(score,aud_g4)
+18:58:29   4  FROM aud_rpt_gattn WHERE score > 0.5
+18:58:29   5  /
+
+COUNT(SCORE) CORR(SCORE,AUD_G4)
+------------ ------------------
+	 277	     -.14311342
+
+Elapsed: 00:00:00.12
+18:58:29 SQL> 
+18:58:29 SQL> SELECT
+18:58:29   2  TO_CHAR(ydate,'YYYY-MM')
+18:58:29   3  ,COUNT(score)
+18:58:29   4  ,CORR(score,aud_g4)
+18:58:29   5  FROM aud_rpt_gattn
+18:58:29   6  GROUP BY TO_CHAR(ydate,'YYYY-MM')
+18:58:29   7  ORDER BY TO_CHAR(ydate,'YYYY-MM')
+18:58:29   8  /
+
+TO_CHAR COUNT(SCORE) CORR(SCORE,AUD_G4)
+------- ------------ ------------------
+2010-10 	 108	     -.24847507
+2010-11 	 284	     -.32011641
+2010-12 	 214	     -.08806526
+
+Elapsed: 00:00:00.04
+18:58:29 SQL> 
+18:58:29 SQL> 
+18:58:29 SQL> SELECT
+18:58:29   2  ROUND(score,1)score
+18:58:29   3  ,ROUND(AVG(aud_g4),4)avg_gain
+18:58:29   4  ,COUNT(aud_g4)cnt
+18:58:29   5  ,MIN(TO_CHAR(ydate,'YYYY-MM-DD'))min_ydate
+18:58:29   6  ,MAX(ydate)max_ydate
+18:58:29   7  ,CORR(score,aud_g4)
+18:58:29   8  FROM aud_rpt_gattn
+18:58:29   9  GROUP BY ROUND(score,1)
+18:58:29  10  ORDER BY ROUND(score,1)
+18:58:29  11  
+18:58:29 SQL> -- recently
+18:58:29 SQL> SELECT
+18:58:29   2  ROUND(score,1)score
+18:58:29   3  ,ROUND(AVG(aud_g4),4)avg_gain
+18:58:29   4  ,COUNT(aud_g4)cnt
+18:58:29   5  ,MIN(TO_CHAR(ydate,'YYYY-MM-DD'))min_ydate
+18:58:29   6  ,MAX(ydate)max_ydate
+18:58:29   7  FROM aud_rpt_gattn
+18:58:29   8  WHERE ydate > sysdate - 3
+18:58:29   9  GROUP BY ROUND(score,1)
+18:58:29  10  ORDER BY ROUND(score,1)
+18:58:29  11  
+18:58:29 SQL> 
+18:58:29 SQL> -- Look at 0.65
+18:58:29 SQL> -- I should see a positive gain
+18:58:29 SQL> SELECT
+18:58:29   2  ROUND(SUM(aud_g4),4)sum_gain
+18:58:29   3  ,ROUND(AVG(aud_g4),4)avg_gain
+18:58:29   4  ,COUNT(aud_g4)cnt
+18:58:29   5  ,MIN(TO_CHAR(ydate,'YYYY-MM-DD'))min_ydate
+18:58:29   6  ,MAX(ydate)max_ydate
+18:58:29   7  ,CORR(score,aud_g4)
+18:58:29   8  FROM aud_rpt_gattn
+18:58:29   9  WHERE ydate > sysdate - 3
+18:58:29  10  AND score >0.65
+18:58:29  11  
+18:58:29 SQL> COLUMN rscore  FORMAT 999.9
+18:58:29 SQL> COLUMN cnt     FORMAT 999999
+18:58:29 SQL> COLUMN corr_sg FORMAT 999.99
+18:58:29 SQL> 
+18:58:29 SQL> SELECT
+18:58:29   2  rscore
+18:58:29   3  ,ROUND(AVG(aud_g4),4)	 avg_aud_g4
+18:58:29   4  ,COUNT(score)	       cnt
+18:58:29   5  ,ROUND(MIN(aud_g4),4)	 min_aud_g4
+18:58:29   6  ,ROUND(STDDEV(aud_g4),4) std_aud_g4
+18:58:29   7  ,ROUND(MAX(aud_g4),4)	 max_aud_g4
+18:58:29   8  ,ROUND(CORR(score,aud_g4),2)corr_sg
+18:58:29   9  ,MIN(ydate)	 min_ydate
+18:58:29  10  ,MAX(ydate)	 max_ydate
+18:58:29  11  FROM aud_rpt_gattn
+18:58:29  12  GROUP BY rscore
+18:58:29  13  ORDER BY rscore
+18:58:29  14  /
+
+RSCORE AVG_AUD_G4     CNT MIN_AUD_G4 STD_AUD_G4 MAX_AUD_G4 CORR_SG MIN_YDATE	       MAX_YDATE
+------ ---------- ------- ---------- ---------- ---------- ------- ------------------- -------------------
+    .1	    .0031      11     -.0016	  .0029      .0087     .17 2010-11-03 18:30:01 2010-12-23 01:35:00
+    .2	    .0013      77      -.005	  .0031      .0113     .05 2010-10-22 00:20:01 2010-12-24 20:30:00
+    .3	    .0009      84     -.0069	  .0033      .0111     .01 2010-10-21 04:30:01 2010-12-24 11:15:00
+    .4	    .0003      94     -.0112	  .0032      .0094     .00 2010-10-21 01:00:01 2010-12-22 12:05:00
+    .5	    .0002     121     -.0081	   .003      .0075     .11 2010-10-21 03:30:01 2010-12-24 15:25:00
+    .6	   -.0006      87     -.0062	  .0025      .0049     .08 2010-10-21 07:00:01 2010-12-23 10:55:00
+    .7	   -.0008      71     -.0102	  .0031       .007     .14 2010-10-21 02:10:01 2010-12-24 20:55:00
+    .8	   -.0013      41     -.0086	  .0034      .0075     .10 2010-10-21 03:00:01 2010-12-23 10:45:00
+    .9	   -.0007      19     -.0055	  .0036      .0063     .36 2010-10-21 01:15:01 2010-12-16 20:05:00
+   1.0	   -.0004	1     -.0004	      0     -.0004	   2010-12-16 00:10:00 2010-12-16 00:10:00
+
+10 rows selected.
+
+Elapsed: 00:00:00.05
+18:58:29 SQL> 
+18:58:29 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@zu:/pt/s/rluck/svm4/svm$ 
+

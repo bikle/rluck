@@ -3,7 +3,7 @@
 --
 
 SET LINES 66
-DESC fxscores6
+DESC fxscores4
 SET LINES 166
 
 DROP TABLE fxtmp;
@@ -17,15 +17,15 @@ prdate
 ,MAX(rundate)rundate
 ,MAX(pair)pair
 ,MAX(ydate)ydate
-FROM fxscores6
+FROM fxscores4
 GROUP BY prdate
 /
 
-SELECT COUNT(*)FROM fxscores6;
+SELECT COUNT(*)FROM fxscores4;
 SELECT COUNT(*)FROM fxtmp;
 
-DROP TABLE fxscores6;
-RENAME fxtmp TO fxscores6;
+DROP TABLE fxscores4;
+RENAME fxtmp TO fxscores4;
 
 --
 
@@ -36,12 +36,12 @@ prdate
 ,MAX(rundate)rundate
 ,MAX(pair)pair
 ,MAX(ydate)ydate
-FROM fxscores6_gattn
+FROM fxscores4_gattn
 GROUP BY prdate
 /
 
-SELECT COUNT(*)FROM fxscores6_gattn;
+SELECT COUNT(*)FROM fxscores4_gattn;
 SELECT COUNT(*)FROM fxtmp;
 
-DROP TABLE fxscores6_gattn;
-RENAME fxtmp TO fxscores6_gattn;
+DROP TABLE fxscores4_gattn;
+RENAME fxtmp TO fxscores4_gattn;

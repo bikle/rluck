@@ -2,7 +2,7 @@
 
 # aud_scorem.bash
 
-. /pt/s/rluck/svm6/.orcl
+. /pt/s/rluck/svm4/.orcl
 
 date
 

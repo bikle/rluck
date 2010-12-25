@@ -8,11 +8,11 @@
 -- Use same model_name used in score.sql
 DEFINE model_name = 'forex14'
 
--- CREATE TABLE fxscores6 (prdate VARCHAR2(30),score NUMBER,rundate DATE,pair VARCHAR2(8),ydate DATE);
+-- CREATE TABLE fxscores4 (prdate VARCHAR2(30),score NUMBER,rundate DATE,pair VARCHAR2(8),ydate DATE);
 
-DELETE fxscores6 WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+DELETE fxscores4 WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
 
-INSERT INTO fxscores6 (prdate,score,rundate,pair,ydate)
+INSERT INTO fxscores4 (prdate,score,rundate,pair,ydate)
 SELECT
 prdate
 ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score

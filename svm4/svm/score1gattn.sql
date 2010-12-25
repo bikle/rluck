@@ -8,9 +8,9 @@
 -- Use same model_name used in score_gattn.sql
 DEFINE model_name = 'forex14'
 
-DELETE fxscores6_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+DELETE fxscores4_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
 
-INSERT INTO fxscores6_gattn (prdate,score,rundate,pair,ydate)
+INSERT INTO fxscores4_gattn (prdate,score,rundate,pair,ydate)
 SELECT
 prdate
 ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score

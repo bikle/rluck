@@ -259,7 +259,7 @@ SELECT
 ,chf_g39
 ,chf_g40
 ,chf_g41
-FROM abc_ms6 m
+FROM abc_ms4 m
 WHERE m.ydate = '&1'||' '||'&2'
 /
 
@@ -526,7 +526,7 @@ SELECT
 ,chf_g39
 ,chf_g40
 ,chf_g41
-FROM abc_ms6 m
+FROM abc_ms4 m
 WHERE gattn IN('nup','up')
 AND 1+m.ydate < '&1'||' '||'&2'
 /
