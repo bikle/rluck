@@ -15,8 +15,6 @@ cd svm/
 # Build eur6.sql
 ./bld_eur6.bash
 
-exit
-
 # Run script to build eur_ms6
 sqt>eur6out.txt<<EOF
 @eur6.sql
@@ -24,10 +22,9 @@ EOF
 # Look for errors
 grep -i error eur6out.txt | wc -l
 
-exit
-
 # de_dup fxscores6, fxscores6_gattn
 ./de_dup_fx.bash
+
 
 # Build script full of calls to scoring script
 sqt>eur_scorem.txt<<EOF
@@ -36,7 +33,8 @@ EOF
 
 # Massage the output txt into a sql script
 grep score1day eur_scorem.txt | grep -v SELECT > eur_scorem.sql
-cat  eur_scorem.txt
+
+exit
 
 # Run scorem
 sqt>out_of_eur_scorem.txt<<EOF

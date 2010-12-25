@@ -48,6 +48,7 @@ SELECT
 ,eur_g38
 ,eur_g39
 ,eur_g40
+,eur_g41
 ,aud_g00
 ,aud_g01
 ,aud_g02
@@ -89,6 +90,7 @@ SELECT
 ,aud_g38
 ,aud_g39
 ,aud_g40
+,aud_g41
 ,gbp_g00
 ,gbp_g01
 ,gbp_g02
@@ -130,6 +132,7 @@ SELECT
 ,gbp_g38
 ,gbp_g39
 ,gbp_g40
+,gbp_g41
 ,jpy_g00
 ,jpy_g01
 ,jpy_g02
@@ -171,6 +174,7 @@ SELECT
 ,jpy_g38
 ,jpy_g39
 ,jpy_g40
+,jpy_g41
 ,cad_g00
 ,cad_g01
 ,cad_g02
@@ -212,6 +216,7 @@ SELECT
 ,cad_g38
 ,cad_g39
 ,cad_g40
+,cad_g41
 ,chf_g00
 ,chf_g01
 ,chf_g02
@@ -253,6 +258,7 @@ SELECT
 ,chf_g38
 ,chf_g39
 ,chf_g40
+,chf_g41
 FROM abc_ms6 m
 WHERE m.ydate = '&1'||' '||'&2'
 /
@@ -309,6 +315,7 @@ SELECT
 ,eur_g38
 ,eur_g39
 ,eur_g40
+,eur_g41
 ,aud_g00
 ,aud_g01
 ,aud_g02
@@ -350,6 +357,7 @@ SELECT
 ,aud_g38
 ,aud_g39
 ,aud_g40
+,aud_g41
 ,gbp_g00
 ,gbp_g01
 ,gbp_g02
@@ -391,6 +399,7 @@ SELECT
 ,gbp_g38
 ,gbp_g39
 ,gbp_g40
+,gbp_g41
 ,jpy_g00
 ,jpy_g01
 ,jpy_g02
@@ -432,6 +441,7 @@ SELECT
 ,jpy_g38
 ,jpy_g39
 ,jpy_g40
+,jpy_g41
 ,cad_g00
 ,cad_g01
 ,cad_g02
@@ -473,6 +483,7 @@ SELECT
 ,cad_g38
 ,cad_g39
 ,cad_g40
+,cad_g41
 ,chf_g00
 ,chf_g01
 ,chf_g02
@@ -514,6 +525,7 @@ SELECT
 ,chf_g38
 ,chf_g39
 ,chf_g40
+,chf_g41
 FROM abc_ms6 m
 WHERE gatt IN('nup','up')
 AND 1+m.ydate < '&1'||' '||'&2'

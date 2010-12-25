@@ -22,10 +22,9 @@ EOF
 # Look for errors
 grep -i error abc6out.txt | wc -l
 
-exit
-
 # de_dup fxscores6, fxscores6_gattn
 ./de_dup_fx.bash
+
 
 # Build script full of calls to scoring script
 sqt>abc_scorem.txt<<EOF
@@ -34,7 +33,8 @@ EOF
 
 # Massage the output txt into a sql script
 grep score1day abc_scorem.txt | grep -v SELECT > abc_scorem.sql
-cat  abc_scorem.txt
+
+exit
 
 # Run scorem
 sqt>out_of_abc_scorem.txt<<EOF

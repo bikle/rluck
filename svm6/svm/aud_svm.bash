@@ -15,8 +15,6 @@ cd svm/
 # Build aud6.sql
 ./bld_aud6.bash
 
-exit
-
 # Run script to build aud_ms6
 sqt>aud6out.txt<<EOF
 @aud6.sql
@@ -24,10 +22,9 @@ EOF
 # Look for errors
 grep -i error aud6out.txt | wc -l
 
-exit
-
 # de_dup fxscores6, fxscores6_gattn
 ./de_dup_fx.bash
+
 
 # Build script full of calls to scoring script
 sqt>aud_scorem.txt<<EOF
@@ -36,7 +33,8 @@ EOF
 
 # Massage the output txt into a sql script
 grep score1day aud_scorem.txt | grep -v SELECT > aud_scorem.sql
-cat  aud_scorem.txt
+
+exit
 
 # Run scorem
 sqt>out_of_aud_scorem.txt<<EOF
