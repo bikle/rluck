@@ -34,8 +34,6 @@ EOF
 # Massage the output txt into a sql script
 grep score1day eur_scorem.txt | grep -v SELECT > eur_scorem.sql
 
-exit
-
 # Run scorem
 sqt>out_of_eur_scorem.txt<<EOF
 @eur_scorem.sql

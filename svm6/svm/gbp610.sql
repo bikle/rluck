@@ -1,5 +1,5 @@
 --
--- gbp10.sql
+-- gbp610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy

@@ -1,5 +1,5 @@
 --
--- cad10.sql
+-- cad610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy

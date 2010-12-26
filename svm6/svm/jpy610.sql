@@ -1,5 +1,5 @@
 --
--- jpy10.sql
+-- jpy610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy

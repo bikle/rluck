@@ -1,0 +1,147 @@
+/pt/s/rluck/svm6/results2010_1226eur.txt
+
+
+oracle@hp2:/pt/s/rluck/svm6/svm$ sqt @eur_rpt_gattn.sql
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Dec 26 08:42:08 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+08:42:09 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.04
+08:42:09 SQL> --
+08:42:09 SQL> -- eur_rpt_gattn.sql
+08:42:09 SQL> --
+08:42:09 SQL> 
+08:42:09 SQL> -- Joins scores with eur_ms6.
+08:42:09 SQL> 
+08:42:09 SQL> CREATE OR REPLACE VIEW eur_rpt_gattn AS
+08:42:09   2  SELECT
+08:42:09   3  s.prdate
+08:42:09   4  ,m.ydate
+08:42:09   5  ,score
+08:42:09   6  ,ROUND(score,1)rscore
+08:42:09   7  ,eur_g6
+08:42:09   8  FROM fxscores6_gattn s, eur_ms6 m
+08:42:09   9  WHERE s.ydate = m.ydate
+08:42:09  10  AND s.pair='eur'
+08:42:09  11  AND score>0
+08:42:09  12  /
+
+View created.
+
+Elapsed: 00:00:00.06
+08:42:09 SQL> 
+08:42:09 SQL> -- rpt
+08:42:09 SQL> SELECT COUNT(score),CORR(score,eur_g6)FROM eur_rpt_gattn WHERE score > 0.5;
+
+COUNT(SCORE) CORR(SCORE,EUR_G6)
+------------ ------------------
+         272         -.21392064
+
+Elapsed: 00:00:00.23
+08:42:10 SQL> 
+08:42:10 SQL> SELECT
+08:42:10   2  TO_CHAR(ydate,'YYYY-MM')
+08:42:10   3  ,COUNT(score)
+08:42:10   4  ,CORR(score,eur_g6)
+08:42:10   5  FROM eur_rpt_gattn
+08:42:10   6  GROUP BY TO_CHAR(ydate,'YYYY-MM')
+08:42:10   7  ORDER BY TO_CHAR(ydate,'YYYY-MM')
+08:42:10   8  /
+
+TO_CHAR COUNT(SCORE) CORR(SCORE,EUR_G6)
+------- ------------ ------------------
+2010-10           63         -.29954113
+2010-11          211         -.32049306
+2010-12          152         -.13716203
+
+Elapsed: 00:00:00.17
+08:42:10 SQL> 
+08:42:10 SQL> 
+08:42:10 SQL> SELECT
+08:42:10   2  ROUND(score,1)score
+08:42:10   3  ,ROUND(AVG(eur_g6),4)avg_gain
+08:42:10   4  ,COUNT(eur_g6)cnt
+08:42:10   5  ,MIN(TO_CHAR(ydate,'YYYY-MM-DD'))min_ydate
+08:42:10   6  ,MAX(ydate)max_ydate
+08:42:10   7  ,CORR(score,eur_g6)
+08:42:10   8  FROM eur_rpt_gattn
+08:42:10   9  GROUP BY ROUND(score,1)
+08:42:10  10  ORDER BY ROUND(score,1)
+08:42:10  11  
+08:42:10 SQL> -- recently
+08:42:10 SQL> SELECT
+08:42:10   2  ROUND(score,1)score
+08:42:10   3  ,ROUND(AVG(eur_g6),4)avg_gain
+08:42:10   4  ,COUNT(eur_g6)cnt
+08:42:10   5  ,MIN(TO_CHAR(ydate,'YYYY-MM-DD'))min_ydate
+08:42:10   6  ,MAX(ydate)max_ydate
+08:42:10   7  FROM eur_rpt_gattn
+08:42:10   8  WHERE ydate > sysdate - 3
+08:42:10   9  GROUP BY ROUND(score,1)
+08:42:10  10  ORDER BY ROUND(score,1)
+08:42:10  11  
+08:42:10 SQL> 
+08:42:10 SQL> -- Look at 0.65
+08:42:10 SQL> -- I should see a positive gain
+08:42:10 SQL> SELECT
+08:42:10   2  ROUND(SUM(eur_g6),4)sum_gain
+08:42:10   3  ,ROUND(AVG(eur_g6),4)avg_gain
+08:42:10   4  ,COUNT(eur_g6)cnt
+08:42:10   5  ,MIN(TO_CHAR(ydate,'YYYY-MM-DD'))min_ydate
+08:42:10   6  ,MAX(ydate)max_ydate
+08:42:10   7  ,CORR(score,eur_g6)
+08:42:10   8  FROM eur_rpt_gattn
+08:42:10   9  WHERE ydate > sysdate - 3
+08:42:10  10  AND score >0.65
+08:42:10  11  
+08:42:10 SQL> COLUMN rscore  FORMAT 999.9
+08:42:10 SQL> COLUMN cnt     FORMAT 999999
+08:42:10 SQL> COLUMN corr_sg FORMAT 999.99
+08:42:10 SQL> 
+08:42:10 SQL> SELECT
+08:42:10   2  rscore
+08:42:10   3  ,ROUND(AVG(eur_g6),4)      avg_eur_g6
+08:42:10   4  ,COUNT(score)            cnt
+08:42:10   5  ,ROUND(MIN(eur_g6),4)      min_eur_g6
+08:42:10   6  ,ROUND(STDDEV(eur_g6),4) std_eur_g6
+08:42:10   7  ,ROUND(MAX(eur_g6),4)      max_eur_g6
+08:42:10   8  ,ROUND(CORR(score,eur_g6),2)corr_sg
+08:42:10   9  ,MIN(ydate)        min_ydate
+08:42:10  10  ,MAX(ydate)        max_ydate
+08:42:10  11  FROM eur_rpt_gattn
+08:42:10  12  GROUP BY rscore
+08:42:10  13  ORDER BY rscore
+08:42:10  14  /
+
+RSCORE AVG_EUR_G6     CNT MIN_EUR_G6 STD_EUR_G6 MAX_EUR_G6 CORR_SG MIN_YDATE           MAX_YDATE
+------ ---------- ------- ---------- ---------- ---------- ------- ------------------- -------------------
+    .1      .0036       8     -.0013       .004      .0097    -.69 2010-11-05 01:25:01 2010-12-16 01:10:00
+    .2      .0011      20     -.0077      .0051      .0128     .47 2010-10-27 07:55:01 2010-12-23 22:40:00
+    .3       .001      43     -.0112      .0054      .0127    -.10 2010-10-26 09:00:01 2010-12-21 03:25:00
+    .4      .0006      56     -.0104      .0057      .0149    -.07 2010-10-21 06:25:01 2010-12-24 06:45:00
+    .5       .001      76     -.0119      .0053      .0157    -.14 2010-10-21 02:35:01 2010-12-24 21:15:00
+    .6     -.0011      73     -.0119      .0051      .0097    -.09 2010-10-21 00:30:01 2010-12-23 22:15:00
+    .7     -.0009      65     -.0112      .0045      .0086    -.08 2010-10-20 23:25:01 2010-12-23 23:35:00
+    .8     -.0024      65     -.0192      .0055      .0118     .28 2010-10-25 09:30:01 2010-12-24 09:50:00
+    .9      -.005      20      -.018       .006      .0077    -.06 2010-10-25 09:45:01 2010-12-20 10:25:00
+
+9 rows selected.
+
+Elapsed: 00:00:00.13
+08:42:10 SQL> 
+08:42:10 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@hp2:/pt/s/rluck/svm6/svm$ 
+oracle@hp2:/pt/s/rluck/svm6/svm$ 
+oracle@hp2:/pt/s/rluck/svm6/svm$ 

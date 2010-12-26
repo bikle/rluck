@@ -1,5 +1,5 @@
 --
--- eur10.sql
+-- eur610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy
@@ -358,7 +358,7 @@ SELECT COUNT(*)FROM svm6102;
 SELECT COUNT(*)FROM eur_att;
 
 --
--- aud10.sql
+-- aud610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy
@@ -717,7 +717,7 @@ SELECT COUNT(*)FROM svm6102;
 SELECT COUNT(*)FROM aud_att;
 
 --
--- gbp10.sql
+-- gbp610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy
@@ -1076,7 +1076,7 @@ SELECT COUNT(*)FROM svm6102;
 SELECT COUNT(*)FROM gbp_att;
 
 --
--- jpy10.sql
+-- jpy610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy
@@ -1435,7 +1435,7 @@ SELECT COUNT(*)FROM svm6102;
 SELECT COUNT(*)FROM jpy_att;
 
 --
--- cad10.sql
+-- cad610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy
@@ -1794,7 +1794,7 @@ SELECT COUNT(*)FROM svm6102;
 SELECT COUNT(*)FROM cad_att;
 
 --
--- chf10.sql
+-- chf610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy

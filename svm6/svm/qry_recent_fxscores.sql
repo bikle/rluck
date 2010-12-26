@@ -2,12 +2,12 @@
 -- qry_recent_fxscores.sql
 --
 
-SELECT * FROM fxscores6       WHERE rundate> sysdate -4/24 ORDER BY ydate;
-SELECT * FROM fxscores6_gattn WHERE rundate> sysdate -4/24 ORDER BY ydate;
+SELECT * FROM fxscores6       WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
+SELECT * FROM fxscores6_gattn WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
 
-SELECT * FROM fxscores6       WHERE rundate> sysdate -4/24 AND score > 0.7 ORDER BY ydate;
+SELECT * FROM fxscores6       WHERE rundate> sysdate -0.5/24 AND score > 0.7 ORDER BY rundate;
 
-SELECT * FROM fxscores6_gattn WHERE rundate> sysdate -4/24 AND score > 0.7 ORDER BY ydate;
+SELECT * FROM fxscores6_gattn WHERE rundate> sysdate -0.5/24 AND score > 0.7 ORDER BY rundate;
 
 SELECT
 s.prdate

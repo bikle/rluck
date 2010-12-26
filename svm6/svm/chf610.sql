@@ -1,5 +1,5 @@
 --
--- chf10.sql
+-- chf610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy

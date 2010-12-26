@@ -266,7 +266,7 @@ WHERE m.ydate = '&1'||' '||'&2'
 -- rpt
 -- We should see just 1 row:
 
-SELECT COUNT(prdate) FROM sme;
+SELECT COUNT(prdate) FROM sme
 
 -- Build the model:
 CREATE OR REPLACE VIEW bme AS
@@ -533,9 +533,9 @@ AND 1+m.ydate < '&1'||' '||'&2'
 
 -- rpt
 
-SELECT gatt, COUNT(prdate) FROM bme GROUP BY gatt;
+SELECT gatt, COUNT(prdate) FROM bme GROUP BY gatt
 
-SELECT MAX(prdate) FROM bme;
+SELECT MAX(prdate) FROM bme
 
 -- Now build model from bme and score sme
 @score1.sql

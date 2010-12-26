@@ -1,5 +1,5 @@
 --
--- eur10.sql
+-- eur610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy

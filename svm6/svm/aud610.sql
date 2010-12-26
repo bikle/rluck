@@ -1,5 +1,5 @@
 --
--- aud10.sql
+-- aud610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy

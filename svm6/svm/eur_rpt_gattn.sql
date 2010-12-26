@@ -1,34 +1,34 @@
 --
--- aud_rpt_gattn.sql
+-- eur_rpt_gattn.sql
 --
 
--- Joins scores with aud_ms6.
+-- Joins scores with eur_ms6.
 
-CREATE OR REPLACE VIEW aud_rpt_gattn AS
+CREATE OR REPLACE VIEW eur_rpt_gattn AS
 SELECT
 s.prdate
 ,m.ydate
 ,score
 ,ROUND(score,1)rscore
-,aud_g6
-FROM fxscores6_gattn s, aud_ms6 m
+,eur_g6
+FROM fxscores6_gattn s, eur_ms6 m
 WHERE s.ydate = m.ydate
-AND s.pair='aud'
+AND s.pair='eur'
 AND score>0
 /
 
 -- rpt
 SELECT 
 COUNT(score)
-,CORR(score,aud_g6)
-FROM aud_rpt_gattn WHERE score > 0.5
+,CORR(score,eur_g6)
+FROM eur_rpt_gattn WHERE score > 0.5
 /
 
 SELECT
 TO_CHAR(ydate,'YYYY-MM')
 ,COUNT(score)
-,CORR(score,aud_g6)
-FROM aud_rpt_gattn
+,CORR(score,eur_g6)
+FROM eur_rpt_gattn
 GROUP BY TO_CHAR(ydate,'YYYY-MM')
 ORDER BY TO_CHAR(ydate,'YYYY-MM')
 /
@@ -36,23 +36,23 @@ ORDER BY TO_CHAR(ydate,'YYYY-MM')
 
 SELECT
 ROUND(score,1)score
-,ROUND(AVG(aud_g6),4)avg_gain
-,COUNT(aud_g6)cnt
+,ROUND(AVG(eur_g6),4)avg_gain
+,COUNT(eur_g6)cnt
 ,MIN(TO_CHAR(ydate,'YYYY-MM-DD'))min_ydate
 ,MAX(ydate)max_ydate
-,CORR(score,aud_g6)
-FROM aud_rpt_gattn
+,CORR(score,eur_g6)
+FROM eur_rpt_gattn
 GROUP BY ROUND(score,1)
 ORDER BY ROUND(score,1)
 
 -- recently
 SELECT
 ROUND(score,1)score
-,ROUND(AVG(aud_g6),4)avg_gain
-,COUNT(aud_g6)cnt
+,ROUND(AVG(eur_g6),4)avg_gain
+,COUNT(eur_g6)cnt
 ,MIN(TO_CHAR(ydate,'YYYY-MM-DD'))min_ydate
 ,MAX(ydate)max_ydate
-FROM aud_rpt_gattn
+FROM eur_rpt_gattn
 WHERE ydate > sysdate - 3
 GROUP BY ROUND(score,1)
 ORDER BY ROUND(score,1)
@@ -61,13 +61,13 @@ ORDER BY ROUND(score,1)
 -- Look at 0.65
 -- I should see a positive gain
 SELECT
-ROUND(SUM(aud_g6),4)sum_gain
-,ROUND(AVG(aud_g6),4)avg_gain
-,COUNT(aud_g6)cnt
+ROUND(SUM(eur_g6),4)sum_gain
+,ROUND(AVG(eur_g6),4)avg_gain
+,COUNT(eur_g6)cnt
 ,MIN(TO_CHAR(ydate,'YYYY-MM-DD'))min_ydate
 ,MAX(ydate)max_ydate
-,CORR(score,aud_g6)
-FROM aud_rpt_gattn
+,CORR(score,eur_g6)
+FROM eur_rpt_gattn
 WHERE ydate > sysdate - 3
 AND score >0.65
 
@@ -77,15 +77,15 @@ COLUMN corr_sg FORMAT 999.99
 
 SELECT
 rscore
-,ROUND(AVG(aud_g6),4)    avg_aud_g6
+,ROUND(AVG(eur_g6),4)    avg_eur_g6
 ,COUNT(score)            cnt
-,ROUND(MIN(aud_g6),4)    min_aud_g6
-,ROUND(STDDEV(aud_g6),4) std_aud_g6
-,ROUND(MAX(aud_g6),4)    max_aud_g6
-,ROUND(CORR(score,aud_g6),2)corr_sg
+,ROUND(MIN(eur_g6),4)    min_eur_g6
+,ROUND(STDDEV(eur_g6),4) std_eur_g6
+,ROUND(MAX(eur_g6),4)    max_eur_g6
+,ROUND(CORR(score,eur_g6),2)corr_sg
 ,MIN(ydate)        min_ydate
 ,MAX(ydate)        max_ydate
-FROM aud_rpt_gattn
+FROM eur_rpt_gattn
 GROUP BY rscore
 ORDER BY rscore
 /
