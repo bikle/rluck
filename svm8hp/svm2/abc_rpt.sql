@@ -18,7 +18,8 @@ AND score>0
 /
 
 -- rpt
-SELECT CORR(score,abc_g8)FROM abc_rpt WHERE score > 0.5;
+SELECT COUNT(score), CORR(score,abc_g8)FROM abc_rpt WHERE score > 0.5;
+
 SELECT
 TO_CHAR(ydate,'YYYY-MM')
 ,CORR(score,abc_g8)
