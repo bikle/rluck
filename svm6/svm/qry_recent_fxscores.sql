@@ -2,6 +2,7 @@
 -- qry_recent_fxscores.sql
 --
 
+SELECT * FROM ocj WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
 SELECT * FROM fxscores6       WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
 SELECT * FROM fxscores6_gattn WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
 
@@ -32,5 +33,7 @@ WHERE s.ydate = p.ydate
 AND s.ydate > sysdate - 0.5/24
 AND REPLACE(REPLACE(p.pair,'usd_',''),'_usd','') = s.pair
 /
+
+SELECT * FROM ocj WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
 
 exit

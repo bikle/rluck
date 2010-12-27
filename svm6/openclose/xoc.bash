@@ -23,7 +23,8 @@ chmod +x an_order.bash
 cat ./an_order.bash
 mv  ./an_order.bash ../ibapi/
 cd ../ibapi/
-./an_order.bash
+# Not yet:
+# ./an_order.bash
 
 exit
 

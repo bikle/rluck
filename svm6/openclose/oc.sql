@@ -17,6 +17,18 @@ SPOOL oc_sql_spool.txt
 -- 4th cmd-line-arg constrains the 1st INSERT
 -- 5th cmd-line-arg constrains the 2nd INSERT
 
+-- done already
+CREATE OR REPLACE VIEW ocj AS
+SELECT
+s.prdate
+,s.score
+,s.rundate
+,s.pair
+,s.ydate
+,g.score gscore
+FROM fxscores6 s,fxscores6_gattn g
+WHERE s.prdate = g.prdate
+-- done already
 
 INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
 SELECT
@@ -47,9 +59,10 @@ prdate
   WHEN 0+TO_CHAR((sysdate+6/24),'D') = 7
   THEN TRUNC(sysdate) + 2 + 1/24 + 11/60/24
   ELSE sysdate + 6/24 END clsdate
-FROM fxscores6
+FROM ocj
 -- The 2nd param corresponds to score_floor_long in oc.rb:
 WHERE score > '&2'
+AND gscore < 0.20
 -- The 1st param corresponds to pairname in oc.rb:
 AND pair = '&1'
 AND rundate > sysdate - 11/60/24
@@ -88,9 +101,10 @@ prdate
   WHEN 0+TO_CHAR((sysdate+6/24),'D') = 7
   THEN TRUNC(sysdate) + 2 + 1/24 + 11/60/24
   ELSE sysdate + 6/24 END clsdate
-FROM fxscores6_gattn
+FROM ocj
 -- The 3rd param corresponds to score_floor_short in oc.rb:
-WHERE score > '&3'
+WHERE gscore > '&3'
+AND score < 0.20
 -- The 1st param corresponds to pairname in oc.rb:
 AND pair = '&1'
 AND rundate > sysdate - 11/60/24

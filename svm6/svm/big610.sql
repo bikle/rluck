@@ -45,6 +45,7 @@ pair
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)max18
 ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
 FROM di5min WHERE pair LIKE'%eur%'
+AND ydate > sysdate - 95
 ORDER BY ydate
 /
 
@@ -404,6 +405,7 @@ pair
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)max18
 ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
 FROM di5min WHERE pair LIKE'%aud%'
+AND ydate > sysdate - 95
 ORDER BY ydate
 /
 
@@ -763,6 +765,7 @@ pair
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)max18
 ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
 FROM di5min WHERE pair LIKE'%gbp%'
+AND ydate > sysdate - 95
 ORDER BY ydate
 /
 
@@ -1122,6 +1125,7 @@ pair
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)max18
 ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
 FROM di5min WHERE pair LIKE'%jpy%'
+AND ydate > sysdate - 95
 ORDER BY ydate
 /
 
@@ -1481,6 +1485,7 @@ pair
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)max18
 ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
 FROM di5min WHERE pair LIKE'%cad%'
+AND ydate > sysdate - 95
 ORDER BY ydate
 /
 
@@ -1840,6 +1845,7 @@ pair
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)max18
 ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
 FROM di5min WHERE pair LIKE'%chf%'
+AND ydate > sysdate - 95
 ORDER BY ydate
 /
 
