@@ -31,11 +31,11 @@
 # 
 # If throttle = 0, do nothing
 # If throttle = 1 then open position:
-#   - if score > 0.85 
+#   - if score > 0.8
 #   - This pair was last opened more than 1 hour ago
 # 
 # If throttle = 2 then open position:
-#   - if score > 0.75
+#   - if score > 0.72
 #   - This pair was last opened more than 1/2 hour ago
 # 
 # If throttle = 3 then open position:
@@ -129,19 +129,19 @@ class OpenClosePosition
     # Now act on the long throttle values:
 
     score_floor_long = 1.0
-    delay_long = (25.0/24).to_s.slice(0,5)
+    delay_long = 2.0
     case throttle_long
     when 0
       p "0: throttle_long is #{throttle_long}"
       score_floor_long = 1.0
-      delay_long = (25.0/24).to_s.slice(0,5)
+      delay_long = 2.0
     when 1
       p "1: throttle_long is #{throttle_long}"
-      score_floor_long = 0.85
+      score_floor_long = 0.8
       delay_long = (1.0/24).to_s.slice(0,5)
     when 2
       p "2: throttle_long is #{throttle_long}"
-      score_floor_long = 0.75
+      score_floor_long = 0.72
       delay_long = (0.5/24).to_s.slice(0,5)
     when 3
       p "3: throttle_long is #{throttle_long}"
@@ -154,19 +154,19 @@ class OpenClosePosition
     # Now act on the short throttle values:
 
     score_floor_short = 1.0
-    delay_short = (25.0/24).to_s.slice(0,5)
+    delay_short = 2.0
     case throttle_short
     when 0
       p "0: throttle_short is #{throttle_short}"
       score_floor_short = 1.0
-      delay_short = (25.0/24).to_s.slice(0,5)
+      delay_short = 2.0
     when 1
       p "1: throttle_short is #{throttle_short}"
-      score_floor_short = 0.85
+      score_floor_short = 0.8
       delay_short = (1.0/24).to_s.slice(0,5)
     when 2
       p "2: throttle_short is #{throttle_short}"
-      score_floor_short = 0.75
+      score_floor_short = 0.72
       delay_short = (0.5/24).to_s.slice(0,5)
     when 3
       p "3: throttle_short is #{throttle_short}"
