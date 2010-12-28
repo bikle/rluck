@@ -1,5 +1,5 @@
 
-SQL*Plus: Release 11.2.0.1.0 Production on Mon Dec 27 07:17:21 2010
+SQL*Plus: Release 11.2.0.1.0 Production on Tue Dec 28 19:27:43 2010
 
 Copyright (c) 1982, 2009, Oracle.  All rights reserved.
 
@@ -8,240 +8,240 @@ Connected to:
 Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 
-07:17:21 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+19:27:43 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
 
 Session altered.
 
 Elapsed: 00:00:00.00
-07:17:21 SQL> 07:17:21 SQL> --
-07:17:21 SQL> -- qry_ibf5min.sql
-07:17:21 SQL> --
-07:17:21 SQL> 
-07:17:21 SQL> -- I use this script to look for dups and bad data in ibf5min
-07:17:21 SQL> 
-07:17:21 SQL> SET LINES 66
-07:17:21 SQL> DESC ibf5min
+19:27:43 SQL> 19:27:43 SQL> --
+19:27:43 SQL> -- qry_ibf5min.sql
+19:27:43 SQL> --
+19:27:43 SQL> 
+19:27:43 SQL> -- I use this script to look for dups and bad data in ibf5min
+19:27:43 SQL> 
+19:27:43 SQL> SET LINES 66
+19:27:43 SQL> DESC ibf5min
  Name				  Null?    Type
  -------------------------------- -------- -----------------------
  PAIR					   VARCHAR2(8)
  YDATE					   DATE
  CLSE					   NUMBER
 
-07:17:21 SQL> SET LINES 166
-07:17:21 SQL> 
-07:17:21 SQL> SELECT
-07:17:21   2  pair
-07:17:21   3  ,COUNT(pair)
-07:17:21   4  FROM ibf5min
-07:17:21   5  GROUP BY pair
-07:17:21   6  ORDER BY pair
-07:17:21   7  /
+19:27:43 SQL> SET LINES 166
+19:27:43 SQL> 
+19:27:43 SQL> SELECT
+19:27:43   2  pair
+19:27:43   3  ,COUNT(pair)
+19:27:43   4  FROM ibf5min
+19:27:43   5  GROUP BY pair
+19:27:43   6  ORDER BY pair
+19:27:43   7  /
 
 PAIR	 COUNT(PAIR)
 -------- -----------
-aud_usd 	5439
-eur_usd 	5442
-gbp_usd 	5442
-usd_cad 	5439
-usd_chf 	5442
-usd_jpy 	5441
+aud_usd 	5870
+eur_usd 	5873
+gbp_usd 	5873
+usd_cad 	5870
+usd_chf 	5873
+usd_jpy 	5870
 
 6 rows selected.
 
 Elapsed: 00:00:00.02
-07:17:21 SQL> 
-07:17:21 SQL> -- Look for dups
-07:17:21 SQL> SELECT COUNT(pair)FROM
-07:17:21   2  (
-07:17:21   3  SELECT
-07:17:21   4  pair
-07:17:21   5  ,ydate
-07:17:21   6  ,COUNT(pair)
-07:17:21   7  FROM ibf5min
-07:17:21   8  GROUP BY pair,ydate
-07:17:21   9  HAVING COUNT(pair)>1
-07:17:21  10  )
-07:17:21  11  /
+19:27:43 SQL> 
+19:27:43 SQL> -- Look for dups
+19:27:43 SQL> SELECT COUNT(pair)FROM
+19:27:43   2  (
+19:27:43   3  SELECT
+19:27:43   4  pair
+19:27:43   5  ,ydate
+19:27:43   6  ,COUNT(pair)
+19:27:43   7  FROM ibf5min
+19:27:43   8  GROUP BY pair,ydate
+19:27:43   9  HAVING COUNT(pair)>1
+19:27:43  10  )
+19:27:43  11  /
 
 COUNT(PAIR)
 -----------
 	  0
 
 Elapsed: 00:00:00.02
-07:17:21 SQL> 
-07:17:21 SQL> -- Use LAG() to look for big jumps.
-07:17:21 SQL> 
-07:17:21 SQL> CREATE OR REPLACE VIEW ibf5min10 AS
-07:17:21   2  SELECT
-07:17:21   3  pair
-07:17:21   4  -- ydate is granular down to 5 min:
-07:17:21   5  ,ydate
-07:17:21   6  ,clse
-07:17:21   7  -- Use analytic function to get LAG()
-07:17:21   8  ,LAG(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)		    lag_ydate
-07:17:21   9  ,(ydate - LAG(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate))*24*60 minutes_diff
-07:17:21  10  ,LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)		    lag_clse
-07:17:21  11  ,(clse - LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY ydate))/clse lag_diff
-07:17:21  12  FROM ibf5min
-07:17:21  13  WHERE clse>0
-07:17:21  14  ORDER BY pair, ydate
-07:17:21  15  /
-
-View created.
-
-Elapsed: 00:00:00.11
-07:17:21 SQL> 
-07:17:21 SQL> CREATE OR REPLACE VIEW ibf5min_ld AS
-07:17:21   2  SELECT
-07:17:21   3  pair
-07:17:21   4  ,MIN(lag_diff)	min_lag_diff
-07:17:21   5  ,AVG(lag_diff)	avg_lag_diff
-07:17:21   6  ,STDDEV(lag_diff) stddev_lag_diff
-07:17:21   7  ,MAX(lag_diff)	max_lag_diff
-07:17:21   8  ,COUNT(lag_diff)	cnt_lag_diff
-07:17:21   9  FROM ibf5min10
-07:17:21  10  GROUP BY pair
-07:17:21  11  /
+19:27:43 SQL> 
+19:27:43 SQL> -- Use LAG() to look for big jumps.
+19:27:43 SQL> 
+19:27:43 SQL> CREATE OR REPLACE VIEW ibf5min10 AS
+19:27:43   2  SELECT
+19:27:43   3  pair
+19:27:43   4  -- ydate is granular down to 5 min:
+19:27:43   5  ,ydate
+19:27:43   6  ,clse
+19:27:43   7  -- Use analytic function to get LAG()
+19:27:43   8  ,LAG(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)		    lag_ydate
+19:27:43   9  ,(ydate - LAG(ydate,1,NULL)OVER(PARTITION BY pair ORDER BY ydate))*24*60 minutes_diff
+19:27:43  10  ,LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)		    lag_clse
+19:27:43  11  ,(clse - LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY ydate))/clse lag_diff
+19:27:43  12  FROM ibf5min
+19:27:43  13  WHERE clse>0
+19:27:43  14  ORDER BY pair, ydate
+19:27:43  15  /
 
 View created.
 
 Elapsed: 00:00:00.04
-07:17:21 SQL> 
-07:17:21 SQL> SELECT * FROM ibf5min_ld;
+19:27:43 SQL> 
+19:27:43 SQL> CREATE OR REPLACE VIEW ibf5min_ld AS
+19:27:43   2  SELECT
+19:27:43   3  pair
+19:27:43   4  ,MIN(lag_diff)	min_lag_diff
+19:27:43   5  ,AVG(lag_diff)	avg_lag_diff
+19:27:43   6  ,STDDEV(lag_diff) stddev_lag_diff
+19:27:43   7  ,MAX(lag_diff)	max_lag_diff
+19:27:43   8  ,COUNT(lag_diff)	cnt_lag_diff
+19:27:43   9  FROM ibf5min10
+19:27:43  10  GROUP BY pair
+19:27:43  11  /
+
+View created.
+
+Elapsed: 00:00:00.03
+19:27:43 SQL> 
+19:27:43 SQL> SELECT * FROM ibf5min_ld;
 
 PAIR	 MIN_LAG_DIFF AVG_LAG_DIFF STDDEV_LAG_DIFF MAX_LAG_DIFF CNT_LAG_DIFF
 -------- ------------ ------------ --------------- ------------ ------------
-aud_usd    -.00378738	8.1861E-06	.000421192   .004498551 	5437
-eur_usd    -.00235966	6.9001E-07	.000433544   .004815837 	5440
-gbp_usd     -.0023178	-1.332E-06	.000345934   .002272508 	5440
-usd_cad    -.00257847	-2.458E-06	 .00034964   .004222134 	5437
-usd_chf    -.00675762	-8.165E-06	.000459485   .002846324 	5440
-usd_jpy    -.00797352	-3.531E-06	.000349932    .00250664 	5439
+aud_usd    -.00378738	8.5195E-06	 .00041417   .004498551 	5868
+eur_usd    -.00235966	9.0260E-08	.000428128   .004815837 	5871
+gbp_usd     -.0023178	-1.995E-06	.000345032   .002272508 	5871
+usd_cad    -.00257847	-3.458E-06	.000344539   .004222134 	5868
+usd_chf    -.00675762	-8.779E-06	.000461758   .002846324 	5871
+usd_jpy    -.00797352	-3.958E-06	.000345253    .00250664 	5868
 
 6 rows selected.
 
-Elapsed: 00:00:00.13
-07:17:21 SQL> 
-07:17:21 SQL> SELECT * FROM ibf5min10 WHERE lag_diff = (SELECT MIN(min_lag_diff)FROM ibf5min_ld);
+Elapsed: 00:00:00.14
+19:27:43 SQL> 
+19:27:43 SQL> SELECT * FROM ibf5min10 WHERE lag_diff = (SELECT MIN(min_lag_diff)FROM ibf5min_ld);
 
 PAIR	 YDATE			   CLSE LAG_YDATE	    MINUTES_DIFF   LAG_CLSE   LAG_DIFF
 -------- ------------------- ---------- ------------------- ------------ ---------- ----------
 usd_jpy  2010-12-03 13:30:00	83.0875 2010-12-03 13:25:00	       5      83.75 -.00797352
 
-Elapsed: 00:00:00.24
-07:17:22 SQL> 
-07:17:22 SQL> SELECT * FROM ibf5min10 WHERE lag_diff = (SELECT MAX(max_lag_diff)FROM ibf5min_ld);
+Elapsed: 00:00:00.23
+19:27:44 SQL> 
+19:27:44 SQL> SELECT * FROM ibf5min10 WHERE lag_diff = (SELECT MAX(max_lag_diff)FROM ibf5min_ld);
 
 PAIR	 YDATE			   CLSE LAG_YDATE	    MINUTES_DIFF   LAG_CLSE   LAG_DIFF
 -------- ------------------- ---------- ------------------- ------------ ---------- ----------
 eur_usd  2010-12-23 16:15:00   1.313375 2010-12-23 16:10:00	       5    1.30705 .004815837
 
-Elapsed: 00:00:00.22
-07:17:22 SQL> 
-07:17:22 SQL> -- SELECT COUNT(*)FROM ibf5min10 WHERE lag_diff IN(SELECT max_lag_diff FROM ibf5min_ld);
-07:17:22 SQL> 
-07:17:22 SQL> -- Get a closer look at the smallest lag_diffs:
-07:17:22 SQL> 
-07:17:22 SQL> -- SELECT COUNT(l.pair)
-07:17:22 SQL> SELECT
-07:17:22   2  l.pair
-07:17:22   3  ,TO_CHAR(i.ydate,'Day')dday
-07:17:22   4  ,i.ydate
-07:17:22   5  ,i.lag_clse
-07:17:22   6  ,i.clse
-07:17:22   7  ,i.lag_diff
-07:17:22   8  ,i.lag_diff/stddev_lag_diff ld_st_ratio
-07:17:22   9  ,i.minutes_diff
-07:17:22  10  FROM ibf5min_ld l, ibf5min10 i
-07:17:22  11  WHERE l.min_lag_diff = i.lag_diff
-07:17:22  12  ORDER BY i.ydate,l.pair
-07:17:22  13  /
+Elapsed: 00:00:00.23
+19:27:44 SQL> 
+19:27:44 SQL> -- SELECT COUNT(*)FROM ibf5min10 WHERE lag_diff IN(SELECT max_lag_diff FROM ibf5min_ld);
+19:27:44 SQL> 
+19:27:44 SQL> -- Get a closer look at the smallest lag_diffs:
+19:27:44 SQL> 
+19:27:44 SQL> -- SELECT COUNT(l.pair)
+19:27:44 SQL> SELECT
+19:27:44   2  l.pair
+19:27:44   3  ,TO_CHAR(i.ydate,'Day')dday
+19:27:44   4  ,i.ydate
+19:27:44   5  ,i.lag_clse
+19:27:44   6  ,i.clse
+19:27:44   7  ,i.lag_diff
+19:27:44   8  ,i.lag_diff/stddev_lag_diff ld_st_ratio
+19:27:44   9  ,i.minutes_diff
+19:27:44  10  FROM ibf5min_ld l, ibf5min10 i
+19:27:44  11  WHERE l.min_lag_diff = i.lag_diff
+19:27:44  12  ORDER BY i.ydate,l.pair
+19:27:44  13  /
 
 PAIR	 DDAY	   YDATE		 LAG_CLSE	CLSE   LAG_DIFF LD_ST_RATIO MINUTES_DIFF
 -------- --------- ------------------- ---------- ---------- ---------- ----------- ------------
-aud_usd  Wednesday 2010-12-01 00:30:00	   .96075    .957125 -.00378738   -8.992056	       5
-eur_usd  Thursday  2010-12-02 13:35:00	  1.31685    1.31375 -.00235966  -5.4427191	       5
-usd_jpy  Friday    2010-12-03 13:30:00	    83.75    83.0875 -.00797352  -22.785941	       5
-usd_chf  Friday    2010-12-03 13:35:00	  .990725    .984075 -.00675762  -14.706948	       5
-gbp_usd  Friday    2010-12-17 13:35:00	   1.5568     1.5532  -.0023178  -6.7001051	       5
-usd_cad  Friday    2010-12-24 13:15:00	  1.01095    1.00835 -.00257847  -7.3746417	       5
+aud_usd  Wednesday 2010-12-01 00:30:00	   .96075    .957125 -.00378738  -9.1445248	       5
+eur_usd  Thursday  2010-12-02 13:35:00	  1.31685    1.31375 -.00235966  -5.5115666	       5
+usd_jpy  Friday    2010-12-03 13:30:00	    83.75    83.0875 -.00797352  -23.094753	       5
+usd_chf  Friday    2010-12-03 13:35:00	  .990725    .984075 -.00675762   -14.63455	       5
+gbp_usd  Friday    2010-12-17 13:35:00	   1.5568     1.5532  -.0023178  -6.7176247	       5
+usd_cad  Friday    2010-12-24 13:15:00	  1.01095    1.00835 -.00257847  -7.4838184	       5
 
 6 rows selected.
 
-Elapsed: 00:00:00.24
-07:17:22 SQL> 
-07:17:22 SQL> -- Get a closer look at the largest lag_diffs:
-07:17:22 SQL> 
-07:17:22 SQL> -- SELECT COUNT(l.pair)
-07:17:22 SQL> SELECT
-07:17:22   2  l.pair
-07:17:22   3  ,TO_CHAR(i.ydate,'Day')dday
-07:17:22   4  ,i.ydate
-07:17:22   5  ,i.lag_clse
-07:17:22   6  ,i.clse
-07:17:22   7  ,i.lag_diff
-07:17:22   8  ,i.lag_diff/stddev_lag_diff ld_st_ratio
-07:17:22   9  ,i.minutes_diff
-07:17:22  10  FROM ibf5min_ld l, ibf5min10 i
-07:17:22  11  WHERE l.max_lag_diff = i.lag_diff
-07:17:22  12  ORDER BY i.ydate,l.pair
-07:17:22  13  /
+Elapsed: 00:00:00.26
+19:27:44 SQL> 
+19:27:44 SQL> -- Get a closer look at the largest lag_diffs:
+19:27:44 SQL> 
+19:27:44 SQL> -- SELECT COUNT(l.pair)
+19:27:44 SQL> SELECT
+19:27:44   2  l.pair
+19:27:44   3  ,TO_CHAR(i.ydate,'Day')dday
+19:27:44   4  ,i.ydate
+19:27:44   5  ,i.lag_clse
+19:27:44   6  ,i.clse
+19:27:44   7  ,i.lag_diff
+19:27:44   8  ,i.lag_diff/stddev_lag_diff ld_st_ratio
+19:27:44   9  ,i.minutes_diff
+19:27:44  10  FROM ibf5min_ld l, ibf5min10 i
+19:27:44  11  WHERE l.max_lag_diff = i.lag_diff
+19:27:44  12  ORDER BY i.ydate,l.pair
+19:27:44  13  /
 
 PAIR	 DDAY	   YDATE		 LAG_CLSE	CLSE   LAG_DIFF LD_ST_RATIO MINUTES_DIFF
 -------- --------- ------------------- ---------- ---------- ---------- ----------- ------------
-usd_jpy  Tuesday   2010-11-30 15:55:00	  83.5675    83.7775  .00250664  7.16322643	       5
-usd_cad  Friday    2010-12-03 13:30:00	  1.00235     1.0066 .004222134  12.0756602	       5
-aud_usd  Thursday  2010-12-09 00:30:00	  .979225     .98365 .004498551  10.6805183	       5
-usd_chf  Thursday  2010-12-09 18:05:00	  .980925    .983725 .002846324  6.19460251	       5
-gbp_usd  Monday    2010-12-20 13:15:00	1.5531125    1.55665 .002272508  6.56919218	       5
-eur_usd  Thursday  2010-12-23 16:15:00	  1.30705   1.313375 .004815837  11.1080733	       5
+usd_jpy  Tuesday   2010-11-30 15:55:00	  83.5675    83.7775  .00250664  7.26030781	       5
+usd_cad  Friday    2010-12-03 13:30:00	  1.00235     1.0066 .004222134  12.2544324	       5
+aud_usd  Thursday  2010-12-09 00:30:00	  .979225     .98365 .004498551  10.8616167	       5
+usd_chf  Thursday  2010-12-09 18:05:00	  .980925    .983725 .002846324  6.16410818	       5
+gbp_usd  Monday    2010-12-20 13:15:00	1.5531125    1.55665 .002272508  6.58636945	       5
+eur_usd  Thursday  2010-12-23 16:15:00	  1.30705   1.313375 .004815837  11.2485846	       5
 
 6 rows selected.
 
-Elapsed: 00:00:00.24
-07:17:22 SQL> 
-07:17:22 SQL> -- I want to see rows around the rows which are connected to the max/min clse values
-07:17:22 SQL> 
-07:17:22 SQL> CREATE OR REPLACE VIEW ibf5min12 AS
-07:17:22   2  SELECT
-07:17:22   3  pair
-07:17:22   4  -- ydate is granular down to 5 min:
-07:17:22   5  ,ydate
-07:17:22   6  ,LAG(clse,3,NULL)OVER(PARTITION BY pair ORDER BY ydate) lag_clse3
-07:17:22   7  ,LAG(clse,2,NULL)OVER(PARTITION BY pair ORDER BY ydate) lag_clse2
-07:17:22   8  ,LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY ydate) lag_clse1
-07:17:22   9  ,clse
-07:17:22  10  ,LEAD(clse,1,NULL)OVER(PARTITION BY pair ORDER BY ydate) lead_clse1
-07:17:22  11  ,LEAD(clse,2,NULL)OVER(PARTITION BY pair ORDER BY ydate) lead_clse2
-07:17:22  12  ,LEAD(clse,3,NULL)OVER(PARTITION BY pair ORDER BY ydate) lead_clse3
-07:17:22  13  ,(clse - LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY ydate))/clse lag_diff
-07:17:22  14  FROM ibf5min
-07:17:22  15  WHERE clse>0
-07:17:22  16  ORDER BY pair, ydate
-07:17:22  17  /
+Elapsed: 00:00:00.26
+19:27:44 SQL> 
+19:27:44 SQL> -- I want to see rows around the rows which are connected to the max/min clse values
+19:27:44 SQL> 
+19:27:44 SQL> CREATE OR REPLACE VIEW ibf5min12 AS
+19:27:44   2  SELECT
+19:27:44   3  pair
+19:27:44   4  -- ydate is granular down to 5 min:
+19:27:44   5  ,ydate
+19:27:44   6  ,LAG(clse,3,NULL)OVER(PARTITION BY pair ORDER BY ydate) lag_clse3
+19:27:44   7  ,LAG(clse,2,NULL)OVER(PARTITION BY pair ORDER BY ydate) lag_clse2
+19:27:44   8  ,LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY ydate) lag_clse1
+19:27:44   9  ,clse
+19:27:44  10  ,LEAD(clse,1,NULL)OVER(PARTITION BY pair ORDER BY ydate) lead_clse1
+19:27:44  11  ,LEAD(clse,2,NULL)OVER(PARTITION BY pair ORDER BY ydate) lead_clse2
+19:27:44  12  ,LEAD(clse,3,NULL)OVER(PARTITION BY pair ORDER BY ydate) lead_clse3
+19:27:44  13  ,(clse - LAG(clse,1,NULL)OVER(PARTITION BY pair ORDER BY ydate))/clse lag_diff
+19:27:44  14  FROM ibf5min
+19:27:44  15  WHERE clse>0
+19:27:44  16  ORDER BY pair, ydate
+19:27:44  17  /
 
 View created.
 
-Elapsed: 00:00:00.06
-07:17:22 SQL> 
-07:17:22 SQL> -- Now join ibf5min12 with ibf5min_ld
-07:17:22 SQL> 
-07:17:22 SQL> SELECT
-07:17:22   2  l.pair
-07:17:22   3  ,i.ydate
-07:17:22   4  ,lag_clse3
-07:17:22   5  ,lag_clse2
-07:17:22   6  ,lag_clse1
-07:17:22   7  ,lag_diff
-07:17:22   8  ,i.clse
-07:17:22   9  ,lead_clse1
-07:17:22  10  ,lead_clse2
-07:17:22  11  ,lead_clse3
-07:17:22  12  FROM ibf5min_ld l, ibf5min12 i
-07:17:22  13  WHERE l.max_lag_diff = i.lag_diff
-07:17:22  14  OR    l.min_lag_diff = i.lag_diff
-07:17:22  15  ORDER BY i.ydate,l.pair
-07:17:22  16  /
+Elapsed: 00:00:00.04
+19:27:44 SQL> 
+19:27:44 SQL> -- Now join ibf5min12 with ibf5min_ld
+19:27:44 SQL> 
+19:27:44 SQL> SELECT
+19:27:44   2  l.pair
+19:27:44   3  ,i.ydate
+19:27:44   4  ,lag_clse3
+19:27:44   5  ,lag_clse2
+19:27:44   6  ,lag_clse1
+19:27:44   7  ,lag_diff
+19:27:44   8  ,i.clse
+19:27:44   9  ,lead_clse1
+19:27:44  10  ,lead_clse2
+19:27:44  11  ,lead_clse3
+19:27:44  12  FROM ibf5min_ld l, ibf5min12 i
+19:27:44  13  WHERE l.max_lag_diff = i.lag_diff
+19:27:44  14  OR    l.min_lag_diff = i.lag_diff
+19:27:44  15  ORDER BY i.ydate,l.pair
+19:27:44  16  /
 
 PAIR	 YDATE		      LAG_CLSE3  LAG_CLSE2  LAG_CLSE1	LAG_DIFF       CLSE LEAD_CLSE1 LEAD_CLSE2 LEAD_CLSE3
 -------- ------------------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -260,132 +260,132 @@ usd_cad  2010-12-24 13:15:00	 1.0069   1.007125    1.01095 -.00257847    1.00835
 
 12 rows selected.
 
-Elapsed: 00:00:00.70
-07:17:23 SQL> 
-07:17:23 SQL> -- Look at what is recent
-07:17:23 SQL> 
-07:17:23 SQL> SELECT
-07:17:23   2  pair
-07:17:23   3  ,ydate
-07:17:23   4  ,clse
-07:17:23   5  FROM ibf5min
-07:17:23   6  WHERE ydate > sysdate - 1.5/24
-07:17:23   7  ORDER BY pair,ydate
-07:17:23   8  /
+Elapsed: 00:00:00.76
+19:27:45 SQL> 
+19:27:45 SQL> -- Look at what is recent
+19:27:45 SQL> 
+19:27:45 SQL> SELECT
+19:27:45   2  pair
+19:27:45   3  ,ydate
+19:27:45   4  ,clse
+19:27:45   5  FROM ibf5min
+19:27:45   6  WHERE ydate > sysdate - 1.5/24
+19:27:45   7  ORDER BY pair,ydate
+19:27:45   8  /
 
 PAIR	 YDATE			   CLSE
 -------- ------------------- ----------
-aud_usd  2010-12-27 05:50:00   1.004275
-aud_usd  2010-12-27 05:55:00   1.003925
-aud_usd  2010-12-27 06:00:00	1.00405
-aud_usd  2010-12-27 06:05:00	 1.0043
-aud_usd  2010-12-27 06:10:00	1.00425
-aud_usd  2010-12-27 06:15:00	 1.0039
-aud_usd  2010-12-27 06:20:00   1.003675
-aud_usd  2010-12-27 06:25:00   1.003825
-aud_usd  2010-12-27 06:30:00   1.004075
-aud_usd  2010-12-27 06:35:00   1.003475
-aud_usd  2010-12-27 06:40:00   1.004175
-aud_usd  2010-12-27 06:45:00   1.004425
-aud_usd  2010-12-27 06:50:00   1.004325
-aud_usd  2010-12-27 06:55:00  1.0042375
-aud_usd  2010-12-27 07:00:00   1.004875
-aud_usd  2010-12-27 07:05:00   1.005325
-aud_usd  2010-12-27 07:10:00   1.005275
-eur_usd  2010-12-27 05:50:00	 1.3129
-eur_usd  2010-12-27 05:55:00	1.31275
-eur_usd  2010-12-27 06:00:00  1.3128375
-eur_usd  2010-12-27 06:05:00	1.31315
-eur_usd  2010-12-27 06:10:00	 1.3131
-eur_usd  2010-12-27 06:15:00	1.31315
-eur_usd  2010-12-27 06:20:00	1.31335
-eur_usd  2010-12-27 06:25:00  1.3136625
-eur_usd  2010-12-27 06:30:00   1.314375
-eur_usd  2010-12-27 06:35:00	 1.3142
-eur_usd  2010-12-27 06:40:00	 1.3147
-eur_usd  2010-12-27 06:45:00	 1.3156
-eur_usd  2010-12-27 06:50:00	1.31565
-eur_usd  2010-12-27 06:55:00   1.315875
-eur_usd  2010-12-27 07:00:00	 1.3163
-eur_usd  2010-12-27 07:05:00   1.316325
-eur_usd  2010-12-27 07:10:00	1.31585
-gbp_usd  2010-12-27 05:50:00   1.542275
-gbp_usd  2010-12-27 05:55:00   1.543125
-gbp_usd  2010-12-27 06:00:00   1.542875
-gbp_usd  2010-12-27 06:05:00   1.542875
-gbp_usd  2010-12-27 06:10:00   1.542825
-gbp_usd  2010-12-27 06:15:00	1.54325
-gbp_usd  2010-12-27 06:20:00   1.543125
-gbp_usd  2010-12-27 06:25:00   1.543375
-gbp_usd  2010-12-27 06:30:00	 1.5437
-gbp_usd  2010-12-27 06:35:00   1.543025
-gbp_usd  2010-12-27 06:40:00  1.5432625
-gbp_usd  2010-12-27 06:45:00   1.544075
-gbp_usd  2010-12-27 06:50:00	1.54465
-gbp_usd  2010-12-27 06:55:00   1.544975
-gbp_usd  2010-12-27 07:00:00	1.54525
-gbp_usd  2010-12-27 07:05:00   1.545175
-gbp_usd  2010-12-27 07:10:00	1.54465
-gbp_usd  2010-12-27 07:15:00	 1.5447
-usd_cad  2010-12-27 05:50:00	1.00755
-usd_cad  2010-12-27 05:55:00   1.007425
-usd_cad  2010-12-27 06:00:00   1.007475
-usd_cad  2010-12-27 06:05:00  1.0074625
-usd_cad  2010-12-27 06:10:00   1.007375
-usd_cad  2010-12-27 06:15:00	1.00765
-usd_cad  2010-12-27 06:20:00   1.007575
-usd_cad  2010-12-27 06:25:00	1.00745
-usd_cad  2010-12-27 06:30:00   1.007475
-usd_cad  2010-12-27 06:35:00   1.007875
-usd_cad  2010-12-27 06:40:00	 1.0074
-usd_cad  2010-12-27 06:45:00	 1.0069
-usd_cad  2010-12-27 06:50:00	 1.0066
-usd_cad  2010-12-27 06:55:00   1.006375
-usd_cad  2010-12-27 07:00:00  1.0063625
-usd_cad  2010-12-27 07:05:00   1.006175
-usd_cad  2010-12-27 07:10:00   1.006275
-usd_cad  2010-12-27 07:15:00	1.00615
-usd_chf  2010-12-27 05:50:00   .9606625
-usd_chf  2010-12-27 05:55:00	.960625
-usd_chf  2010-12-27 06:00:00	  .9607
-usd_chf  2010-12-27 06:05:00	.960525
-usd_chf  2010-12-27 06:10:00	  .9605
-usd_chf  2010-12-27 06:15:00	  .9604
-usd_chf  2010-12-27 06:20:00	.960225
-usd_chf  2010-12-27 06:25:00   .9601625
-usd_chf  2010-12-27 06:30:00	 .95955
-usd_chf  2010-12-27 06:35:00	.959825
-usd_chf  2010-12-27 06:40:00   .9598125
-usd_chf  2010-12-27 06:45:00	  .9596
-usd_chf  2010-12-27 06:50:00	  .9587
-usd_chf  2010-12-27 06:55:00	  .9587
-usd_chf  2010-12-27 07:00:00   .9585125
-usd_chf  2010-12-27 07:05:00	.958125
-usd_chf  2010-12-27 07:10:00	  .9578
-usd_chf  2010-12-27 07:15:00	 .95775
-usd_jpy  2010-12-27 05:50:00   82.76625
-usd_jpy  2010-12-27 05:55:00	 82.795
-usd_jpy  2010-12-27 06:00:00	 82.805
-usd_jpy  2010-12-27 06:05:00   82.80125
-usd_jpy  2010-12-27 06:10:00	82.8075
-usd_jpy  2010-12-27 06:15:00	82.8125
-usd_jpy  2010-12-27 06:20:00	82.7925
-usd_jpy  2010-12-27 06:25:00	82.7775
-usd_jpy  2010-12-27 06:30:00	82.7675
-usd_jpy  2010-12-27 06:35:00	82.7625
-usd_jpy  2010-12-27 06:40:00	 82.755
-usd_jpy  2010-12-27 06:45:00	82.7475
-usd_jpy  2010-12-27 06:50:00	82.7425
-usd_jpy  2010-12-27 06:55:00	 82.735
-usd_jpy  2010-12-27 07:00:00   82.72875
-usd_jpy  2010-12-27 07:05:00	  82.67
-usd_jpy  2010-12-27 07:10:00	82.6675
-usd_jpy  2010-12-27 07:15:00	 82.665
+aud_usd  2010-12-28 18:00:00   1.010875
+aud_usd  2010-12-28 18:05:00   1.011125
+aud_usd  2010-12-28 18:10:00   1.010925
+aud_usd  2010-12-28 18:15:00  1.0108625
+aud_usd  2010-12-28 18:20:00   1.010875
+aud_usd  2010-12-28 18:25:00  1.0107875
+aud_usd  2010-12-28 18:30:00   1.010625
+aud_usd  2010-12-28 18:35:00   1.010575
+aud_usd  2010-12-28 18:40:00	 1.0104
+aud_usd  2010-12-28 18:45:00   1.010375
+aud_usd  2010-12-28 18:50:00   1.010375
+aud_usd  2010-12-28 18:55:00   1.010325
+aud_usd  2010-12-28 19:00:00  1.0103875
+aud_usd  2010-12-28 19:05:00   1.010475
+aud_usd  2010-12-28 19:10:00   1.010575
+aud_usd  2010-12-28 19:15:00   1.010625
+aud_usd  2010-12-28 19:20:00   1.010825
+eur_usd  2010-12-28 18:00:00	 1.3108
+eur_usd  2010-12-28 18:05:00   1.311625
+eur_usd  2010-12-28 18:10:00	1.31165
+eur_usd  2010-12-28 18:15:00   1.311425
+eur_usd  2010-12-28 18:20:00	1.31125
+eur_usd  2010-12-28 18:25:00  1.3109625
+eur_usd  2010-12-28 18:30:00	1.31075
+eur_usd  2010-12-28 18:35:00	1.31075
+eur_usd  2010-12-28 18:40:00  1.3104875
+eur_usd  2010-12-28 18:45:00   1.309975
+eur_usd  2010-12-28 18:50:00  1.3102375
+eur_usd  2010-12-28 18:55:00	 1.3104
+eur_usd  2010-12-28 19:00:00   1.310375
+eur_usd  2010-12-28 19:05:00	 1.3103
+eur_usd  2010-12-28 19:10:00	1.31095
+eur_usd  2010-12-28 19:15:00	1.31105
+eur_usd  2010-12-28 19:20:00	1.31165
+gbp_usd  2010-12-28 18:00:00   1.536725
+gbp_usd  2010-12-28 18:05:00   1.536925
+gbp_usd  2010-12-28 18:10:00   1.537325
+gbp_usd  2010-12-28 18:15:00	 1.5369
+gbp_usd  2010-12-28 18:20:00   1.536325
+gbp_usd  2010-12-28 18:25:00   1.536325
+gbp_usd  2010-12-28 18:30:00	 1.5361
+gbp_usd  2010-12-28 18:35:00   1.536275
+gbp_usd  2010-12-28 18:40:00	  1.536
+gbp_usd  2010-12-28 18:45:00   1.535475
+gbp_usd  2010-12-28 18:50:00   1.535575
+gbp_usd  2010-12-28 18:55:00   1.535525
+gbp_usd  2010-12-28 19:00:00	1.53595
+gbp_usd  2010-12-28 19:05:00	 1.5368
+gbp_usd  2010-12-28 19:10:00  1.5377125
+gbp_usd  2010-12-28 19:15:00	 1.5375
+gbp_usd  2010-12-28 19:20:00	1.53785
+gbp_usd  2010-12-28 19:25:00	1.53785
+usd_cad  2010-12-28 18:00:00	.999325
+usd_cad  2010-12-28 18:05:00   .9994375
+usd_cad  2010-12-28 18:10:00	 .99955
+usd_cad  2010-12-28 18:15:00	.999525
+usd_cad  2010-12-28 18:20:00	 .99945
+usd_cad  2010-12-28 18:25:00   .9992625
+usd_cad  2010-12-28 18:30:00	.999275
+usd_cad  2010-12-28 18:35:00	 .99945
+usd_cad  2010-12-28 18:40:00   .9995375
+usd_cad  2010-12-28 18:45:00	.999625
+usd_cad  2010-12-28 18:50:00	 .99955
+usd_cad  2010-12-28 18:55:00	.999425
+usd_cad  2010-12-28 19:00:00	 .99945
+usd_cad  2010-12-28 19:05:00	.999225
+usd_cad  2010-12-28 19:10:00	 .99915
+usd_cad  2010-12-28 19:15:00	.999075
+usd_cad  2010-12-28 19:20:00	.998925
+usd_cad  2010-12-28 19:25:00	.999225
+usd_chf  2010-12-28 18:00:00	 .95105
+usd_chf  2010-12-28 18:05:00	.951125
+usd_chf  2010-12-28 18:10:00	.951125
+usd_chf  2010-12-28 18:15:00   .9508375
+usd_chf  2010-12-28 18:20:00	  .9515
+usd_chf  2010-12-28 18:25:00   .9511375
+usd_chf  2010-12-28 18:30:00	 .95105
+usd_chf  2010-12-28 18:35:00	.951025
+usd_chf  2010-12-28 18:40:00   .9512375
+usd_chf  2010-12-28 18:45:00	  .9521
+usd_chf  2010-12-28 18:50:00	  .9516
+usd_chf  2010-12-28 18:55:00	.951775
+usd_chf  2010-12-28 19:00:00   .9518625
+usd_chf  2010-12-28 19:05:00	.952075
+usd_chf  2010-12-28 19:10:00   .9518875
+usd_chf  2010-12-28 19:15:00	 .95175
+usd_chf  2010-12-28 19:20:00	.950975
+usd_chf  2010-12-28 19:25:00	   .951
+usd_jpy  2010-12-28 18:00:00	82.2675
+usd_jpy  2010-12-28 18:05:00	82.2475
+usd_jpy  2010-12-28 18:10:00	 82.215
+usd_jpy  2010-12-28 18:15:00	82.2425
+usd_jpy  2010-12-28 18:20:00	82.2725
+usd_jpy  2010-12-28 18:25:00   82.29625
+usd_jpy  2010-12-28 18:30:00	   82.3
+usd_jpy  2010-12-28 18:35:00	  82.31
+usd_jpy  2010-12-28 18:40:00   82.31625
+usd_jpy  2010-12-28 18:45:00	 82.335
+usd_jpy  2010-12-28 18:50:00	82.3325
+usd_jpy  2010-12-28 18:55:00	82.3375
+usd_jpy  2010-12-28 19:00:00	 82.365
+usd_jpy  2010-12-28 19:05:00	82.3675
+usd_jpy  2010-12-28 19:10:00	 82.375
+usd_jpy  2010-12-28 19:15:00	  82.37
+usd_jpy  2010-12-28 19:20:00	82.3375
+usd_jpy  2010-12-28 19:25:00	 82.335
 
 106 rows selected.
 
-Elapsed: 00:00:00.01
-07:17:23 SQL> 
-07:17:23 SQL> exit
+Elapsed: 00:00:00.00
+19:27:45 SQL> 
+19:27:45 SQL> exit
 Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options

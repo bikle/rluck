@@ -2,40 +2,41 @@
 -- qry_recent_fxscores.sql
 --
 
-SELECT * FROM ocj WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
-SELECT * FROM fxscores6       WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
-SELECT * FROM fxscores6_gattn WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
+-- I create ocj in ../openclose/oc.sql
+-- And here:
+-- done already
+CREATE OR REPLACE VIEW ocj AS
+SELECT
+s.prdate
+,s.score
+,s.rundate
+,s.pair
+,s.ydate
+,g.score gscore
+FROM fxscores6 s,fxscores6_gattn g
+WHERE s.prdate = g.prdate
+-- done already
 
-SELECT * FROM fxscores6       WHERE rundate> sysdate -0.5/24 AND score > 0.7 ORDER BY rundate;
 
-SELECT * FROM fxscores6_gattn WHERE rundate> sysdate -0.5/24 AND score > 0.7 ORDER BY rundate;
+SELECT * FROM fxscores6       WHERE rundate> sysdate -0.5/24 ORDER BY ydate;
+
+SELECT * FROM fxscores6_gattn WHERE rundate> sysdate -0.5/24 ORDER BY ydate;
+
+SELECT * FROM fxscores6       WHERE rundate> sysdate -0.5/24 AND score > 0.7 ORDER BY ydate;
+
+SELECT * FROM fxscores6_gattn WHERE rundate> sysdate -0.5/24 AND score > 0.7 ORDER BY ydate;
 
 SELECT
 s.prdate
-,score
+,score long_score
+,gscore short_score
 ,rundate
 ,clse
-,'GO LONG'
-FROM fxscores6 s, di5min p
+FROM ocj s, di5min p
 WHERE s.ydate = p.ydate
-AND s.ydate > sysdate - 0.5/24
+AND s.ydate > sysdate - 1/24
 AND REPLACE(REPLACE(p.pair,'usd_',''),'_usd','') = s.pair
-ORDER BY rundate
+ORDER BY s.ydate
 /
-
-SELECT
-s.prdate
-,score
-,rundate
-,clse
-,'GO SHORT'
-FROM fxscores6_gattn s, di5min p
-WHERE s.ydate = p.ydate
-AND s.ydate > sysdate - 0.5/24
-AND REPLACE(REPLACE(p.pair,'usd_',''),'_usd','') = s.pair
-ORDER BY rundate
-/
-
-SELECT * FROM ocj WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
 
 exit

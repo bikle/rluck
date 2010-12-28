@@ -24,7 +24,7 @@ cat ./an_order.bash
 mv  ./an_order.bash ../ibapi/
 cd ../ibapi/
 # Not yet:
-# ./an_order.bash
+./an_order.bash
 
 exit
 

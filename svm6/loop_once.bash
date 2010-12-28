@@ -81,8 +81,37 @@ chmod +x *bash
 cd $SVM6/openclose/
 ./oc.bash gbp > /pt/s/cron/out/oc_bash.${myts}.gbp.txt 2>&1
 
+
+#chf 
+cd $SVM6/ibapi
+# I need a table:
+./run5min_data.bash > /pt/s/cron/out/run5min_data.${myts}.txt 2>&1
+sqt>/pt/s/cron/out/update_di5min.${myts}.txt<<EOF
+@update_di5min.sql
+EOF
+cd $SVM6/svm/
+./bld_run_big610.bash > /pt/s/cron/out/bld_run_big610.${myts}.txt 2>&1
+chmod +x *bash
+./chf_svm.bash > /pt/s/cron/out/chf_svm.${myts}.txt 2>&1
+cd $SVM6/openclose/
+./oc.bash chf > /pt/s/cron/out/oc_bash.${myts}.chf.txt 2>&1
+
+#cad 
+cd $SVM6/ibapi
+# I need a table:
+./run5min_data.bash > /pt/s/cron/out/run5min_data.${myts}.txt 2>&1
+sqt>/pt/s/cron/out/update_di5min.${myts}.txt<<EOF
+@update_di5min.sql
+EOF
+cd $SVM6/svm/
+./bld_run_big610.bash > /pt/s/cron/out/bld_run_big610.${myts}.txt 2>&1
+chmod +x *bash
+./cad_svm.bash > /pt/s/cron/out/cad_svm.${myts}.txt 2>&1
+cd $SVM6/openclose/
+./oc.bash cad > /pt/s/cron/out/oc_bash.${myts}.cad.txt 2>&1
+
 exit
 
-./cad_svm.bash > /pt/s/cron/out/cad_svm.${myts}.txt 2>&1
-./chf_svm.bash > /pt/s/cron/out/chf_svm.${myts}.txt 2>&1
+
+
 
