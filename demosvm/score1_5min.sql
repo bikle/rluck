@@ -40,6 +40,7 @@ SELECT
 ,g08
 FROM jpy_ms
 WHERE gatt IN('nup','up')
+-- Use only rows which are older than 1 day:
 AND 1+ydate < '&1'||' '||'&2'
 /
 
