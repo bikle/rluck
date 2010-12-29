@@ -8,11 +8,15 @@
 
 set -x
 
+date
+
 # Run a SQL script which builds jpy_ms.
 # I use jpy_ms as a source of data for building SVM models:
 sqt>jpy10.txt<<EOF
 @jpy10.sql
 EOF
+
+date
 
 # Build a SQL script full of calls to a set of scoring scipts:
 sqt>scorem_out.txt<<EOF
@@ -26,5 +30,7 @@ grep score1_5min scorem_out.txt | grep -v SELECT > scorem.sql
 sqt>out_of_scorem.txt<<EOF
 @scorem.sql
 EOF
+
+date
 
 exit
