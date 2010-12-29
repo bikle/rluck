@@ -155,8 +155,8 @@ ORDER BY pair,trend,gatt
 /
 
 
-DROP TABLE jpy18;
-CREATE TABLE jpy18 COMPRESS AS
+DROP TABLE jpy_ms;
+CREATE TABLE jpy_ms COMPRESS AS
 SELECT
 pair
 ,ydate
@@ -185,7 +185,7 @@ pair
 ,gatt
 ,COUNT(pair)
 ,AVG(g6)
-FROM jpy18
+FROM jpy_ms
 GROUP BY pair,trend,gatt
 ORDER BY pair,trend,gatt
 /
