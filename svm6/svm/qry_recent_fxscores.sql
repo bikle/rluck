@@ -36,7 +36,7 @@ s.prdate
 ,ROUND(clse,4)clse 
 FROM ocj s, di5min p
 WHERE s.ydate = p.ydate
-AND s.ydate > sysdate - 1/24
+AND s.ydate > sysdate - 2/24
 AND REPLACE(REPLACE(p.pair,'usd_',''),'_usd','') = s.pair
 ORDER BY s.ydate
 /

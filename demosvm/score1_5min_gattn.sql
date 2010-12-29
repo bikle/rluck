@@ -1,11 +1,11 @@
 --
--- score1_5min.sql
+-- score1_5min_gattn.sql
 --
 
 CREATE OR REPLACE VIEW sme AS
 SELECT
 'jpy'||ydate prdate
-,NULL gatt
+,NULL gattn
 ,g00
 ,g01
 ,g02
@@ -28,7 +28,7 @@ SELECT COUNT(prdate) FROM sme;
 CREATE OR REPLACE VIEW bme AS
 SELECT
 'jpy'||ydate prdate
-,gatt
+,gattn
 ,g00
 ,g01
 ,g02
@@ -39,16 +39,16 @@ SELECT
 ,g07
 ,g08
 FROM jpy_ms
-WHERE gatt IN('nup','up')
+WHERE gattn IN('nup','up')
 -- Use only rows which are older than 1 day:
 AND 1+ydate < '&1'||' '||'&2'
 /
 
 -- rpt
 
-SELECT gatt, COUNT(prdate) FROM bme GROUP BY gatt;
+SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
 
 SELECT MAX(prdate) FROM bme;
 
 -- Now build model from bme and score sme
-@score1.sql
+@score1gattn.sql

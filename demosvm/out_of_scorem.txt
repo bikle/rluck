@@ -1,0 +1,4387 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Wed Dec 29 07:36:14 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+07:36:15 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+07:36:15 SQL> 07:36:15 SQL> @score1_5min_gattn.sql	2010-12-29 05:40:00
+07:36:15 SQL> --
+07:36:15 SQL> -- score1_5min_gattn.sql
+07:36:15 SQL> --
+07:36:15 SQL> 
+07:36:15 SQL> CREATE OR REPLACE VIEW sme AS
+07:36:15   2  SELECT
+07:36:15   3  'jpy'||ydate prdate
+07:36:15   4  ,NULL gattn
+07:36:15   5  ,g00
+07:36:15   6  ,g01
+07:36:15   7  ,g02
+07:36:15   8  ,g03
+07:36:15   9  ,g04
+07:36:15  10  ,g05
+07:36:15  11  ,g06
+07:36:15  12  ,g07
+07:36:15  13  ,g08
+07:36:15  14  FROM jpy_ms
+07:36:15  15  WHERE ydate = '&1'||' '||'&2'
+07:36:15  16  /
+old  15: WHERE ydate = '&1'||' '||'&2'
+new  15: WHERE ydate = '2010-12-29'||' '||'05:40:00'
+
+View created.
+
+Elapsed: 00:00:00.02
+07:36:15 SQL> 
+07:36:15 SQL> -- rpt
+07:36:15 SQL> -- We should see just 1 row:
+07:36:15 SQL> 
+07:36:15 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.02
+07:36:15 SQL> 
+07:36:15 SQL> -- Build the model:
+07:36:15 SQL> CREATE OR REPLACE VIEW bme AS
+07:36:15   2  SELECT
+07:36:15   3  'jpy'||ydate prdate
+07:36:15   4  ,gattn
+07:36:15   5  ,g00
+07:36:15   6  ,g01
+07:36:15   7  ,g02
+07:36:15   8  ,g03
+07:36:15   9  ,g04
+07:36:15  10  ,g05
+07:36:15  11  ,g06
+07:36:15  12  ,g07
+07:36:15  13  ,g08
+07:36:15  14  FROM jpy_ms
+07:36:15  15  WHERE gattn IN('nup','up')
+07:36:15  16  -- Use only rows which are older than 1 day:
+07:36:15  17  AND 1+ydate < '&1'||' '||'&2'
+07:36:15  18  /
+old  17: AND 1+ydate < '&1'||' '||'&2'
+new  17: AND 1+ydate < '2010-12-29'||' '||'05:40:00'
+
+View created.
+
+Elapsed: 00:00:00.03
+07:36:15 SQL> 
+07:36:15 SQL> -- rpt
+07:36:15 SQL> 
+07:36:15 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	     9243
+up	     9843
+
+Elapsed: 00:00:00.06
+07:36:15 SQL> 
+07:36:15 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+jpy2010-12-28 05:35:00
+
+Elapsed: 00:00:00.05
+07:36:15 SQL> 
+07:36:15 SQL> -- Now build model from bme and score sme
+07:36:15 SQL> @score1gattn.sql
+07:36:15 SQL> -- score1gattn.sql
+07:36:15 SQL> 
+07:36:15 SQL> -- Does the 1st SVM score
+07:36:15 SQL> 
+07:36:15 SQL> -- Fill up svmc_apply_prep
+07:36:15 SQL> @score_gattn.sql
+07:36:15 SQL> --
+07:36:15 SQL> -- score_gattn.sql
+07:36:15 SQL> --
+07:36:15 SQL> 
+07:36:15 SQL> -- usage: score_gattn.sql
+07:36:15 SQL> 
+07:36:15 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+07:36:15 SQL> 
+07:36:15 SQL> DEFINE target	= 'gattn'
+07:36:15 SQL> DEFINE model_name = 'forex14'
+07:36:15 SQL> DEFINE bldtable	= 'bme'
+07:36:15 SQL> DEFINE scoretable = 'sme'
+07:36:15 SQL> DEFINE case_id	= 'prdate'
+07:36:15 SQL> 
+07:36:15 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+07:36:15 SQL> DEFINE exclude1 = "'&target','&case_id'"
+07:36:15 SQL> 
+07:36:15 SQL> -- Builds an SVM model using pl/sql.
+07:36:15 SQL> 
+07:36:15 SQL> -----------------------------------------------------------------------
+07:36:15 SQL> --			    BUILD THE MODEL
+07:36:15 SQL> -----------------------------------------------------------------------
+07:36:15 SQL> 
+07:36:15 SQL> -- Cleanup old build data preparation objects for repeat runs
+07:36:15 SQL> DELETE svmc_miss_num;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:15 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:15 SQL> DELETE svmc_clip;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:15 SQL> DELETE svmc_norm;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:15 SQL> 
+07:36:15 SQL> 
+07:36:15 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+07:36:15 SQL> --
+07:36:15 SQL> -- DROP	TABLE svmc_settings ;
+07:36:15 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+07:36:15 SQL> -- DELETE svmc_settings;
+07:36:15 SQL> 
+07:36:15 SQL> -- The default classification algorithm is Naive Bayes. So override
+07:36:15 SQL> -- this choice to SVM using a settings table.
+07:36:15 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+07:36:15 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+07:36:15 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+07:36:15 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+07:36:15 SQL> -- models.
+07:36:15 SQL> --
+07:36:15 SQL> 
+07:36:15 SQL> -- Do this once and then comment it out.
+07:36:15 SQL> -- That makes script go faster.
+07:36:15 SQL> -- BEGIN
+07:36:15 SQL> -- -- Populate settings table
+07:36:15 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:15 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+07:36:15 SQL> --
+07:36:15 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:15 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+07:36:15 SQL> --
+07:36:15 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:15 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+07:36:15 SQL> --   COMMIT;
+07:36:15 SQL> -- END;
+07:36:15 SQL> -- /
+07:36:15 SQL> 
+07:36:15 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       99123123
+
+Elapsed: 00:00:00.00
+07:36:15 SQL> 
+07:36:15 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+07:36:15   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:15   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:15 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+07:36:15   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:15   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.03
+07:36:15 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+07:36:15   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:15   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:15 SQL> 
+07:36:15 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+07:36:15   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:15   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:15 SQL> 
+07:36:15 SQL> --------------------------------
+07:36:15 SQL> -- PREPARE BUILD (TRAINING) DATA
+07:36:15 SQL> --
+07:36:15 SQL> 
+07:36:15 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:15 SQL> -- 2. Outlier Treatment and
+07:36:15 SQL> -- 3. Normalization are performed below.
+07:36:15 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+07:36:15 SQL> --    normalized here.
+07:36:15 SQL> 
+07:36:15 SQL> BEGIN
+07:36:15   2  	-- Perform missing value treatment for all predictors
+07:36:15   3  	-- create miss tables
+07:36:15   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+07:36:15   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+07:36:15   6  
+07:36:15   7  	-- populate miss tables
+07:36:15   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+07:36:15   9  	  miss_table_name => 'svmc_miss_num',
+07:36:15  10  	  data_table_name => '&bldtable',
+07:36:15  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:15  12  
+07:36:15  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+07:36:15  14  	  miss_table_name => 'svmc_miss_cat',
+07:36:15  15  	  data_table_name => '&bldtable',
+07:36:15  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:15  17  
+07:36:15  18  	-- xform input data to replace missing values
+07:36:15  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:15  20  	  miss_table_name => 'svmc_miss_num',
+07:36:15  21  	  data_table_name => '&bldtable',
+07:36:15  22  	  xform_view_name => 'xformed_build_miss_num');
+07:36:15  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:15  24  	  miss_table_name => 'svmc_miss_cat',
+07:36:15  25  	  data_table_name => '&bldtable',
+07:36:15  26  	  xform_view_name => 'xformed_build_miss_cat');
+07:36:15  27  
+07:36:15  28  	-- Perform outlier treatment.
+07:36:15  29  	-- create clip table
+07:36:15  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+07:36:15  31  
+07:36:15  32  	-- populate clip table
+07:36:15  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+07:36:15  34  	  clip_table_name => 'svmc_clip',
+07:36:15  35  	  data_table_name => '&bldtable',
+07:36:15  36  	  tail_frac	  => 0.025,
+07:36:15  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:15  38  
+07:36:15  39  	-- xform input data to winsorized data
+07:36:15  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+07:36:15  41  	  clip_table_name => 'svmc_clip',
+07:36:15  42  	  data_table_name => '&bldtable',
+07:36:15  43  	  xform_view_name => 'svmc_winsor');
+07:36:15  44  
+07:36:15  45  	-- create normalization table
+07:36:15  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+07:36:15  47  
+07:36:15  48  	-- populate normalization table based on winsorized data
+07:36:15  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+07:36:15  50  	  norm_table_name => 'svmc_norm',
+07:36:15  51  	  data_table_name => 'svmc_winsor',
+07:36:15  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:15  53  
+07:36:15  54  	-- normalize the original data
+07:36:15  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:15  56  	  norm_table_name => 'svmc_norm',
+07:36:15  57  	  data_table_name => '&bldtable',
+07:36:15  58  	  xform_view_name => 'svmc_build_prep');
+07:36:15  59  END;
+07:36:15  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.99
+07:36:16 SQL> 
+07:36:16 SQL> ---------------------
+07:36:16 SQL> -- CREATE A NEW MODEL
+07:36:16 SQL> --
+07:36:16 SQL> -- Cleanup old model with the same name for repeat runs
+07:36:16 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+07:36:16   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:16   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.08
+07:36:17 SQL> 
+07:36:17 SQL> -- Build a new SVM Model
+07:36:17 SQL> BEGIN
+07:36:17   2  	DBMS_DATA_MINING.CREATE_MODEL(
+07:36:17   3  	  model_name	      => '&model_name',
+07:36:17   4  	  mining_function     => dbms_data_mining.classification,
+07:36:17   5  	  data_table_name     => 'svmc_build_prep',
+07:36:17   6  	  case_id_column_name => '&case_id',
+07:36:17   7  	  target_column_name  => '&target',
+07:36:17   8  	  settings_table_name => 'svmc_settings');
+07:36:17   9  END;
+07:36:17  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:04.29
+07:36:21 SQL> 
+07:36:21 SQL> -----------------------------------------------------------------------
+07:36:21 SQL> --			       APPLY/score THE MODEL
+07:36:21 SQL> -----------------------------------------------------------------------
+07:36:21 SQL> 
+07:36:21 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+07:36:21 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+07:36:21   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:21   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:21 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+07:36:21   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:21   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:36:21 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+07:36:21   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:21   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:21 SQL> -----------------------
+07:36:21 SQL> -- PREPARE SCORING DATA
+07:36:21 SQL> --
+07:36:21 SQL> -- If the data for model creation has been prepared, then the data
+07:36:21 SQL> -- to be scored using the model must be prepared in the same manner
+07:36:21 SQL> -- in order to obtain meaningful results.
+07:36:21 SQL> --
+07:36:21 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:21 SQL> -- 2. Normalization
+07:36:21 SQL> -- No outlier treatment will be performed during test and apply. The
+07:36:21 SQL> -- normalization step is sufficient, since the normalization parameters
+07:36:21 SQL> -- already capture the effects of outlier treatment done with build data.
+07:36:21 SQL> --
+07:36:21 SQL> BEGIN
+07:36:21   2  	-- Xform Test data to replace missing values
+07:36:21   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:21   4  	  miss_table_name => 'svmc_miss_num',
+07:36:21   5  	  data_table_name => '&scoretable',
+07:36:21   6  	  xform_view_name => 'xformed_apply_miss_num');
+07:36:21   7  
+07:36:21   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:21   9  	  miss_table_name => 'svmc_miss_cat',
+07:36:21  10  	  data_table_name => '&scoretable',
+07:36:21  11  	  xform_view_name => 'xformed_apply_miss_cat');
+07:36:21  12  
+07:36:21  13  	-- Normalize the data to be scored
+07:36:21  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:21  15  	  norm_table_name => 'svmc_norm',
+07:36:21  16  	  data_table_name => '&scoretable',
+07:36:21  17  	  xform_view_name => 'svmc_apply_prep');
+07:36:21  18  END;
+07:36:21  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.11
+07:36:21 SQL> 
+07:36:21 SQL> -- Use same model_name used in score.sql
+07:36:21 SQL> DEFINE model_name = 'forex14'
+07:36:21 SQL> 
+07:36:21 SQL> -- Maybe I already collected a score for this prdate.
+07:36:21 SQL> -- DELETE it if I did:
+07:36:21 SQL> DELETE fxscores_demo_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.01
+07:36:21 SQL> 
+07:36:21 SQL> INSERT INTO fxscores_demo_gattn (prdate,score,rundate,pair,ydate)
+07:36:21   2  SELECT
+07:36:21   3  prdate
+07:36:21   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+07:36:21   5  ,sysdate
+07:36:21   6  ,SUBSTR(prdate,1,3)pair
+07:36:21   7  ,SUBSTR(prdate,4,19)ydate
+07:36:21   8  FROM svmc_apply_prep
+07:36:21   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.05
+07:36:21 SQL> @score1_5min_gattn.sql	2010-12-29 05:45:00
+07:36:21 SQL> --
+07:36:21 SQL> -- score1_5min_gattn.sql
+07:36:21 SQL> --
+07:36:21 SQL> 
+07:36:21 SQL> CREATE OR REPLACE VIEW sme AS
+07:36:21   2  SELECT
+07:36:21   3  'jpy'||ydate prdate
+07:36:21   4  ,NULL gattn
+07:36:21   5  ,g00
+07:36:21   6  ,g01
+07:36:21   7  ,g02
+07:36:21   8  ,g03
+07:36:21   9  ,g04
+07:36:21  10  ,g05
+07:36:21  11  ,g06
+07:36:21  12  ,g07
+07:36:21  13  ,g08
+07:36:21  14  FROM jpy_ms
+07:36:21  15  WHERE ydate = '&1'||' '||'&2'
+07:36:21  16  /
+old  15: WHERE ydate = '&1'||' '||'&2'
+new  15: WHERE ydate = '2010-12-29'||' '||'05:45:00'
+
+View created.
+
+Elapsed: 00:00:00.02
+07:36:21 SQL> 
+07:36:21 SQL> -- rpt
+07:36:21 SQL> -- We should see just 1 row:
+07:36:21 SQL> 
+07:36:21 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.01
+07:36:21 SQL> 
+07:36:21 SQL> -- Build the model:
+07:36:21 SQL> CREATE OR REPLACE VIEW bme AS
+07:36:21   2  SELECT
+07:36:21   3  'jpy'||ydate prdate
+07:36:21   4  ,gattn
+07:36:21   5  ,g00
+07:36:21   6  ,g01
+07:36:21   7  ,g02
+07:36:21   8  ,g03
+07:36:21   9  ,g04
+07:36:21  10  ,g05
+07:36:21  11  ,g06
+07:36:21  12  ,g07
+07:36:21  13  ,g08
+07:36:21  14  FROM jpy_ms
+07:36:21  15  WHERE gattn IN('nup','up')
+07:36:21  16  -- Use only rows which are older than 1 day:
+07:36:21  17  AND 1+ydate < '&1'||' '||'&2'
+07:36:21  18  /
+old  17: AND 1+ydate < '&1'||' '||'&2'
+new  17: AND 1+ydate < '2010-12-29'||' '||'05:45:00'
+
+View created.
+
+Elapsed: 00:00:00.03
+07:36:21 SQL> 
+07:36:21 SQL> -- rpt
+07:36:21 SQL> 
+07:36:21 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	     9243
+up	     9844
+
+Elapsed: 00:00:00.05
+07:36:22 SQL> 
+07:36:22 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+jpy2010-12-28 05:40:00
+
+Elapsed: 00:00:00.05
+07:36:22 SQL> 
+07:36:22 SQL> -- Now build model from bme and score sme
+07:36:22 SQL> @score1gattn.sql
+07:36:22 SQL> -- score1gattn.sql
+07:36:22 SQL> 
+07:36:22 SQL> -- Does the 1st SVM score
+07:36:22 SQL> 
+07:36:22 SQL> -- Fill up svmc_apply_prep
+07:36:22 SQL> @score_gattn.sql
+07:36:22 SQL> --
+07:36:22 SQL> -- score_gattn.sql
+07:36:22 SQL> --
+07:36:22 SQL> 
+07:36:22 SQL> -- usage: score_gattn.sql
+07:36:22 SQL> 
+07:36:22 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+07:36:22 SQL> 
+07:36:22 SQL> DEFINE target	= 'gattn'
+07:36:22 SQL> DEFINE model_name = 'forex14'
+07:36:22 SQL> DEFINE bldtable	= 'bme'
+07:36:22 SQL> DEFINE scoretable = 'sme'
+07:36:22 SQL> DEFINE case_id	= 'prdate'
+07:36:22 SQL> 
+07:36:22 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+07:36:22 SQL> DEFINE exclude1 = "'&target','&case_id'"
+07:36:22 SQL> 
+07:36:22 SQL> -- Builds an SVM model using pl/sql.
+07:36:22 SQL> 
+07:36:22 SQL> -----------------------------------------------------------------------
+07:36:22 SQL> --			    BUILD THE MODEL
+07:36:22 SQL> -----------------------------------------------------------------------
+07:36:22 SQL> 
+07:36:22 SQL> -- Cleanup old build data preparation objects for repeat runs
+07:36:22 SQL> DELETE svmc_miss_num;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:22 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:22 SQL> DELETE svmc_clip;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:22 SQL> DELETE svmc_norm;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:22 SQL> 
+07:36:22 SQL> 
+07:36:22 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+07:36:22 SQL> --
+07:36:22 SQL> -- DROP	TABLE svmc_settings ;
+07:36:22 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+07:36:22 SQL> -- DELETE svmc_settings;
+07:36:22 SQL> 
+07:36:22 SQL> -- The default classification algorithm is Naive Bayes. So override
+07:36:22 SQL> -- this choice to SVM using a settings table.
+07:36:22 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+07:36:22 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+07:36:22 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+07:36:22 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+07:36:22 SQL> -- models.
+07:36:22 SQL> --
+07:36:22 SQL> 
+07:36:22 SQL> -- Do this once and then comment it out.
+07:36:22 SQL> -- That makes script go faster.
+07:36:22 SQL> -- BEGIN
+07:36:22 SQL> -- -- Populate settings table
+07:36:22 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:22 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+07:36:22 SQL> --
+07:36:22 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:22 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+07:36:22 SQL> --
+07:36:22 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:22 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+07:36:22 SQL> --   COMMIT;
+07:36:22 SQL> -- END;
+07:36:22 SQL> -- /
+07:36:22 SQL> 
+07:36:22 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       99123123
+
+Elapsed: 00:00:00.00
+07:36:22 SQL> 
+07:36:22 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+07:36:22   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:22   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.03
+07:36:22 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+07:36:22   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:22   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:36:22 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+07:36:22   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:22   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:22 SQL> 
+07:36:22 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+07:36:22   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:22   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:22 SQL> 
+07:36:22 SQL> --------------------------------
+07:36:22 SQL> -- PREPARE BUILD (TRAINING) DATA
+07:36:22 SQL> --
+07:36:22 SQL> 
+07:36:22 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:22 SQL> -- 2. Outlier Treatment and
+07:36:22 SQL> -- 3. Normalization are performed below.
+07:36:22 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+07:36:22 SQL> --    normalized here.
+07:36:22 SQL> 
+07:36:22 SQL> BEGIN
+07:36:22   2  	-- Perform missing value treatment for all predictors
+07:36:22   3  	-- create miss tables
+07:36:22   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+07:36:22   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+07:36:22   6  
+07:36:22   7  	-- populate miss tables
+07:36:22   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+07:36:22   9  	  miss_table_name => 'svmc_miss_num',
+07:36:22  10  	  data_table_name => '&bldtable',
+07:36:22  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:22  12  
+07:36:22  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+07:36:22  14  	  miss_table_name => 'svmc_miss_cat',
+07:36:22  15  	  data_table_name => '&bldtable',
+07:36:22  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:22  17  
+07:36:22  18  	-- xform input data to replace missing values
+07:36:22  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:22  20  	  miss_table_name => 'svmc_miss_num',
+07:36:22  21  	  data_table_name => '&bldtable',
+07:36:22  22  	  xform_view_name => 'xformed_build_miss_num');
+07:36:22  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:22  24  	  miss_table_name => 'svmc_miss_cat',
+07:36:22  25  	  data_table_name => '&bldtable',
+07:36:22  26  	  xform_view_name => 'xformed_build_miss_cat');
+07:36:22  27  
+07:36:22  28  	-- Perform outlier treatment.
+07:36:22  29  	-- create clip table
+07:36:22  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+07:36:22  31  
+07:36:22  32  	-- populate clip table
+07:36:22  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+07:36:22  34  	  clip_table_name => 'svmc_clip',
+07:36:22  35  	  data_table_name => '&bldtable',
+07:36:22  36  	  tail_frac	  => 0.025,
+07:36:22  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:22  38  
+07:36:22  39  	-- xform input data to winsorized data
+07:36:22  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+07:36:22  41  	  clip_table_name => 'svmc_clip',
+07:36:22  42  	  data_table_name => '&bldtable',
+07:36:22  43  	  xform_view_name => 'svmc_winsor');
+07:36:22  44  
+07:36:22  45  	-- create normalization table
+07:36:22  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+07:36:22  47  
+07:36:22  48  	-- populate normalization table based on winsorized data
+07:36:22  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+07:36:22  50  	  norm_table_name => 'svmc_norm',
+07:36:22  51  	  data_table_name => 'svmc_winsor',
+07:36:22  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:22  53  
+07:36:22  54  	-- normalize the original data
+07:36:22  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:22  56  	  norm_table_name => 'svmc_norm',
+07:36:22  57  	  data_table_name => '&bldtable',
+07:36:22  58  	  xform_view_name => 'svmc_build_prep');
+07:36:22  59  END;
+07:36:22  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.99
+07:36:23 SQL> 
+07:36:23 SQL> ---------------------
+07:36:23 SQL> -- CREATE A NEW MODEL
+07:36:23 SQL> --
+07:36:23 SQL> -- Cleanup old model with the same name for repeat runs
+07:36:23 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+07:36:23   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:23   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.02
+07:36:24 SQL> 
+07:36:24 SQL> -- Build a new SVM Model
+07:36:24 SQL> BEGIN
+07:36:24   2  	DBMS_DATA_MINING.CREATE_MODEL(
+07:36:24   3  	  model_name	      => '&model_name',
+07:36:24   4  	  mining_function     => dbms_data_mining.classification,
+07:36:24   5  	  data_table_name     => 'svmc_build_prep',
+07:36:24   6  	  case_id_column_name => '&case_id',
+07:36:24   7  	  target_column_name  => '&target',
+07:36:24   8  	  settings_table_name => 'svmc_settings');
+07:36:24   9  END;
+07:36:24  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:04.15
+07:36:28 SQL> 
+07:36:28 SQL> -----------------------------------------------------------------------
+07:36:28 SQL> --			       APPLY/score THE MODEL
+07:36:28 SQL> -----------------------------------------------------------------------
+07:36:28 SQL> 
+07:36:28 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+07:36:28 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+07:36:28   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:28   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:36:28 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+07:36:28   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:28   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:28 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+07:36:28   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:28   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:28 SQL> -----------------------
+07:36:28 SQL> -- PREPARE SCORING DATA
+07:36:28 SQL> --
+07:36:28 SQL> -- If the data for model creation has been prepared, then the data
+07:36:28 SQL> -- to be scored using the model must be prepared in the same manner
+07:36:28 SQL> -- in order to obtain meaningful results.
+07:36:28 SQL> --
+07:36:28 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:28 SQL> -- 2. Normalization
+07:36:28 SQL> -- No outlier treatment will be performed during test and apply. The
+07:36:28 SQL> -- normalization step is sufficient, since the normalization parameters
+07:36:28 SQL> -- already capture the effects of outlier treatment done with build data.
+07:36:28 SQL> --
+07:36:28 SQL> BEGIN
+07:36:28   2  	-- Xform Test data to replace missing values
+07:36:28   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:28   4  	  miss_table_name => 'svmc_miss_num',
+07:36:28   5  	  data_table_name => '&scoretable',
+07:36:28   6  	  xform_view_name => 'xformed_apply_miss_num');
+07:36:28   7  
+07:36:28   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:28   9  	  miss_table_name => 'svmc_miss_cat',
+07:36:28  10  	  data_table_name => '&scoretable',
+07:36:28  11  	  xform_view_name => 'xformed_apply_miss_cat');
+07:36:28  12  
+07:36:28  13  	-- Normalize the data to be scored
+07:36:28  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:28  15  	  norm_table_name => 'svmc_norm',
+07:36:28  16  	  data_table_name => '&scoretable',
+07:36:28  17  	  xform_view_name => 'svmc_apply_prep');
+07:36:28  18  END;
+07:36:28  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.11
+07:36:28 SQL> 
+07:36:28 SQL> -- Use same model_name used in score.sql
+07:36:28 SQL> DEFINE model_name = 'forex14'
+07:36:28 SQL> 
+07:36:28 SQL> -- Maybe I already collected a score for this prdate.
+07:36:28 SQL> -- DELETE it if I did:
+07:36:28 SQL> DELETE fxscores_demo_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.01
+07:36:28 SQL> 
+07:36:28 SQL> INSERT INTO fxscores_demo_gattn (prdate,score,rundate,pair,ydate)
+07:36:28   2  SELECT
+07:36:28   3  prdate
+07:36:28   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+07:36:28   5  ,sysdate
+07:36:28   6  ,SUBSTR(prdate,1,3)pair
+07:36:28   7  ,SUBSTR(prdate,4,19)ydate
+07:36:28   8  FROM svmc_apply_prep
+07:36:28   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.05
+07:36:28 SQL> @score1_5min_gattn.sql	2010-12-29 05:50:00
+07:36:28 SQL> --
+07:36:28 SQL> -- score1_5min_gattn.sql
+07:36:28 SQL> --
+07:36:28 SQL> 
+07:36:28 SQL> CREATE OR REPLACE VIEW sme AS
+07:36:28   2  SELECT
+07:36:28   3  'jpy'||ydate prdate
+07:36:28   4  ,NULL gattn
+07:36:28   5  ,g00
+07:36:28   6  ,g01
+07:36:28   7  ,g02
+07:36:28   8  ,g03
+07:36:28   9  ,g04
+07:36:28  10  ,g05
+07:36:28  11  ,g06
+07:36:28  12  ,g07
+07:36:28  13  ,g08
+07:36:28  14  FROM jpy_ms
+07:36:28  15  WHERE ydate = '&1'||' '||'&2'
+07:36:28  16  /
+old  15: WHERE ydate = '&1'||' '||'&2'
+new  15: WHERE ydate = '2010-12-29'||' '||'05:50:00'
+
+View created.
+
+Elapsed: 00:00:00.02
+07:36:28 SQL> 
+07:36:28 SQL> -- rpt
+07:36:28 SQL> -- We should see just 1 row:
+07:36:28 SQL> 
+07:36:28 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.01
+07:36:28 SQL> 
+07:36:28 SQL> -- Build the model:
+07:36:28 SQL> CREATE OR REPLACE VIEW bme AS
+07:36:28   2  SELECT
+07:36:28   3  'jpy'||ydate prdate
+07:36:28   4  ,gattn
+07:36:28   5  ,g00
+07:36:28   6  ,g01
+07:36:28   7  ,g02
+07:36:28   8  ,g03
+07:36:28   9  ,g04
+07:36:28  10  ,g05
+07:36:28  11  ,g06
+07:36:28  12  ,g07
+07:36:28  13  ,g08
+07:36:28  14  FROM jpy_ms
+07:36:28  15  WHERE gattn IN('nup','up')
+07:36:28  16  -- Use only rows which are older than 1 day:
+07:36:28  17  AND 1+ydate < '&1'||' '||'&2'
+07:36:28  18  /
+old  17: AND 1+ydate < '&1'||' '||'&2'
+new  17: AND 1+ydate < '2010-12-29'||' '||'05:50:00'
+
+View created.
+
+Elapsed: 00:00:00.03
+07:36:28 SQL> 
+07:36:28 SQL> -- rpt
+07:36:28 SQL> 
+07:36:28 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	     9243
+up	     9845
+
+Elapsed: 00:00:00.06
+07:36:28 SQL> 
+07:36:28 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+jpy2010-12-28 05:45:00
+
+Elapsed: 00:00:00.05
+07:36:28 SQL> 
+07:36:28 SQL> -- Now build model from bme and score sme
+07:36:28 SQL> @score1gattn.sql
+07:36:28 SQL> -- score1gattn.sql
+07:36:28 SQL> 
+07:36:28 SQL> -- Does the 1st SVM score
+07:36:28 SQL> 
+07:36:28 SQL> -- Fill up svmc_apply_prep
+07:36:28 SQL> @score_gattn.sql
+07:36:28 SQL> --
+07:36:28 SQL> -- score_gattn.sql
+07:36:28 SQL> --
+07:36:28 SQL> 
+07:36:28 SQL> -- usage: score_gattn.sql
+07:36:28 SQL> 
+07:36:28 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+07:36:28 SQL> 
+07:36:28 SQL> DEFINE target	= 'gattn'
+07:36:28 SQL> DEFINE model_name = 'forex14'
+07:36:28 SQL> DEFINE bldtable	= 'bme'
+07:36:28 SQL> DEFINE scoretable = 'sme'
+07:36:28 SQL> DEFINE case_id	= 'prdate'
+07:36:28 SQL> 
+07:36:28 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+07:36:28 SQL> DEFINE exclude1 = "'&target','&case_id'"
+07:36:28 SQL> 
+07:36:28 SQL> -- Builds an SVM model using pl/sql.
+07:36:28 SQL> 
+07:36:28 SQL> -----------------------------------------------------------------------
+07:36:28 SQL> --			    BUILD THE MODEL
+07:36:28 SQL> -----------------------------------------------------------------------
+07:36:28 SQL> 
+07:36:28 SQL> -- Cleanup old build data preparation objects for repeat runs
+07:36:28 SQL> DELETE svmc_miss_num;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:28 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:28 SQL> DELETE svmc_clip;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:28 SQL> DELETE svmc_norm;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:28 SQL> 
+07:36:28 SQL> 
+07:36:28 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+07:36:28 SQL> --
+07:36:28 SQL> -- DROP	TABLE svmc_settings ;
+07:36:28 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+07:36:28 SQL> -- DELETE svmc_settings;
+07:36:28 SQL> 
+07:36:28 SQL> -- The default classification algorithm is Naive Bayes. So override
+07:36:28 SQL> -- this choice to SVM using a settings table.
+07:36:28 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+07:36:28 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+07:36:28 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+07:36:28 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+07:36:28 SQL> -- models.
+07:36:28 SQL> --
+07:36:28 SQL> 
+07:36:28 SQL> -- Do this once and then comment it out.
+07:36:28 SQL> -- That makes script go faster.
+07:36:28 SQL> -- BEGIN
+07:36:28 SQL> -- -- Populate settings table
+07:36:28 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:28 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+07:36:28 SQL> --
+07:36:28 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:28 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+07:36:28 SQL> --
+07:36:28 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:28 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+07:36:28 SQL> --   COMMIT;
+07:36:28 SQL> -- END;
+07:36:28 SQL> -- /
+07:36:28 SQL> 
+07:36:28 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       99123123
+
+Elapsed: 00:00:00.00
+07:36:28 SQL> 
+07:36:28 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+07:36:28   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:28   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.03
+07:36:28 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+07:36:28   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:28   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:28 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+07:36:28   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:28   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:28 SQL> 
+07:36:28 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+07:36:28   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:28   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:28 SQL> 
+07:36:28 SQL> --------------------------------
+07:36:28 SQL> -- PREPARE BUILD (TRAINING) DATA
+07:36:28 SQL> --
+07:36:28 SQL> 
+07:36:28 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:28 SQL> -- 2. Outlier Treatment and
+07:36:28 SQL> -- 3. Normalization are performed below.
+07:36:28 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+07:36:28 SQL> --    normalized here.
+07:36:28 SQL> 
+07:36:28 SQL> BEGIN
+07:36:28   2  	-- Perform missing value treatment for all predictors
+07:36:28   3  	-- create miss tables
+07:36:28   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+07:36:28   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+07:36:28   6  
+07:36:28   7  	-- populate miss tables
+07:36:28   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+07:36:28   9  	  miss_table_name => 'svmc_miss_num',
+07:36:28  10  	  data_table_name => '&bldtable',
+07:36:28  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:28  12  
+07:36:28  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+07:36:28  14  	  miss_table_name => 'svmc_miss_cat',
+07:36:28  15  	  data_table_name => '&bldtable',
+07:36:28  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:28  17  
+07:36:28  18  	-- xform input data to replace missing values
+07:36:28  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:28  20  	  miss_table_name => 'svmc_miss_num',
+07:36:28  21  	  data_table_name => '&bldtable',
+07:36:28  22  	  xform_view_name => 'xformed_build_miss_num');
+07:36:28  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:28  24  	  miss_table_name => 'svmc_miss_cat',
+07:36:28  25  	  data_table_name => '&bldtable',
+07:36:28  26  	  xform_view_name => 'xformed_build_miss_cat');
+07:36:28  27  
+07:36:28  28  	-- Perform outlier treatment.
+07:36:28  29  	-- create clip table
+07:36:28  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+07:36:28  31  
+07:36:28  32  	-- populate clip table
+07:36:28  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+07:36:28  34  	  clip_table_name => 'svmc_clip',
+07:36:28  35  	  data_table_name => '&bldtable',
+07:36:28  36  	  tail_frac	  => 0.025,
+07:36:28  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:28  38  
+07:36:28  39  	-- xform input data to winsorized data
+07:36:28  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+07:36:28  41  	  clip_table_name => 'svmc_clip',
+07:36:28  42  	  data_table_name => '&bldtable',
+07:36:28  43  	  xform_view_name => 'svmc_winsor');
+07:36:28  44  
+07:36:28  45  	-- create normalization table
+07:36:28  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+07:36:28  47  
+07:36:28  48  	-- populate normalization table based on winsorized data
+07:36:28  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+07:36:28  50  	  norm_table_name => 'svmc_norm',
+07:36:28  51  	  data_table_name => 'svmc_winsor',
+07:36:28  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:28  53  
+07:36:28  54  	-- normalize the original data
+07:36:28  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:28  56  	  norm_table_name => 'svmc_norm',
+07:36:28  57  	  data_table_name => '&bldtable',
+07:36:28  58  	  xform_view_name => 'svmc_build_prep');
+07:36:28  59  END;
+07:36:28  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.98
+07:36:29 SQL> 
+07:36:29 SQL> ---------------------
+07:36:29 SQL> -- CREATE A NEW MODEL
+07:36:29 SQL> --
+07:36:29 SQL> -- Cleanup old model with the same name for repeat runs
+07:36:29 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+07:36:29   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:29   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.03
+07:36:30 SQL> 
+07:36:30 SQL> -- Build a new SVM Model
+07:36:30 SQL> BEGIN
+07:36:30   2  	DBMS_DATA_MINING.CREATE_MODEL(
+07:36:30   3  	  model_name	      => '&model_name',
+07:36:30   4  	  mining_function     => dbms_data_mining.classification,
+07:36:30   5  	  data_table_name     => 'svmc_build_prep',
+07:36:30   6  	  case_id_column_name => '&case_id',
+07:36:30   7  	  target_column_name  => '&target',
+07:36:30   8  	  settings_table_name => 'svmc_settings');
+07:36:30   9  END;
+07:36:30  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:05.05
+07:36:35 SQL> 
+07:36:35 SQL> -----------------------------------------------------------------------
+07:36:35 SQL> --			       APPLY/score THE MODEL
+07:36:35 SQL> -----------------------------------------------------------------------
+07:36:35 SQL> 
+07:36:35 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+07:36:35 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+07:36:35   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:35   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:35 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+07:36:35   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:35   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:36:35 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+07:36:35   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:35   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:35 SQL> -----------------------
+07:36:35 SQL> -- PREPARE SCORING DATA
+07:36:35 SQL> --
+07:36:35 SQL> -- If the data for model creation has been prepared, then the data
+07:36:35 SQL> -- to be scored using the model must be prepared in the same manner
+07:36:35 SQL> -- in order to obtain meaningful results.
+07:36:35 SQL> --
+07:36:35 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:35 SQL> -- 2. Normalization
+07:36:35 SQL> -- No outlier treatment will be performed during test and apply. The
+07:36:35 SQL> -- normalization step is sufficient, since the normalization parameters
+07:36:35 SQL> -- already capture the effects of outlier treatment done with build data.
+07:36:35 SQL> --
+07:36:35 SQL> BEGIN
+07:36:35   2  	-- Xform Test data to replace missing values
+07:36:35   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:35   4  	  miss_table_name => 'svmc_miss_num',
+07:36:35   5  	  data_table_name => '&scoretable',
+07:36:35   6  	  xform_view_name => 'xformed_apply_miss_num');
+07:36:35   7  
+07:36:35   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:35   9  	  miss_table_name => 'svmc_miss_cat',
+07:36:35  10  	  data_table_name => '&scoretable',
+07:36:35  11  	  xform_view_name => 'xformed_apply_miss_cat');
+07:36:35  12  
+07:36:35  13  	-- Normalize the data to be scored
+07:36:35  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:35  15  	  norm_table_name => 'svmc_norm',
+07:36:35  16  	  data_table_name => '&scoretable',
+07:36:35  17  	  xform_view_name => 'svmc_apply_prep');
+07:36:35  18  END;
+07:36:35  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.11
+07:36:36 SQL> 
+07:36:36 SQL> -- Use same model_name used in score.sql
+07:36:36 SQL> DEFINE model_name = 'forex14'
+07:36:36 SQL> 
+07:36:36 SQL> -- Maybe I already collected a score for this prdate.
+07:36:36 SQL> -- DELETE it if I did:
+07:36:36 SQL> DELETE fxscores_demo_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.01
+07:36:36 SQL> 
+07:36:36 SQL> INSERT INTO fxscores_demo_gattn (prdate,score,rundate,pair,ydate)
+07:36:36   2  SELECT
+07:36:36   3  prdate
+07:36:36   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+07:36:36   5  ,sysdate
+07:36:36   6  ,SUBSTR(prdate,1,3)pair
+07:36:36   7  ,SUBSTR(prdate,4,19)ydate
+07:36:36   8  FROM svmc_apply_prep
+07:36:36   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.04
+07:36:36 SQL> @score1_5min_gattn.sql	2010-12-29 05:55:00
+07:36:36 SQL> --
+07:36:36 SQL> -- score1_5min_gattn.sql
+07:36:36 SQL> --
+07:36:36 SQL> 
+07:36:36 SQL> CREATE OR REPLACE VIEW sme AS
+07:36:36   2  SELECT
+07:36:36   3  'jpy'||ydate prdate
+07:36:36   4  ,NULL gattn
+07:36:36   5  ,g00
+07:36:36   6  ,g01
+07:36:36   7  ,g02
+07:36:36   8  ,g03
+07:36:36   9  ,g04
+07:36:36  10  ,g05
+07:36:36  11  ,g06
+07:36:36  12  ,g07
+07:36:36  13  ,g08
+07:36:36  14  FROM jpy_ms
+07:36:36  15  WHERE ydate = '&1'||' '||'&2'
+07:36:36  16  /
+old  15: WHERE ydate = '&1'||' '||'&2'
+new  15: WHERE ydate = '2010-12-29'||' '||'05:55:00'
+
+View created.
+
+Elapsed: 00:00:00.02
+07:36:36 SQL> 
+07:36:36 SQL> -- rpt
+07:36:36 SQL> -- We should see just 1 row:
+07:36:36 SQL> 
+07:36:36 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.01
+07:36:36 SQL> 
+07:36:36 SQL> -- Build the model:
+07:36:36 SQL> CREATE OR REPLACE VIEW bme AS
+07:36:36   2  SELECT
+07:36:36   3  'jpy'||ydate prdate
+07:36:36   4  ,gattn
+07:36:36   5  ,g00
+07:36:36   6  ,g01
+07:36:36   7  ,g02
+07:36:36   8  ,g03
+07:36:36   9  ,g04
+07:36:36  10  ,g05
+07:36:36  11  ,g06
+07:36:36  12  ,g07
+07:36:36  13  ,g08
+07:36:36  14  FROM jpy_ms
+07:36:36  15  WHERE gattn IN('nup','up')
+07:36:36  16  -- Use only rows which are older than 1 day:
+07:36:36  17  AND 1+ydate < '&1'||' '||'&2'
+07:36:36  18  /
+old  17: AND 1+ydate < '&1'||' '||'&2'
+new  17: AND 1+ydate < '2010-12-29'||' '||'05:55:00'
+
+View created.
+
+Elapsed: 00:00:00.03
+07:36:36 SQL> 
+07:36:36 SQL> -- rpt
+07:36:36 SQL> 
+07:36:36 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	     9243
+up	     9846
+
+Elapsed: 00:00:00.05
+07:36:36 SQL> 
+07:36:36 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+jpy2010-12-28 05:50:00
+
+Elapsed: 00:00:00.05
+07:36:36 SQL> 
+07:36:36 SQL> -- Now build model from bme and score sme
+07:36:36 SQL> @score1gattn.sql
+07:36:36 SQL> -- score1gattn.sql
+07:36:36 SQL> 
+07:36:36 SQL> -- Does the 1st SVM score
+07:36:36 SQL> 
+07:36:36 SQL> -- Fill up svmc_apply_prep
+07:36:36 SQL> @score_gattn.sql
+07:36:36 SQL> --
+07:36:36 SQL> -- score_gattn.sql
+07:36:36 SQL> --
+07:36:36 SQL> 
+07:36:36 SQL> -- usage: score_gattn.sql
+07:36:36 SQL> 
+07:36:36 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+07:36:36 SQL> 
+07:36:36 SQL> DEFINE target	= 'gattn'
+07:36:36 SQL> DEFINE model_name = 'forex14'
+07:36:36 SQL> DEFINE bldtable	= 'bme'
+07:36:36 SQL> DEFINE scoretable = 'sme'
+07:36:36 SQL> DEFINE case_id	= 'prdate'
+07:36:36 SQL> 
+07:36:36 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+07:36:36 SQL> DEFINE exclude1 = "'&target','&case_id'"
+07:36:36 SQL> 
+07:36:36 SQL> -- Builds an SVM model using pl/sql.
+07:36:36 SQL> 
+07:36:36 SQL> -----------------------------------------------------------------------
+07:36:36 SQL> --			    BUILD THE MODEL
+07:36:36 SQL> -----------------------------------------------------------------------
+07:36:36 SQL> 
+07:36:36 SQL> -- Cleanup old build data preparation objects for repeat runs
+07:36:36 SQL> DELETE svmc_miss_num;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:36 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:36 SQL> DELETE svmc_clip;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:36 SQL> DELETE svmc_norm;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:36 SQL> 
+07:36:36 SQL> 
+07:36:36 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+07:36:36 SQL> --
+07:36:36 SQL> -- DROP	TABLE svmc_settings ;
+07:36:36 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+07:36:36 SQL> -- DELETE svmc_settings;
+07:36:36 SQL> 
+07:36:36 SQL> -- The default classification algorithm is Naive Bayes. So override
+07:36:36 SQL> -- this choice to SVM using a settings table.
+07:36:36 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+07:36:36 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+07:36:36 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+07:36:36 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+07:36:36 SQL> -- models.
+07:36:36 SQL> --
+07:36:36 SQL> 
+07:36:36 SQL> -- Do this once and then comment it out.
+07:36:36 SQL> -- That makes script go faster.
+07:36:36 SQL> -- BEGIN
+07:36:36 SQL> -- -- Populate settings table
+07:36:36 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:36 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+07:36:36 SQL> --
+07:36:36 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:36 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+07:36:36 SQL> --
+07:36:36 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:36 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+07:36:36 SQL> --   COMMIT;
+07:36:36 SQL> -- END;
+07:36:36 SQL> -- /
+07:36:36 SQL> 
+07:36:36 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       99123123
+
+Elapsed: 00:00:00.00
+07:36:36 SQL> 
+07:36:36 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+07:36:36   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:36   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.03
+07:36:36 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+07:36:36   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:36   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:36:36 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+07:36:36   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:36   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:36 SQL> 
+07:36:36 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+07:36:36   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:36   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:36 SQL> 
+07:36:36 SQL> --------------------------------
+07:36:36 SQL> -- PREPARE BUILD (TRAINING) DATA
+07:36:36 SQL> --
+07:36:36 SQL> 
+07:36:36 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:36 SQL> -- 2. Outlier Treatment and
+07:36:36 SQL> -- 3. Normalization are performed below.
+07:36:36 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+07:36:36 SQL> --    normalized here.
+07:36:36 SQL> 
+07:36:36 SQL> BEGIN
+07:36:36   2  	-- Perform missing value treatment for all predictors
+07:36:36   3  	-- create miss tables
+07:36:36   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+07:36:36   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+07:36:36   6  
+07:36:36   7  	-- populate miss tables
+07:36:36   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+07:36:36   9  	  miss_table_name => 'svmc_miss_num',
+07:36:36  10  	  data_table_name => '&bldtable',
+07:36:36  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:36  12  
+07:36:36  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+07:36:36  14  	  miss_table_name => 'svmc_miss_cat',
+07:36:36  15  	  data_table_name => '&bldtable',
+07:36:36  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:36  17  
+07:36:36  18  	-- xform input data to replace missing values
+07:36:36  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:36  20  	  miss_table_name => 'svmc_miss_num',
+07:36:36  21  	  data_table_name => '&bldtable',
+07:36:36  22  	  xform_view_name => 'xformed_build_miss_num');
+07:36:36  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:36  24  	  miss_table_name => 'svmc_miss_cat',
+07:36:36  25  	  data_table_name => '&bldtable',
+07:36:36  26  	  xform_view_name => 'xformed_build_miss_cat');
+07:36:36  27  
+07:36:36  28  	-- Perform outlier treatment.
+07:36:36  29  	-- create clip table
+07:36:36  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+07:36:36  31  
+07:36:36  32  	-- populate clip table
+07:36:36  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+07:36:36  34  	  clip_table_name => 'svmc_clip',
+07:36:36  35  	  data_table_name => '&bldtable',
+07:36:36  36  	  tail_frac	  => 0.025,
+07:36:36  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:36  38  
+07:36:36  39  	-- xform input data to winsorized data
+07:36:36  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+07:36:36  41  	  clip_table_name => 'svmc_clip',
+07:36:36  42  	  data_table_name => '&bldtable',
+07:36:36  43  	  xform_view_name => 'svmc_winsor');
+07:36:36  44  
+07:36:36  45  	-- create normalization table
+07:36:36  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+07:36:36  47  
+07:36:36  48  	-- populate normalization table based on winsorized data
+07:36:36  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+07:36:36  50  	  norm_table_name => 'svmc_norm',
+07:36:36  51  	  data_table_name => 'svmc_winsor',
+07:36:36  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:36  53  
+07:36:36  54  	-- normalize the original data
+07:36:36  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:36  56  	  norm_table_name => 'svmc_norm',
+07:36:36  57  	  data_table_name => '&bldtable',
+07:36:36  58  	  xform_view_name => 'svmc_build_prep');
+07:36:36  59  END;
+07:36:36  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.99
+07:36:37 SQL> 
+07:36:37 SQL> ---------------------
+07:36:37 SQL> -- CREATE A NEW MODEL
+07:36:37 SQL> --
+07:36:37 SQL> -- Cleanup old model with the same name for repeat runs
+07:36:37 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+07:36:37   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:37   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.04
+07:36:38 SQL> 
+07:36:38 SQL> -- Build a new SVM Model
+07:36:38 SQL> BEGIN
+07:36:38   2  	DBMS_DATA_MINING.CREATE_MODEL(
+07:36:38   3  	  model_name	      => '&model_name',
+07:36:38   4  	  mining_function     => dbms_data_mining.classification,
+07:36:38   5  	  data_table_name     => 'svmc_build_prep',
+07:36:38   6  	  case_id_column_name => '&case_id',
+07:36:38   7  	  target_column_name  => '&target',
+07:36:38   8  	  settings_table_name => 'svmc_settings');
+07:36:38   9  END;
+07:36:38  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:04.24
+07:36:42 SQL> 
+07:36:42 SQL> -----------------------------------------------------------------------
+07:36:42 SQL> --			       APPLY/score THE MODEL
+07:36:42 SQL> -----------------------------------------------------------------------
+07:36:42 SQL> 
+07:36:42 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+07:36:42 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+07:36:42   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:42   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:36:42 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+07:36:42   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:42   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:42 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+07:36:42   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:42   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:42 SQL> -----------------------
+07:36:42 SQL> -- PREPARE SCORING DATA
+07:36:42 SQL> --
+07:36:42 SQL> -- If the data for model creation has been prepared, then the data
+07:36:42 SQL> -- to be scored using the model must be prepared in the same manner
+07:36:42 SQL> -- in order to obtain meaningful results.
+07:36:42 SQL> --
+07:36:42 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:42 SQL> -- 2. Normalization
+07:36:42 SQL> -- No outlier treatment will be performed during test and apply. The
+07:36:42 SQL> -- normalization step is sufficient, since the normalization parameters
+07:36:42 SQL> -- already capture the effects of outlier treatment done with build data.
+07:36:42 SQL> --
+07:36:42 SQL> BEGIN
+07:36:42   2  	-- Xform Test data to replace missing values
+07:36:42   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:42   4  	  miss_table_name => 'svmc_miss_num',
+07:36:42   5  	  data_table_name => '&scoretable',
+07:36:42   6  	  xform_view_name => 'xformed_apply_miss_num');
+07:36:42   7  
+07:36:42   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:42   9  	  miss_table_name => 'svmc_miss_cat',
+07:36:42  10  	  data_table_name => '&scoretable',
+07:36:42  11  	  xform_view_name => 'xformed_apply_miss_cat');
+07:36:42  12  
+07:36:42  13  	-- Normalize the data to be scored
+07:36:42  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:42  15  	  norm_table_name => 'svmc_norm',
+07:36:42  16  	  data_table_name => '&scoretable',
+07:36:42  17  	  xform_view_name => 'svmc_apply_prep');
+07:36:42  18  END;
+07:36:42  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.11
+07:36:42 SQL> 
+07:36:42 SQL> -- Use same model_name used in score.sql
+07:36:42 SQL> DEFINE model_name = 'forex14'
+07:36:42 SQL> 
+07:36:42 SQL> -- Maybe I already collected a score for this prdate.
+07:36:42 SQL> -- DELETE it if I did:
+07:36:42 SQL> DELETE fxscores_demo_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.01
+07:36:42 SQL> 
+07:36:42 SQL> INSERT INTO fxscores_demo_gattn (prdate,score,rundate,pair,ydate)
+07:36:42   2  SELECT
+07:36:42   3  prdate
+07:36:42   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+07:36:42   5  ,sysdate
+07:36:42   6  ,SUBSTR(prdate,1,3)pair
+07:36:42   7  ,SUBSTR(prdate,4,19)ydate
+07:36:42   8  FROM svmc_apply_prep
+07:36:42   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.04
+07:36:42 SQL> @score1_5min_gattn.sql	2010-12-29 06:00:00
+07:36:42 SQL> --
+07:36:42 SQL> -- score1_5min_gattn.sql
+07:36:42 SQL> --
+07:36:42 SQL> 
+07:36:42 SQL> CREATE OR REPLACE VIEW sme AS
+07:36:42   2  SELECT
+07:36:42   3  'jpy'||ydate prdate
+07:36:42   4  ,NULL gattn
+07:36:42   5  ,g00
+07:36:42   6  ,g01
+07:36:42   7  ,g02
+07:36:42   8  ,g03
+07:36:42   9  ,g04
+07:36:42  10  ,g05
+07:36:42  11  ,g06
+07:36:42  12  ,g07
+07:36:42  13  ,g08
+07:36:42  14  FROM jpy_ms
+07:36:42  15  WHERE ydate = '&1'||' '||'&2'
+07:36:42  16  /
+old  15: WHERE ydate = '&1'||' '||'&2'
+new  15: WHERE ydate = '2010-12-29'||' '||'06:00:00'
+
+View created.
+
+Elapsed: 00:00:00.03
+07:36:42 SQL> 
+07:36:42 SQL> -- rpt
+07:36:42 SQL> -- We should see just 1 row:
+07:36:42 SQL> 
+07:36:42 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.01
+07:36:42 SQL> 
+07:36:42 SQL> -- Build the model:
+07:36:42 SQL> CREATE OR REPLACE VIEW bme AS
+07:36:42   2  SELECT
+07:36:42   3  'jpy'||ydate prdate
+07:36:42   4  ,gattn
+07:36:42   5  ,g00
+07:36:42   6  ,g01
+07:36:42   7  ,g02
+07:36:42   8  ,g03
+07:36:42   9  ,g04
+07:36:42  10  ,g05
+07:36:42  11  ,g06
+07:36:42  12  ,g07
+07:36:42  13  ,g08
+07:36:42  14  FROM jpy_ms
+07:36:42  15  WHERE gattn IN('nup','up')
+07:36:42  16  -- Use only rows which are older than 1 day:
+07:36:42  17  AND 1+ydate < '&1'||' '||'&2'
+07:36:42  18  /
+old  17: AND 1+ydate < '&1'||' '||'&2'
+new  17: AND 1+ydate < '2010-12-29'||' '||'06:00:00'
+
+View created.
+
+Elapsed: 00:00:00.02
+07:36:42 SQL> 
+07:36:42 SQL> -- rpt
+07:36:42 SQL> 
+07:36:42 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	     9243
+up	     9847
+
+Elapsed: 00:00:00.06
+07:36:42 SQL> 
+07:36:42 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+jpy2010-12-28 05:55:00
+
+Elapsed: 00:00:00.05
+07:36:43 SQL> 
+07:36:43 SQL> -- Now build model from bme and score sme
+07:36:43 SQL> @score1gattn.sql
+07:36:43 SQL> -- score1gattn.sql
+07:36:43 SQL> 
+07:36:43 SQL> -- Does the 1st SVM score
+07:36:43 SQL> 
+07:36:43 SQL> -- Fill up svmc_apply_prep
+07:36:43 SQL> @score_gattn.sql
+07:36:43 SQL> --
+07:36:43 SQL> -- score_gattn.sql
+07:36:43 SQL> --
+07:36:43 SQL> 
+07:36:43 SQL> -- usage: score_gattn.sql
+07:36:43 SQL> 
+07:36:43 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+07:36:43 SQL> 
+07:36:43 SQL> DEFINE target	= 'gattn'
+07:36:43 SQL> DEFINE model_name = 'forex14'
+07:36:43 SQL> DEFINE bldtable	= 'bme'
+07:36:43 SQL> DEFINE scoretable = 'sme'
+07:36:43 SQL> DEFINE case_id	= 'prdate'
+07:36:43 SQL> 
+07:36:43 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+07:36:43 SQL> DEFINE exclude1 = "'&target','&case_id'"
+07:36:43 SQL> 
+07:36:43 SQL> -- Builds an SVM model using pl/sql.
+07:36:43 SQL> 
+07:36:43 SQL> -----------------------------------------------------------------------
+07:36:43 SQL> --			    BUILD THE MODEL
+07:36:43 SQL> -----------------------------------------------------------------------
+07:36:43 SQL> 
+07:36:43 SQL> -- Cleanup old build data preparation objects for repeat runs
+07:36:43 SQL> DELETE svmc_miss_num;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:43 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:43 SQL> DELETE svmc_clip;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:43 SQL> DELETE svmc_norm;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:43 SQL> 
+07:36:43 SQL> 
+07:36:43 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+07:36:43 SQL> --
+07:36:43 SQL> -- DROP	TABLE svmc_settings ;
+07:36:43 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+07:36:43 SQL> -- DELETE svmc_settings;
+07:36:43 SQL> 
+07:36:43 SQL> -- The default classification algorithm is Naive Bayes. So override
+07:36:43 SQL> -- this choice to SVM using a settings table.
+07:36:43 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+07:36:43 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+07:36:43 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+07:36:43 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+07:36:43 SQL> -- models.
+07:36:43 SQL> --
+07:36:43 SQL> 
+07:36:43 SQL> -- Do this once and then comment it out.
+07:36:43 SQL> -- That makes script go faster.
+07:36:43 SQL> -- BEGIN
+07:36:43 SQL> -- -- Populate settings table
+07:36:43 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:43 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+07:36:43 SQL> --
+07:36:43 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:43 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+07:36:43 SQL> --
+07:36:43 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:43 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+07:36:43 SQL> --   COMMIT;
+07:36:43 SQL> -- END;
+07:36:43 SQL> -- /
+07:36:43 SQL> 
+07:36:43 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       99123123
+
+Elapsed: 00:00:00.00
+07:36:43 SQL> 
+07:36:43 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+07:36:43   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:43   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:43 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+07:36:43   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:43   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:43 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+07:36:43   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:43   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:43 SQL> 
+07:36:43 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+07:36:43   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:43   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:36:43 SQL> 
+07:36:43 SQL> --------------------------------
+07:36:43 SQL> -- PREPARE BUILD (TRAINING) DATA
+07:36:43 SQL> --
+07:36:43 SQL> 
+07:36:43 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:43 SQL> -- 2. Outlier Treatment and
+07:36:43 SQL> -- 3. Normalization are performed below.
+07:36:43 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+07:36:43 SQL> --    normalized here.
+07:36:43 SQL> 
+07:36:43 SQL> BEGIN
+07:36:43   2  	-- Perform missing value treatment for all predictors
+07:36:43   3  	-- create miss tables
+07:36:43   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+07:36:43   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+07:36:43   6  
+07:36:43   7  	-- populate miss tables
+07:36:43   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+07:36:43   9  	  miss_table_name => 'svmc_miss_num',
+07:36:43  10  	  data_table_name => '&bldtable',
+07:36:43  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:43  12  
+07:36:43  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+07:36:43  14  	  miss_table_name => 'svmc_miss_cat',
+07:36:43  15  	  data_table_name => '&bldtable',
+07:36:43  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:43  17  
+07:36:43  18  	-- xform input data to replace missing values
+07:36:43  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:43  20  	  miss_table_name => 'svmc_miss_num',
+07:36:43  21  	  data_table_name => '&bldtable',
+07:36:43  22  	  xform_view_name => 'xformed_build_miss_num');
+07:36:43  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:43  24  	  miss_table_name => 'svmc_miss_cat',
+07:36:43  25  	  data_table_name => '&bldtable',
+07:36:43  26  	  xform_view_name => 'xformed_build_miss_cat');
+07:36:43  27  
+07:36:43  28  	-- Perform outlier treatment.
+07:36:43  29  	-- create clip table
+07:36:43  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+07:36:43  31  
+07:36:43  32  	-- populate clip table
+07:36:43  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+07:36:43  34  	  clip_table_name => 'svmc_clip',
+07:36:43  35  	  data_table_name => '&bldtable',
+07:36:43  36  	  tail_frac	  => 0.025,
+07:36:43  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:43  38  
+07:36:43  39  	-- xform input data to winsorized data
+07:36:43  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+07:36:43  41  	  clip_table_name => 'svmc_clip',
+07:36:43  42  	  data_table_name => '&bldtable',
+07:36:43  43  	  xform_view_name => 'svmc_winsor');
+07:36:43  44  
+07:36:43  45  	-- create normalization table
+07:36:43  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+07:36:43  47  
+07:36:43  48  	-- populate normalization table based on winsorized data
+07:36:43  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+07:36:43  50  	  norm_table_name => 'svmc_norm',
+07:36:43  51  	  data_table_name => 'svmc_winsor',
+07:36:43  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:43  53  
+07:36:43  54  	-- normalize the original data
+07:36:43  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:43  56  	  norm_table_name => 'svmc_norm',
+07:36:43  57  	  data_table_name => '&bldtable',
+07:36:43  58  	  xform_view_name => 'svmc_build_prep');
+07:36:43  59  END;
+07:36:43  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.01
+07:36:44 SQL> 
+07:36:44 SQL> ---------------------
+07:36:44 SQL> -- CREATE A NEW MODEL
+07:36:44 SQL> --
+07:36:44 SQL> -- Cleanup old model with the same name for repeat runs
+07:36:44 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+07:36:44   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:44   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.21
+07:36:45 SQL> 
+07:36:45 SQL> -- Build a new SVM Model
+07:36:45 SQL> BEGIN
+07:36:45   2  	DBMS_DATA_MINING.CREATE_MODEL(
+07:36:45   3  	  model_name	      => '&model_name',
+07:36:45   4  	  mining_function     => dbms_data_mining.classification,
+07:36:45   5  	  data_table_name     => 'svmc_build_prep',
+07:36:45   6  	  case_id_column_name => '&case_id',
+07:36:45   7  	  target_column_name  => '&target',
+07:36:45   8  	  settings_table_name => 'svmc_settings');
+07:36:45   9  END;
+07:36:45  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:04.66
+07:36:49 SQL> 
+07:36:49 SQL> -----------------------------------------------------------------------
+07:36:49 SQL> --			       APPLY/score THE MODEL
+07:36:49 SQL> -----------------------------------------------------------------------
+07:36:49 SQL> 
+07:36:49 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+07:36:49 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+07:36:49   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:49   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:36:49 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+07:36:49   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:49   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:50 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+07:36:50   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:50   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:50 SQL> -----------------------
+07:36:50 SQL> -- PREPARE SCORING DATA
+07:36:50 SQL> --
+07:36:50 SQL> -- If the data for model creation has been prepared, then the data
+07:36:50 SQL> -- to be scored using the model must be prepared in the same manner
+07:36:50 SQL> -- in order to obtain meaningful results.
+07:36:50 SQL> --
+07:36:50 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:50 SQL> -- 2. Normalization
+07:36:50 SQL> -- No outlier treatment will be performed during test and apply. The
+07:36:50 SQL> -- normalization step is sufficient, since the normalization parameters
+07:36:50 SQL> -- already capture the effects of outlier treatment done with build data.
+07:36:50 SQL> --
+07:36:50 SQL> BEGIN
+07:36:50   2  	-- Xform Test data to replace missing values
+07:36:50   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:50   4  	  miss_table_name => 'svmc_miss_num',
+07:36:50   5  	  data_table_name => '&scoretable',
+07:36:50   6  	  xform_view_name => 'xformed_apply_miss_num');
+07:36:50   7  
+07:36:50   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:50   9  	  miss_table_name => 'svmc_miss_cat',
+07:36:50  10  	  data_table_name => '&scoretable',
+07:36:50  11  	  xform_view_name => 'xformed_apply_miss_cat');
+07:36:50  12  
+07:36:50  13  	-- Normalize the data to be scored
+07:36:50  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:50  15  	  norm_table_name => 'svmc_norm',
+07:36:50  16  	  data_table_name => '&scoretable',
+07:36:50  17  	  xform_view_name => 'svmc_apply_prep');
+07:36:50  18  END;
+07:36:50  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.11
+07:36:50 SQL> 
+07:36:50 SQL> -- Use same model_name used in score.sql
+07:36:50 SQL> DEFINE model_name = 'forex14'
+07:36:50 SQL> 
+07:36:50 SQL> -- Maybe I already collected a score for this prdate.
+07:36:50 SQL> -- DELETE it if I did:
+07:36:50 SQL> DELETE fxscores_demo_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.01
+07:36:50 SQL> 
+07:36:50 SQL> INSERT INTO fxscores_demo_gattn (prdate,score,rundate,pair,ydate)
+07:36:50   2  SELECT
+07:36:50   3  prdate
+07:36:50   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+07:36:50   5  ,sysdate
+07:36:50   6  ,SUBSTR(prdate,1,3)pair
+07:36:50   7  ,SUBSTR(prdate,4,19)ydate
+07:36:50   8  FROM svmc_apply_prep
+07:36:50   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.04
+07:36:50 SQL> @score1_5min_gattn.sql	2010-12-29 06:05:00
+07:36:50 SQL> --
+07:36:50 SQL> -- score1_5min_gattn.sql
+07:36:50 SQL> --
+07:36:50 SQL> 
+07:36:50 SQL> CREATE OR REPLACE VIEW sme AS
+07:36:50   2  SELECT
+07:36:50   3  'jpy'||ydate prdate
+07:36:50   4  ,NULL gattn
+07:36:50   5  ,g00
+07:36:50   6  ,g01
+07:36:50   7  ,g02
+07:36:50   8  ,g03
+07:36:50   9  ,g04
+07:36:50  10  ,g05
+07:36:50  11  ,g06
+07:36:50  12  ,g07
+07:36:50  13  ,g08
+07:36:50  14  FROM jpy_ms
+07:36:50  15  WHERE ydate = '&1'||' '||'&2'
+07:36:50  16  /
+old  15: WHERE ydate = '&1'||' '||'&2'
+new  15: WHERE ydate = '2010-12-29'||' '||'06:05:00'
+
+View created.
+
+Elapsed: 00:00:00.04
+07:36:50 SQL> 
+07:36:50 SQL> -- rpt
+07:36:50 SQL> -- We should see just 1 row:
+07:36:50 SQL> 
+07:36:50 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.00
+07:36:50 SQL> 
+07:36:50 SQL> -- Build the model:
+07:36:50 SQL> CREATE OR REPLACE VIEW bme AS
+07:36:50   2  SELECT
+07:36:50   3  'jpy'||ydate prdate
+07:36:50   4  ,gattn
+07:36:50   5  ,g00
+07:36:50   6  ,g01
+07:36:50   7  ,g02
+07:36:50   8  ,g03
+07:36:50   9  ,g04
+07:36:50  10  ,g05
+07:36:50  11  ,g06
+07:36:50  12  ,g07
+07:36:50  13  ,g08
+07:36:50  14  FROM jpy_ms
+07:36:50  15  WHERE gattn IN('nup','up')
+07:36:50  16  -- Use only rows which are older than 1 day:
+07:36:50  17  AND 1+ydate < '&1'||' '||'&2'
+07:36:50  18  /
+old  17: AND 1+ydate < '&1'||' '||'&2'
+new  17: AND 1+ydate < '2010-12-29'||' '||'06:05:00'
+
+View created.
+
+Elapsed: 00:00:00.03
+07:36:50 SQL> 
+07:36:50 SQL> -- rpt
+07:36:50 SQL> 
+07:36:50 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	     9243
+up	     9848
+
+Elapsed: 00:00:00.06
+07:36:50 SQL> 
+07:36:50 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+jpy2010-12-28 06:00:00
+
+Elapsed: 00:00:00.05
+07:36:50 SQL> 
+07:36:50 SQL> -- Now build model from bme and score sme
+07:36:50 SQL> @score1gattn.sql
+07:36:50 SQL> -- score1gattn.sql
+07:36:50 SQL> 
+07:36:50 SQL> -- Does the 1st SVM score
+07:36:50 SQL> 
+07:36:50 SQL> -- Fill up svmc_apply_prep
+07:36:50 SQL> @score_gattn.sql
+07:36:50 SQL> --
+07:36:50 SQL> -- score_gattn.sql
+07:36:50 SQL> --
+07:36:50 SQL> 
+07:36:50 SQL> -- usage: score_gattn.sql
+07:36:50 SQL> 
+07:36:50 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+07:36:50 SQL> 
+07:36:50 SQL> DEFINE target	= 'gattn'
+07:36:50 SQL> DEFINE model_name = 'forex14'
+07:36:50 SQL> DEFINE bldtable	= 'bme'
+07:36:50 SQL> DEFINE scoretable = 'sme'
+07:36:50 SQL> DEFINE case_id	= 'prdate'
+07:36:50 SQL> 
+07:36:50 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+07:36:50 SQL> DEFINE exclude1 = "'&target','&case_id'"
+07:36:50 SQL> 
+07:36:50 SQL> -- Builds an SVM model using pl/sql.
+07:36:50 SQL> 
+07:36:50 SQL> -----------------------------------------------------------------------
+07:36:50 SQL> --			    BUILD THE MODEL
+07:36:50 SQL> -----------------------------------------------------------------------
+07:36:50 SQL> 
+07:36:50 SQL> -- Cleanup old build data preparation objects for repeat runs
+07:36:50 SQL> DELETE svmc_miss_num;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:50 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:50 SQL> DELETE svmc_clip;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:50 SQL> DELETE svmc_norm;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:50 SQL> 
+07:36:50 SQL> 
+07:36:50 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+07:36:50 SQL> --
+07:36:50 SQL> -- DROP	TABLE svmc_settings ;
+07:36:50 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+07:36:50 SQL> -- DELETE svmc_settings;
+07:36:50 SQL> 
+07:36:50 SQL> -- The default classification algorithm is Naive Bayes. So override
+07:36:50 SQL> -- this choice to SVM using a settings table.
+07:36:50 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+07:36:50 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+07:36:50 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+07:36:50 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+07:36:50 SQL> -- models.
+07:36:50 SQL> --
+07:36:50 SQL> 
+07:36:50 SQL> -- Do this once and then comment it out.
+07:36:50 SQL> -- That makes script go faster.
+07:36:50 SQL> -- BEGIN
+07:36:50 SQL> -- -- Populate settings table
+07:36:50 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:50 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+07:36:50 SQL> --
+07:36:50 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:50 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+07:36:50 SQL> --
+07:36:50 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:50 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+07:36:50 SQL> --   COMMIT;
+07:36:50 SQL> -- END;
+07:36:50 SQL> -- /
+07:36:50 SQL> 
+07:36:50 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       99123123
+
+Elapsed: 00:00:00.00
+07:36:50 SQL> 
+07:36:50 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+07:36:50   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:50   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.03
+07:36:50 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+07:36:50   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:50   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:50 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+07:36:50   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:50   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:36:50 SQL> 
+07:36:50 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+07:36:50   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:50   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:50 SQL> 
+07:36:50 SQL> --------------------------------
+07:36:50 SQL> -- PREPARE BUILD (TRAINING) DATA
+07:36:50 SQL> --
+07:36:50 SQL> 
+07:36:50 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:50 SQL> -- 2. Outlier Treatment and
+07:36:50 SQL> -- 3. Normalization are performed below.
+07:36:50 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+07:36:50 SQL> --    normalized here.
+07:36:50 SQL> 
+07:36:50 SQL> BEGIN
+07:36:50   2  	-- Perform missing value treatment for all predictors
+07:36:50   3  	-- create miss tables
+07:36:50   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+07:36:50   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+07:36:50   6  
+07:36:50   7  	-- populate miss tables
+07:36:50   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+07:36:50   9  	  miss_table_name => 'svmc_miss_num',
+07:36:50  10  	  data_table_name => '&bldtable',
+07:36:50  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:50  12  
+07:36:50  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+07:36:50  14  	  miss_table_name => 'svmc_miss_cat',
+07:36:50  15  	  data_table_name => '&bldtable',
+07:36:50  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:50  17  
+07:36:50  18  	-- xform input data to replace missing values
+07:36:50  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:50  20  	  miss_table_name => 'svmc_miss_num',
+07:36:50  21  	  data_table_name => '&bldtable',
+07:36:50  22  	  xform_view_name => 'xformed_build_miss_num');
+07:36:50  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:50  24  	  miss_table_name => 'svmc_miss_cat',
+07:36:50  25  	  data_table_name => '&bldtable',
+07:36:50  26  	  xform_view_name => 'xformed_build_miss_cat');
+07:36:50  27  
+07:36:50  28  	-- Perform outlier treatment.
+07:36:50  29  	-- create clip table
+07:36:50  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+07:36:50  31  
+07:36:50  32  	-- populate clip table
+07:36:50  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+07:36:50  34  	  clip_table_name => 'svmc_clip',
+07:36:50  35  	  data_table_name => '&bldtable',
+07:36:50  36  	  tail_frac	  => 0.025,
+07:36:50  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:50  38  
+07:36:50  39  	-- xform input data to winsorized data
+07:36:50  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+07:36:50  41  	  clip_table_name => 'svmc_clip',
+07:36:50  42  	  data_table_name => '&bldtable',
+07:36:50  43  	  xform_view_name => 'svmc_winsor');
+07:36:50  44  
+07:36:50  45  	-- create normalization table
+07:36:50  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+07:36:50  47  
+07:36:50  48  	-- populate normalization table based on winsorized data
+07:36:50  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+07:36:50  50  	  norm_table_name => 'svmc_norm',
+07:36:50  51  	  data_table_name => 'svmc_winsor',
+07:36:50  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:50  53  
+07:36:50  54  	-- normalize the original data
+07:36:50  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:50  56  	  norm_table_name => 'svmc_norm',
+07:36:50  57  	  data_table_name => '&bldtable',
+07:36:50  58  	  xform_view_name => 'svmc_build_prep');
+07:36:50  59  END;
+07:36:50  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.99
+07:36:51 SQL> 
+07:36:51 SQL> ---------------------
+07:36:51 SQL> -- CREATE A NEW MODEL
+07:36:51 SQL> --
+07:36:51 SQL> -- Cleanup old model with the same name for repeat runs
+07:36:51 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+07:36:51   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:51   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.08
+07:36:52 SQL> 
+07:36:52 SQL> -- Build a new SVM Model
+07:36:52 SQL> BEGIN
+07:36:52   2  	DBMS_DATA_MINING.CREATE_MODEL(
+07:36:52   3  	  model_name	      => '&model_name',
+07:36:52   4  	  mining_function     => dbms_data_mining.classification,
+07:36:52   5  	  data_table_name     => 'svmc_build_prep',
+07:36:52   6  	  case_id_column_name => '&case_id',
+07:36:52   7  	  target_column_name  => '&target',
+07:36:52   8  	  settings_table_name => 'svmc_settings');
+07:36:52   9  END;
+07:36:52  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:04.53
+07:36:57 SQL> 
+07:36:57 SQL> -----------------------------------------------------------------------
+07:36:57 SQL> --			       APPLY/score THE MODEL
+07:36:57 SQL> -----------------------------------------------------------------------
+07:36:57 SQL> 
+07:36:57 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+07:36:57 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+07:36:57   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:57   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:57 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+07:36:57   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:57   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:36:57 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+07:36:57   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:57   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:57 SQL> -----------------------
+07:36:57 SQL> -- PREPARE SCORING DATA
+07:36:57 SQL> --
+07:36:57 SQL> -- If the data for model creation has been prepared, then the data
+07:36:57 SQL> -- to be scored using the model must be prepared in the same manner
+07:36:57 SQL> -- in order to obtain meaningful results.
+07:36:57 SQL> --
+07:36:57 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:57 SQL> -- 2. Normalization
+07:36:57 SQL> -- No outlier treatment will be performed during test and apply. The
+07:36:57 SQL> -- normalization step is sufficient, since the normalization parameters
+07:36:57 SQL> -- already capture the effects of outlier treatment done with build data.
+07:36:57 SQL> --
+07:36:57 SQL> BEGIN
+07:36:57   2  	-- Xform Test data to replace missing values
+07:36:57   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:57   4  	  miss_table_name => 'svmc_miss_num',
+07:36:57   5  	  data_table_name => '&scoretable',
+07:36:57   6  	  xform_view_name => 'xformed_apply_miss_num');
+07:36:57   7  
+07:36:57   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:57   9  	  miss_table_name => 'svmc_miss_cat',
+07:36:57  10  	  data_table_name => '&scoretable',
+07:36:57  11  	  xform_view_name => 'xformed_apply_miss_cat');
+07:36:57  12  
+07:36:57  13  	-- Normalize the data to be scored
+07:36:57  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:57  15  	  norm_table_name => 'svmc_norm',
+07:36:57  16  	  data_table_name => '&scoretable',
+07:36:57  17  	  xform_view_name => 'svmc_apply_prep');
+07:36:57  18  END;
+07:36:57  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.12
+07:36:57 SQL> 
+07:36:57 SQL> -- Use same model_name used in score.sql
+07:36:57 SQL> DEFINE model_name = 'forex14'
+07:36:57 SQL> 
+07:36:57 SQL> -- Maybe I already collected a score for this prdate.
+07:36:57 SQL> -- DELETE it if I did:
+07:36:57 SQL> DELETE fxscores_demo_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.01
+07:36:57 SQL> 
+07:36:57 SQL> INSERT INTO fxscores_demo_gattn (prdate,score,rundate,pair,ydate)
+07:36:57   2  SELECT
+07:36:57   3  prdate
+07:36:57   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+07:36:57   5  ,sysdate
+07:36:57   6  ,SUBSTR(prdate,1,3)pair
+07:36:57   7  ,SUBSTR(prdate,4,19)ydate
+07:36:57   8  FROM svmc_apply_prep
+07:36:57   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.05
+07:36:57 SQL> @score1_5min_gattn.sql	2010-12-29 06:10:00
+07:36:57 SQL> --
+07:36:57 SQL> -- score1_5min_gattn.sql
+07:36:57 SQL> --
+07:36:57 SQL> 
+07:36:57 SQL> CREATE OR REPLACE VIEW sme AS
+07:36:57   2  SELECT
+07:36:57   3  'jpy'||ydate prdate
+07:36:57   4  ,NULL gattn
+07:36:57   5  ,g00
+07:36:57   6  ,g01
+07:36:57   7  ,g02
+07:36:57   8  ,g03
+07:36:57   9  ,g04
+07:36:57  10  ,g05
+07:36:57  11  ,g06
+07:36:57  12  ,g07
+07:36:57  13  ,g08
+07:36:57  14  FROM jpy_ms
+07:36:57  15  WHERE ydate = '&1'||' '||'&2'
+07:36:57  16  /
+old  15: WHERE ydate = '&1'||' '||'&2'
+new  15: WHERE ydate = '2010-12-29'||' '||'06:10:00'
+
+View created.
+
+Elapsed: 00:00:00.02
+07:36:57 SQL> 
+07:36:57 SQL> -- rpt
+07:36:57 SQL> -- We should see just 1 row:
+07:36:57 SQL> 
+07:36:57 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.01
+07:36:57 SQL> 
+07:36:57 SQL> -- Build the model:
+07:36:57 SQL> CREATE OR REPLACE VIEW bme AS
+07:36:57   2  SELECT
+07:36:57   3  'jpy'||ydate prdate
+07:36:57   4  ,gattn
+07:36:57   5  ,g00
+07:36:57   6  ,g01
+07:36:57   7  ,g02
+07:36:57   8  ,g03
+07:36:57   9  ,g04
+07:36:57  10  ,g05
+07:36:57  11  ,g06
+07:36:57  12  ,g07
+07:36:57  13  ,g08
+07:36:57  14  FROM jpy_ms
+07:36:57  15  WHERE gattn IN('nup','up')
+07:36:57  16  -- Use only rows which are older than 1 day:
+07:36:57  17  AND 1+ydate < '&1'||' '||'&2'
+07:36:57  18  /
+old  17: AND 1+ydate < '&1'||' '||'&2'
+new  17: AND 1+ydate < '2010-12-29'||' '||'06:10:00'
+
+View created.
+
+Elapsed: 00:00:00.02
+07:36:57 SQL> 
+07:36:57 SQL> -- rpt
+07:36:57 SQL> 
+07:36:57 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	     9243
+up	     9849
+
+Elapsed: 00:00:00.06
+07:36:57 SQL> 
+07:36:57 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+jpy2010-12-28 06:05:00
+
+Elapsed: 00:00:00.05
+07:36:57 SQL> 
+07:36:57 SQL> -- Now build model from bme and score sme
+07:36:57 SQL> @score1gattn.sql
+07:36:57 SQL> -- score1gattn.sql
+07:36:57 SQL> 
+07:36:57 SQL> -- Does the 1st SVM score
+07:36:57 SQL> 
+07:36:57 SQL> -- Fill up svmc_apply_prep
+07:36:57 SQL> @score_gattn.sql
+07:36:57 SQL> --
+07:36:57 SQL> -- score_gattn.sql
+07:36:57 SQL> --
+07:36:57 SQL> 
+07:36:57 SQL> -- usage: score_gattn.sql
+07:36:57 SQL> 
+07:36:57 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+07:36:57 SQL> 
+07:36:57 SQL> DEFINE target	= 'gattn'
+07:36:57 SQL> DEFINE model_name = 'forex14'
+07:36:57 SQL> DEFINE bldtable	= 'bme'
+07:36:57 SQL> DEFINE scoretable = 'sme'
+07:36:57 SQL> DEFINE case_id	= 'prdate'
+07:36:57 SQL> 
+07:36:57 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+07:36:57 SQL> DEFINE exclude1 = "'&target','&case_id'"
+07:36:57 SQL> 
+07:36:57 SQL> -- Builds an SVM model using pl/sql.
+07:36:57 SQL> 
+07:36:57 SQL> -----------------------------------------------------------------------
+07:36:57 SQL> --			    BUILD THE MODEL
+07:36:57 SQL> -----------------------------------------------------------------------
+07:36:57 SQL> 
+07:36:57 SQL> -- Cleanup old build data preparation objects for repeat runs
+07:36:57 SQL> DELETE svmc_miss_num;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:57 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:57 SQL> DELETE svmc_clip;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:36:57 SQL> DELETE svmc_norm;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.01
+07:36:57 SQL> 
+07:36:57 SQL> 
+07:36:57 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+07:36:57 SQL> --
+07:36:57 SQL> -- DROP	TABLE svmc_settings ;
+07:36:57 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+07:36:57 SQL> -- DELETE svmc_settings;
+07:36:57 SQL> 
+07:36:57 SQL> -- The default classification algorithm is Naive Bayes. So override
+07:36:57 SQL> -- this choice to SVM using a settings table.
+07:36:57 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+07:36:57 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+07:36:57 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+07:36:57 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+07:36:57 SQL> -- models.
+07:36:57 SQL> --
+07:36:57 SQL> 
+07:36:57 SQL> -- Do this once and then comment it out.
+07:36:57 SQL> -- That makes script go faster.
+07:36:57 SQL> -- BEGIN
+07:36:57 SQL> -- -- Populate settings table
+07:36:57 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:57 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+07:36:57 SQL> --
+07:36:57 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:57 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+07:36:57 SQL> --
+07:36:57 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:36:57 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+07:36:57 SQL> --   COMMIT;
+07:36:57 SQL> -- END;
+07:36:57 SQL> -- /
+07:36:57 SQL> 
+07:36:57 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       99123123
+
+Elapsed: 00:00:00.00
+07:36:57 SQL> 
+07:36:57 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+07:36:57   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:57   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:57 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+07:36:57   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:57   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:36:57 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+07:36:57   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:57   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:57 SQL> 
+07:36:57 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+07:36:57   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:57   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:36:57 SQL> 
+07:36:57 SQL> --------------------------------
+07:36:57 SQL> -- PREPARE BUILD (TRAINING) DATA
+07:36:57 SQL> --
+07:36:57 SQL> 
+07:36:57 SQL> -- 1. Missing Value treatment for all Predictors and
+07:36:57 SQL> -- 2. Outlier Treatment and
+07:36:57 SQL> -- 3. Normalization are performed below.
+07:36:57 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+07:36:57 SQL> --    normalized here.
+07:36:57 SQL> 
+07:36:57 SQL> BEGIN
+07:36:57   2  	-- Perform missing value treatment for all predictors
+07:36:57   3  	-- create miss tables
+07:36:57   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+07:36:57   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+07:36:57   6  
+07:36:57   7  	-- populate miss tables
+07:36:57   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+07:36:57   9  	  miss_table_name => 'svmc_miss_num',
+07:36:57  10  	  data_table_name => '&bldtable',
+07:36:57  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:57  12  
+07:36:57  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+07:36:57  14  	  miss_table_name => 'svmc_miss_cat',
+07:36:57  15  	  data_table_name => '&bldtable',
+07:36:57  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:57  17  
+07:36:57  18  	-- xform input data to replace missing values
+07:36:57  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:36:57  20  	  miss_table_name => 'svmc_miss_num',
+07:36:57  21  	  data_table_name => '&bldtable',
+07:36:57  22  	  xform_view_name => 'xformed_build_miss_num');
+07:36:57  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:36:57  24  	  miss_table_name => 'svmc_miss_cat',
+07:36:57  25  	  data_table_name => '&bldtable',
+07:36:57  26  	  xform_view_name => 'xformed_build_miss_cat');
+07:36:57  27  
+07:36:57  28  	-- Perform outlier treatment.
+07:36:57  29  	-- create clip table
+07:36:57  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+07:36:57  31  
+07:36:57  32  	-- populate clip table
+07:36:57  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+07:36:57  34  	  clip_table_name => 'svmc_clip',
+07:36:57  35  	  data_table_name => '&bldtable',
+07:36:57  36  	  tail_frac	  => 0.025,
+07:36:57  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:57  38  
+07:36:57  39  	-- xform input data to winsorized data
+07:36:57  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+07:36:57  41  	  clip_table_name => 'svmc_clip',
+07:36:57  42  	  data_table_name => '&bldtable',
+07:36:57  43  	  xform_view_name => 'svmc_winsor');
+07:36:57  44  
+07:36:57  45  	-- create normalization table
+07:36:57  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+07:36:57  47  
+07:36:57  48  	-- populate normalization table based on winsorized data
+07:36:57  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+07:36:57  50  	  norm_table_name => 'svmc_norm',
+07:36:57  51  	  data_table_name => 'svmc_winsor',
+07:36:57  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:36:57  53  
+07:36:57  54  	-- normalize the original data
+07:36:57  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:36:57  56  	  norm_table_name => 'svmc_norm',
+07:36:57  57  	  data_table_name => '&bldtable',
+07:36:57  58  	  xform_view_name => 'svmc_build_prep');
+07:36:57  59  END;
+07:36:57  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.98
+07:36:58 SQL> 
+07:36:58 SQL> ---------------------
+07:36:58 SQL> -- CREATE A NEW MODEL
+07:36:58 SQL> --
+07:36:58 SQL> -- Cleanup old model with the same name for repeat runs
+07:36:58 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+07:36:58   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:36:58   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.05
+07:36:59 SQL> 
+07:36:59 SQL> -- Build a new SVM Model
+07:36:59 SQL> BEGIN
+07:36:59   2  	DBMS_DATA_MINING.CREATE_MODEL(
+07:36:59   3  	  model_name	      => '&model_name',
+07:36:59   4  	  mining_function     => dbms_data_mining.classification,
+07:36:59   5  	  data_table_name     => 'svmc_build_prep',
+07:36:59   6  	  case_id_column_name => '&case_id',
+07:36:59   7  	  target_column_name  => '&target',
+07:36:59   8  	  settings_table_name => 'svmc_settings');
+07:36:59   9  END;
+07:36:59  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:04.75
+07:37:04 SQL> 
+07:37:04 SQL> -----------------------------------------------------------------------
+07:37:04 SQL> --			       APPLY/score THE MODEL
+07:37:04 SQL> -----------------------------------------------------------------------
+07:37:04 SQL> 
+07:37:04 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+07:37:04 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+07:37:04   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:04   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:04 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+07:37:04   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:04   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:04 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+07:37:04   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:04   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:37:04 SQL> -----------------------
+07:37:04 SQL> -- PREPARE SCORING DATA
+07:37:04 SQL> --
+07:37:04 SQL> -- If the data for model creation has been prepared, then the data
+07:37:04 SQL> -- to be scored using the model must be prepared in the same manner
+07:37:04 SQL> -- in order to obtain meaningful results.
+07:37:04 SQL> --
+07:37:04 SQL> -- 1. Missing Value treatment for all Predictors and
+07:37:04 SQL> -- 2. Normalization
+07:37:04 SQL> -- No outlier treatment will be performed during test and apply. The
+07:37:04 SQL> -- normalization step is sufficient, since the normalization parameters
+07:37:04 SQL> -- already capture the effects of outlier treatment done with build data.
+07:37:04 SQL> --
+07:37:04 SQL> BEGIN
+07:37:04   2  	-- Xform Test data to replace missing values
+07:37:04   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:37:04   4  	  miss_table_name => 'svmc_miss_num',
+07:37:04   5  	  data_table_name => '&scoretable',
+07:37:04   6  	  xform_view_name => 'xformed_apply_miss_num');
+07:37:04   7  
+07:37:04   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:37:04   9  	  miss_table_name => 'svmc_miss_cat',
+07:37:04  10  	  data_table_name => '&scoretable',
+07:37:04  11  	  xform_view_name => 'xformed_apply_miss_cat');
+07:37:04  12  
+07:37:04  13  	-- Normalize the data to be scored
+07:37:04  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:37:04  15  	  norm_table_name => 'svmc_norm',
+07:37:04  16  	  data_table_name => '&scoretable',
+07:37:04  17  	  xform_view_name => 'svmc_apply_prep');
+07:37:04  18  END;
+07:37:04  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.11
+07:37:04 SQL> 
+07:37:04 SQL> -- Use same model_name used in score.sql
+07:37:04 SQL> DEFINE model_name = 'forex14'
+07:37:04 SQL> 
+07:37:04 SQL> -- Maybe I already collected a score for this prdate.
+07:37:04 SQL> -- DELETE it if I did:
+07:37:04 SQL> DELETE fxscores_demo_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.01
+07:37:04 SQL> 
+07:37:04 SQL> INSERT INTO fxscores_demo_gattn (prdate,score,rundate,pair,ydate)
+07:37:04   2  SELECT
+07:37:04   3  prdate
+07:37:04   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+07:37:04   5  ,sysdate
+07:37:04   6  ,SUBSTR(prdate,1,3)pair
+07:37:04   7  ,SUBSTR(prdate,4,19)ydate
+07:37:04   8  FROM svmc_apply_prep
+07:37:04   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.05
+07:37:04 SQL> @score1_5min_gattn.sql	2010-12-29 06:15:00
+07:37:04 SQL> --
+07:37:04 SQL> -- score1_5min_gattn.sql
+07:37:04 SQL> --
+07:37:04 SQL> 
+07:37:04 SQL> CREATE OR REPLACE VIEW sme AS
+07:37:04   2  SELECT
+07:37:04   3  'jpy'||ydate prdate
+07:37:04   4  ,NULL gattn
+07:37:04   5  ,g00
+07:37:04   6  ,g01
+07:37:04   7  ,g02
+07:37:04   8  ,g03
+07:37:04   9  ,g04
+07:37:04  10  ,g05
+07:37:04  11  ,g06
+07:37:04  12  ,g07
+07:37:04  13  ,g08
+07:37:04  14  FROM jpy_ms
+07:37:04  15  WHERE ydate = '&1'||' '||'&2'
+07:37:04  16  /
+old  15: WHERE ydate = '&1'||' '||'&2'
+new  15: WHERE ydate = '2010-12-29'||' '||'06:15:00'
+
+View created.
+
+Elapsed: 00:00:00.02
+07:37:04 SQL> 
+07:37:04 SQL> -- rpt
+07:37:04 SQL> -- We should see just 1 row:
+07:37:04 SQL> 
+07:37:04 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.00
+07:37:04 SQL> 
+07:37:04 SQL> -- Build the model:
+07:37:04 SQL> CREATE OR REPLACE VIEW bme AS
+07:37:04   2  SELECT
+07:37:04   3  'jpy'||ydate prdate
+07:37:04   4  ,gattn
+07:37:04   5  ,g00
+07:37:04   6  ,g01
+07:37:04   7  ,g02
+07:37:04   8  ,g03
+07:37:04   9  ,g04
+07:37:04  10  ,g05
+07:37:04  11  ,g06
+07:37:04  12  ,g07
+07:37:04  13  ,g08
+07:37:04  14  FROM jpy_ms
+07:37:04  15  WHERE gattn IN('nup','up')
+07:37:04  16  -- Use only rows which are older than 1 day:
+07:37:04  17  AND 1+ydate < '&1'||' '||'&2'
+07:37:04  18  /
+old  17: AND 1+ydate < '&1'||' '||'&2'
+new  17: AND 1+ydate < '2010-12-29'||' '||'06:15:00'
+
+View created.
+
+Elapsed: 00:00:00.03
+07:37:04 SQL> 
+07:37:04 SQL> -- rpt
+07:37:04 SQL> 
+07:37:04 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	     9243
+up	     9850
+
+Elapsed: 00:00:00.06
+07:37:04 SQL> 
+07:37:04 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+jpy2010-12-28 06:10:00
+
+Elapsed: 00:00:00.05
+07:37:04 SQL> 
+07:37:04 SQL> -- Now build model from bme and score sme
+07:37:04 SQL> @score1gattn.sql
+07:37:04 SQL> -- score1gattn.sql
+07:37:04 SQL> 
+07:37:04 SQL> -- Does the 1st SVM score
+07:37:04 SQL> 
+07:37:04 SQL> -- Fill up svmc_apply_prep
+07:37:04 SQL> @score_gattn.sql
+07:37:04 SQL> --
+07:37:04 SQL> -- score_gattn.sql
+07:37:04 SQL> --
+07:37:04 SQL> 
+07:37:04 SQL> -- usage: score_gattn.sql
+07:37:04 SQL> 
+07:37:04 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+07:37:04 SQL> 
+07:37:04 SQL> DEFINE target	= 'gattn'
+07:37:04 SQL> DEFINE model_name = 'forex14'
+07:37:04 SQL> DEFINE bldtable	= 'bme'
+07:37:04 SQL> DEFINE scoretable = 'sme'
+07:37:04 SQL> DEFINE case_id	= 'prdate'
+07:37:04 SQL> 
+07:37:04 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+07:37:04 SQL> DEFINE exclude1 = "'&target','&case_id'"
+07:37:04 SQL> 
+07:37:04 SQL> -- Builds an SVM model using pl/sql.
+07:37:04 SQL> 
+07:37:04 SQL> -----------------------------------------------------------------------
+07:37:04 SQL> --			    BUILD THE MODEL
+07:37:04 SQL> -----------------------------------------------------------------------
+07:37:04 SQL> 
+07:37:04 SQL> -- Cleanup old build data preparation objects for repeat runs
+07:37:04 SQL> DELETE svmc_miss_num;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:37:04 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+07:37:04 SQL> DELETE svmc_clip;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:37:04 SQL> DELETE svmc_norm;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:37:04 SQL> 
+07:37:04 SQL> 
+07:37:04 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+07:37:04 SQL> --
+07:37:04 SQL> -- DROP	TABLE svmc_settings ;
+07:37:04 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+07:37:04 SQL> -- DELETE svmc_settings;
+07:37:04 SQL> 
+07:37:04 SQL> -- The default classification algorithm is Naive Bayes. So override
+07:37:04 SQL> -- this choice to SVM using a settings table.
+07:37:04 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+07:37:04 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+07:37:04 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+07:37:04 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+07:37:04 SQL> -- models.
+07:37:04 SQL> --
+07:37:04 SQL> 
+07:37:04 SQL> -- Do this once and then comment it out.
+07:37:04 SQL> -- That makes script go faster.
+07:37:04 SQL> -- BEGIN
+07:37:04 SQL> -- -- Populate settings table
+07:37:04 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:37:04 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+07:37:04 SQL> --
+07:37:04 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:37:04 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+07:37:04 SQL> --
+07:37:04 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:37:04 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+07:37:04 SQL> --   COMMIT;
+07:37:04 SQL> -- END;
+07:37:04 SQL> -- /
+07:37:04 SQL> 
+07:37:04 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       99123123
+
+Elapsed: 00:00:00.00
+07:37:04 SQL> 
+07:37:04 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+07:37:04   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:04   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.03
+07:37:04 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+07:37:04   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:04   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:04 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+07:37:04   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:04   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:37:04 SQL> 
+07:37:04 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+07:37:04   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:04   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:04 SQL> 
+07:37:04 SQL> --------------------------------
+07:37:04 SQL> -- PREPARE BUILD (TRAINING) DATA
+07:37:04 SQL> --
+07:37:04 SQL> 
+07:37:04 SQL> -- 1. Missing Value treatment for all Predictors and
+07:37:04 SQL> -- 2. Outlier Treatment and
+07:37:04 SQL> -- 3. Normalization are performed below.
+07:37:04 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+07:37:04 SQL> --    normalized here.
+07:37:04 SQL> 
+07:37:04 SQL> BEGIN
+07:37:04   2  	-- Perform missing value treatment for all predictors
+07:37:04   3  	-- create miss tables
+07:37:04   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+07:37:04   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+07:37:04   6  
+07:37:04   7  	-- populate miss tables
+07:37:04   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+07:37:04   9  	  miss_table_name => 'svmc_miss_num',
+07:37:04  10  	  data_table_name => '&bldtable',
+07:37:04  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:37:04  12  
+07:37:04  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+07:37:04  14  	  miss_table_name => 'svmc_miss_cat',
+07:37:04  15  	  data_table_name => '&bldtable',
+07:37:04  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:37:04  17  
+07:37:04  18  	-- xform input data to replace missing values
+07:37:04  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:37:04  20  	  miss_table_name => 'svmc_miss_num',
+07:37:04  21  	  data_table_name => '&bldtable',
+07:37:04  22  	  xform_view_name => 'xformed_build_miss_num');
+07:37:04  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:37:04  24  	  miss_table_name => 'svmc_miss_cat',
+07:37:04  25  	  data_table_name => '&bldtable',
+07:37:04  26  	  xform_view_name => 'xformed_build_miss_cat');
+07:37:04  27  
+07:37:04  28  	-- Perform outlier treatment.
+07:37:04  29  	-- create clip table
+07:37:04  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+07:37:04  31  
+07:37:04  32  	-- populate clip table
+07:37:04  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+07:37:04  34  	  clip_table_name => 'svmc_clip',
+07:37:04  35  	  data_table_name => '&bldtable',
+07:37:04  36  	  tail_frac	  => 0.025,
+07:37:04  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:37:04  38  
+07:37:04  39  	-- xform input data to winsorized data
+07:37:04  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+07:37:04  41  	  clip_table_name => 'svmc_clip',
+07:37:04  42  	  data_table_name => '&bldtable',
+07:37:04  43  	  xform_view_name => 'svmc_winsor');
+07:37:04  44  
+07:37:04  45  	-- create normalization table
+07:37:04  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+07:37:04  47  
+07:37:04  48  	-- populate normalization table based on winsorized data
+07:37:04  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+07:37:04  50  	  norm_table_name => 'svmc_norm',
+07:37:04  51  	  data_table_name => 'svmc_winsor',
+07:37:04  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:37:04  53  
+07:37:04  54  	-- normalize the original data
+07:37:04  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:37:04  56  	  norm_table_name => 'svmc_norm',
+07:37:04  57  	  data_table_name => '&bldtable',
+07:37:04  58  	  xform_view_name => 'svmc_build_prep');
+07:37:04  59  END;
+07:37:04  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.99
+07:37:05 SQL> 
+07:37:05 SQL> ---------------------
+07:37:05 SQL> -- CREATE A NEW MODEL
+07:37:05 SQL> --
+07:37:05 SQL> -- Cleanup old model with the same name for repeat runs
+07:37:05 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+07:37:05   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:05   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.98
+07:37:06 SQL> 
+07:37:06 SQL> -- Build a new SVM Model
+07:37:06 SQL> BEGIN
+07:37:06   2  	DBMS_DATA_MINING.CREATE_MODEL(
+07:37:06   3  	  model_name	      => '&model_name',
+07:37:06   4  	  mining_function     => dbms_data_mining.classification,
+07:37:06   5  	  data_table_name     => 'svmc_build_prep',
+07:37:06   6  	  case_id_column_name => '&case_id',
+07:37:06   7  	  target_column_name  => '&target',
+07:37:06   8  	  settings_table_name => 'svmc_settings');
+07:37:06   9  END;
+07:37:06  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:05.04
+07:37:11 SQL> 
+07:37:11 SQL> -----------------------------------------------------------------------
+07:37:11 SQL> --			       APPLY/score THE MODEL
+07:37:11 SQL> -----------------------------------------------------------------------
+07:37:11 SQL> 
+07:37:11 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+07:37:11 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+07:37:11   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:11   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:11 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+07:37:11   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:11   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:37:11 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+07:37:11   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:11   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:11 SQL> -----------------------
+07:37:11 SQL> -- PREPARE SCORING DATA
+07:37:11 SQL> --
+07:37:11 SQL> -- If the data for model creation has been prepared, then the data
+07:37:11 SQL> -- to be scored using the model must be prepared in the same manner
+07:37:11 SQL> -- in order to obtain meaningful results.
+07:37:11 SQL> --
+07:37:11 SQL> -- 1. Missing Value treatment for all Predictors and
+07:37:11 SQL> -- 2. Normalization
+07:37:11 SQL> -- No outlier treatment will be performed during test and apply. The
+07:37:11 SQL> -- normalization step is sufficient, since the normalization parameters
+07:37:11 SQL> -- already capture the effects of outlier treatment done with build data.
+07:37:11 SQL> --
+07:37:11 SQL> BEGIN
+07:37:11   2  	-- Xform Test data to replace missing values
+07:37:11   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:37:11   4  	  miss_table_name => 'svmc_miss_num',
+07:37:11   5  	  data_table_name => '&scoretable',
+07:37:11   6  	  xform_view_name => 'xformed_apply_miss_num');
+07:37:11   7  
+07:37:11   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:37:11   9  	  miss_table_name => 'svmc_miss_cat',
+07:37:11  10  	  data_table_name => '&scoretable',
+07:37:11  11  	  xform_view_name => 'xformed_apply_miss_cat');
+07:37:11  12  
+07:37:11  13  	-- Normalize the data to be scored
+07:37:11  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:37:11  15  	  norm_table_name => 'svmc_norm',
+07:37:11  16  	  data_table_name => '&scoretable',
+07:37:11  17  	  xform_view_name => 'svmc_apply_prep');
+07:37:11  18  END;
+07:37:11  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.11
+07:37:11 SQL> 
+07:37:11 SQL> -- Use same model_name used in score.sql
+07:37:11 SQL> DEFINE model_name = 'forex14'
+07:37:11 SQL> 
+07:37:11 SQL> -- Maybe I already collected a score for this prdate.
+07:37:11 SQL> -- DELETE it if I did:
+07:37:11 SQL> DELETE fxscores_demo_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.01
+07:37:11 SQL> 
+07:37:11 SQL> INSERT INTO fxscores_demo_gattn (prdate,score,rundate,pair,ydate)
+07:37:11   2  SELECT
+07:37:11   3  prdate
+07:37:11   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+07:37:11   5  ,sysdate
+07:37:11   6  ,SUBSTR(prdate,1,3)pair
+07:37:11   7  ,SUBSTR(prdate,4,19)ydate
+07:37:11   8  FROM svmc_apply_prep
+07:37:11   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.05
+07:37:12 SQL> @score1_5min_gattn.sql	2010-12-29 06:20:00
+07:37:12 SQL> --
+07:37:12 SQL> -- score1_5min_gattn.sql
+07:37:12 SQL> --
+07:37:12 SQL> 
+07:37:12 SQL> CREATE OR REPLACE VIEW sme AS
+07:37:12   2  SELECT
+07:37:12   3  'jpy'||ydate prdate
+07:37:12   4  ,NULL gattn
+07:37:12   5  ,g00
+07:37:12   6  ,g01
+07:37:12   7  ,g02
+07:37:12   8  ,g03
+07:37:12   9  ,g04
+07:37:12  10  ,g05
+07:37:12  11  ,g06
+07:37:12  12  ,g07
+07:37:12  13  ,g08
+07:37:12  14  FROM jpy_ms
+07:37:12  15  WHERE ydate = '&1'||' '||'&2'
+07:37:12  16  /
+old  15: WHERE ydate = '&1'||' '||'&2'
+new  15: WHERE ydate = '2010-12-29'||' '||'06:20:00'
+
+View created.
+
+Elapsed: 00:00:00.02
+07:37:12 SQL> 
+07:37:12 SQL> -- rpt
+07:37:12 SQL> -- We should see just 1 row:
+07:37:12 SQL> 
+07:37:12 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.01
+07:37:12 SQL> 
+07:37:12 SQL> -- Build the model:
+07:37:12 SQL> CREATE OR REPLACE VIEW bme AS
+07:37:12   2  SELECT
+07:37:12   3  'jpy'||ydate prdate
+07:37:12   4  ,gattn
+07:37:12   5  ,g00
+07:37:12   6  ,g01
+07:37:12   7  ,g02
+07:37:12   8  ,g03
+07:37:12   9  ,g04
+07:37:12  10  ,g05
+07:37:12  11  ,g06
+07:37:12  12  ,g07
+07:37:12  13  ,g08
+07:37:12  14  FROM jpy_ms
+07:37:12  15  WHERE gattn IN('nup','up')
+07:37:12  16  -- Use only rows which are older than 1 day:
+07:37:12  17  AND 1+ydate < '&1'||' '||'&2'
+07:37:12  18  /
+old  17: AND 1+ydate < '&1'||' '||'&2'
+new  17: AND 1+ydate < '2010-12-29'||' '||'06:20:00'
+
+View created.
+
+Elapsed: 00:00:00.03
+07:37:12 SQL> 
+07:37:12 SQL> -- rpt
+07:37:12 SQL> 
+07:37:12 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	     9243
+up	     9851
+
+Elapsed: 00:00:00.06
+07:37:12 SQL> 
+07:37:12 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+jpy2010-12-28 06:15:00
+
+Elapsed: 00:00:00.05
+07:37:12 SQL> 
+07:37:12 SQL> -- Now build model from bme and score sme
+07:37:12 SQL> @score1gattn.sql
+07:37:12 SQL> -- score1gattn.sql
+07:37:12 SQL> 
+07:37:12 SQL> -- Does the 1st SVM score
+07:37:12 SQL> 
+07:37:12 SQL> -- Fill up svmc_apply_prep
+07:37:12 SQL> @score_gattn.sql
+07:37:12 SQL> --
+07:37:12 SQL> -- score_gattn.sql
+07:37:12 SQL> --
+07:37:12 SQL> 
+07:37:12 SQL> -- usage: score_gattn.sql
+07:37:12 SQL> 
+07:37:12 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+07:37:12 SQL> 
+07:37:12 SQL> DEFINE target	= 'gattn'
+07:37:12 SQL> DEFINE model_name = 'forex14'
+07:37:12 SQL> DEFINE bldtable	= 'bme'
+07:37:12 SQL> DEFINE scoretable = 'sme'
+07:37:12 SQL> DEFINE case_id	= 'prdate'
+07:37:12 SQL> 
+07:37:12 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+07:37:12 SQL> DEFINE exclude1 = "'&target','&case_id'"
+07:37:12 SQL> 
+07:37:12 SQL> -- Builds an SVM model using pl/sql.
+07:37:12 SQL> 
+07:37:12 SQL> -----------------------------------------------------------------------
+07:37:12 SQL> --			    BUILD THE MODEL
+07:37:12 SQL> -----------------------------------------------------------------------
+07:37:12 SQL> 
+07:37:12 SQL> -- Cleanup old build data preparation objects for repeat runs
+07:37:12 SQL> DELETE svmc_miss_num;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:37:12 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+07:37:12 SQL> DELETE svmc_clip;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:37:12 SQL> DELETE svmc_norm;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:37:12 SQL> 
+07:37:12 SQL> 
+07:37:12 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+07:37:12 SQL> --
+07:37:12 SQL> -- DROP	TABLE svmc_settings ;
+07:37:12 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+07:37:12 SQL> -- DELETE svmc_settings;
+07:37:12 SQL> 
+07:37:12 SQL> -- The default classification algorithm is Naive Bayes. So override
+07:37:12 SQL> -- this choice to SVM using a settings table.
+07:37:12 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+07:37:12 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+07:37:12 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+07:37:12 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+07:37:12 SQL> -- models.
+07:37:12 SQL> --
+07:37:12 SQL> 
+07:37:12 SQL> -- Do this once and then comment it out.
+07:37:12 SQL> -- That makes script go faster.
+07:37:12 SQL> -- BEGIN
+07:37:12 SQL> -- -- Populate settings table
+07:37:12 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:37:12 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+07:37:12 SQL> --
+07:37:12 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:37:12 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+07:37:12 SQL> --
+07:37:12 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:37:12 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+07:37:12 SQL> --   COMMIT;
+07:37:12 SQL> -- END;
+07:37:12 SQL> -- /
+07:37:12 SQL> 
+07:37:12 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       99123123
+
+Elapsed: 00:00:00.00
+07:37:12 SQL> 
+07:37:12 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+07:37:12   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:12   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.03
+07:37:12 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+07:37:12   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:12   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.01
+07:37:12 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+07:37:12   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:12   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:12 SQL> 
+07:37:12 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+07:37:12   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:12   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:12 SQL> 
+07:37:12 SQL> --------------------------------
+07:37:12 SQL> -- PREPARE BUILD (TRAINING) DATA
+07:37:12 SQL> --
+07:37:12 SQL> 
+07:37:12 SQL> -- 1. Missing Value treatment for all Predictors and
+07:37:12 SQL> -- 2. Outlier Treatment and
+07:37:12 SQL> -- 3. Normalization are performed below.
+07:37:12 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+07:37:12 SQL> --    normalized here.
+07:37:12 SQL> 
+07:37:12 SQL> BEGIN
+07:37:12   2  	-- Perform missing value treatment for all predictors
+07:37:12   3  	-- create miss tables
+07:37:12   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+07:37:12   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+07:37:12   6  
+07:37:12   7  	-- populate miss tables
+07:37:12   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+07:37:12   9  	  miss_table_name => 'svmc_miss_num',
+07:37:12  10  	  data_table_name => '&bldtable',
+07:37:12  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:37:12  12  
+07:37:12  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+07:37:12  14  	  miss_table_name => 'svmc_miss_cat',
+07:37:12  15  	  data_table_name => '&bldtable',
+07:37:12  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:37:12  17  
+07:37:12  18  	-- xform input data to replace missing values
+07:37:12  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:37:12  20  	  miss_table_name => 'svmc_miss_num',
+07:37:12  21  	  data_table_name => '&bldtable',
+07:37:12  22  	  xform_view_name => 'xformed_build_miss_num');
+07:37:12  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:37:12  24  	  miss_table_name => 'svmc_miss_cat',
+07:37:12  25  	  data_table_name => '&bldtable',
+07:37:12  26  	  xform_view_name => 'xformed_build_miss_cat');
+07:37:12  27  
+07:37:12  28  	-- Perform outlier treatment.
+07:37:12  29  	-- create clip table
+07:37:12  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+07:37:12  31  
+07:37:12  32  	-- populate clip table
+07:37:12  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+07:37:12  34  	  clip_table_name => 'svmc_clip',
+07:37:12  35  	  data_table_name => '&bldtable',
+07:37:12  36  	  tail_frac	  => 0.025,
+07:37:12  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:37:12  38  
+07:37:12  39  	-- xform input data to winsorized data
+07:37:12  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+07:37:12  41  	  clip_table_name => 'svmc_clip',
+07:37:12  42  	  data_table_name => '&bldtable',
+07:37:12  43  	  xform_view_name => 'svmc_winsor');
+07:37:12  44  
+07:37:12  45  	-- create normalization table
+07:37:12  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+07:37:12  47  
+07:37:12  48  	-- populate normalization table based on winsorized data
+07:37:12  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+07:37:12  50  	  norm_table_name => 'svmc_norm',
+07:37:12  51  	  data_table_name => 'svmc_winsor',
+07:37:12  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:37:12  53  
+07:37:12  54  	-- normalize the original data
+07:37:12  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:37:12  56  	  norm_table_name => 'svmc_norm',
+07:37:12  57  	  data_table_name => '&bldtable',
+07:37:12  58  	  xform_view_name => 'svmc_build_prep');
+07:37:12  59  END;
+07:37:12  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.00
+07:37:13 SQL> 
+07:37:13 SQL> ---------------------
+07:37:13 SQL> -- CREATE A NEW MODEL
+07:37:13 SQL> --
+07:37:13 SQL> -- Cleanup old model with the same name for repeat runs
+07:37:13 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+07:37:13   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:13   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.04
+07:37:14 SQL> 
+07:37:14 SQL> -- Build a new SVM Model
+07:37:14 SQL> BEGIN
+07:37:14   2  	DBMS_DATA_MINING.CREATE_MODEL(
+07:37:14   3  	  model_name	      => '&model_name',
+07:37:14   4  	  mining_function     => dbms_data_mining.classification,
+07:37:14   5  	  data_table_name     => 'svmc_build_prep',
+07:37:14   6  	  case_id_column_name => '&case_id',
+07:37:14   7  	  target_column_name  => '&target',
+07:37:14   8  	  settings_table_name => 'svmc_settings');
+07:37:14   9  END;
+07:37:14  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:04.79
+07:37:19 SQL> 
+07:37:19 SQL> -----------------------------------------------------------------------
+07:37:19 SQL> --			       APPLY/score THE MODEL
+07:37:19 SQL> -----------------------------------------------------------------------
+07:37:19 SQL> 
+07:37:19 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+07:37:19 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+07:37:19   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:19   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:19 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+07:37:19   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:19   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:19 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+07:37:19   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:19   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:19 SQL> -----------------------
+07:37:19 SQL> -- PREPARE SCORING DATA
+07:37:19 SQL> --
+07:37:19 SQL> -- If the data for model creation has been prepared, then the data
+07:37:19 SQL> -- to be scored using the model must be prepared in the same manner
+07:37:19 SQL> -- in order to obtain meaningful results.
+07:37:19 SQL> --
+07:37:19 SQL> -- 1. Missing Value treatment for all Predictors and
+07:37:19 SQL> -- 2. Normalization
+07:37:19 SQL> -- No outlier treatment will be performed during test and apply. The
+07:37:19 SQL> -- normalization step is sufficient, since the normalization parameters
+07:37:19 SQL> -- already capture the effects of outlier treatment done with build data.
+07:37:19 SQL> --
+07:37:19 SQL> BEGIN
+07:37:19   2  	-- Xform Test data to replace missing values
+07:37:19   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:37:19   4  	  miss_table_name => 'svmc_miss_num',
+07:37:19   5  	  data_table_name => '&scoretable',
+07:37:19   6  	  xform_view_name => 'xformed_apply_miss_num');
+07:37:19   7  
+07:37:19   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:37:19   9  	  miss_table_name => 'svmc_miss_cat',
+07:37:19  10  	  data_table_name => '&scoretable',
+07:37:19  11  	  xform_view_name => 'xformed_apply_miss_cat');
+07:37:19  12  
+07:37:19  13  	-- Normalize the data to be scored
+07:37:19  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:37:19  15  	  norm_table_name => 'svmc_norm',
+07:37:19  16  	  data_table_name => '&scoretable',
+07:37:19  17  	  xform_view_name => 'svmc_apply_prep');
+07:37:19  18  END;
+07:37:19  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.11
+07:37:19 SQL> 
+07:37:19 SQL> -- Use same model_name used in score.sql
+07:37:19 SQL> DEFINE model_name = 'forex14'
+07:37:19 SQL> 
+07:37:19 SQL> -- Maybe I already collected a score for this prdate.
+07:37:19 SQL> -- DELETE it if I did:
+07:37:19 SQL> DELETE fxscores_demo_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.01
+07:37:19 SQL> 
+07:37:19 SQL> INSERT INTO fxscores_demo_gattn (prdate,score,rundate,pair,ydate)
+07:37:19   2  SELECT
+07:37:19   3  prdate
+07:37:19   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+07:37:19   5  ,sysdate
+07:37:19   6  ,SUBSTR(prdate,1,3)pair
+07:37:19   7  ,SUBSTR(prdate,4,19)ydate
+07:37:19   8  FROM svmc_apply_prep
+07:37:19   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.05
+07:37:19 SQL> @score1_5min_gattn.sql	2010-12-29 06:25:00
+07:37:19 SQL> --
+07:37:19 SQL> -- score1_5min_gattn.sql
+07:37:19 SQL> --
+07:37:19 SQL> 
+07:37:19 SQL> CREATE OR REPLACE VIEW sme AS
+07:37:19   2  SELECT
+07:37:19   3  'jpy'||ydate prdate
+07:37:19   4  ,NULL gattn
+07:37:19   5  ,g00
+07:37:19   6  ,g01
+07:37:19   7  ,g02
+07:37:19   8  ,g03
+07:37:19   9  ,g04
+07:37:19  10  ,g05
+07:37:19  11  ,g06
+07:37:19  12  ,g07
+07:37:19  13  ,g08
+07:37:19  14  FROM jpy_ms
+07:37:19  15  WHERE ydate = '&1'||' '||'&2'
+07:37:19  16  /
+old  15: WHERE ydate = '&1'||' '||'&2'
+new  15: WHERE ydate = '2010-12-29'||' '||'06:25:00'
+
+View created.
+
+Elapsed: 00:00:00.03
+07:37:19 SQL> 
+07:37:19 SQL> -- rpt
+07:37:19 SQL> -- We should see just 1 row:
+07:37:19 SQL> 
+07:37:19 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.01
+07:37:19 SQL> 
+07:37:19 SQL> -- Build the model:
+07:37:19 SQL> CREATE OR REPLACE VIEW bme AS
+07:37:19   2  SELECT
+07:37:19   3  'jpy'||ydate prdate
+07:37:19   4  ,gattn
+07:37:19   5  ,g00
+07:37:19   6  ,g01
+07:37:19   7  ,g02
+07:37:19   8  ,g03
+07:37:19   9  ,g04
+07:37:19  10  ,g05
+07:37:19  11  ,g06
+07:37:19  12  ,g07
+07:37:19  13  ,g08
+07:37:19  14  FROM jpy_ms
+07:37:19  15  WHERE gattn IN('nup','up')
+07:37:19  16  -- Use only rows which are older than 1 day:
+07:37:19  17  AND 1+ydate < '&1'||' '||'&2'
+07:37:19  18  /
+old  17: AND 1+ydate < '&1'||' '||'&2'
+new  17: AND 1+ydate < '2010-12-29'||' '||'06:25:00'
+
+View created.
+
+Elapsed: 00:00:00.03
+07:37:19 SQL> 
+07:37:19 SQL> -- rpt
+07:37:19 SQL> 
+07:37:19 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	     9243
+up	     9852
+
+Elapsed: 00:00:00.06
+07:37:19 SQL> 
+07:37:19 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+jpy2010-12-28 06:20:00
+
+Elapsed: 00:00:00.05
+07:37:19 SQL> 
+07:37:19 SQL> -- Now build model from bme and score sme
+07:37:19 SQL> @score1gattn.sql
+07:37:19 SQL> -- score1gattn.sql
+07:37:19 SQL> 
+07:37:19 SQL> -- Does the 1st SVM score
+07:37:19 SQL> 
+07:37:19 SQL> -- Fill up svmc_apply_prep
+07:37:19 SQL> @score_gattn.sql
+07:37:19 SQL> --
+07:37:19 SQL> -- score_gattn.sql
+07:37:19 SQL> --
+07:37:19 SQL> 
+07:37:19 SQL> -- usage: score_gattn.sql
+07:37:19 SQL> 
+07:37:19 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+07:37:19 SQL> 
+07:37:19 SQL> DEFINE target	= 'gattn'
+07:37:19 SQL> DEFINE model_name = 'forex14'
+07:37:19 SQL> DEFINE bldtable	= 'bme'
+07:37:19 SQL> DEFINE scoretable = 'sme'
+07:37:19 SQL> DEFINE case_id	= 'prdate'
+07:37:19 SQL> 
+07:37:19 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+07:37:19 SQL> DEFINE exclude1 = "'&target','&case_id'"
+07:37:19 SQL> 
+07:37:19 SQL> -- Builds an SVM model using pl/sql.
+07:37:19 SQL> 
+07:37:19 SQL> -----------------------------------------------------------------------
+07:37:19 SQL> --			    BUILD THE MODEL
+07:37:19 SQL> -----------------------------------------------------------------------
+07:37:19 SQL> 
+07:37:19 SQL> -- Cleanup old build data preparation objects for repeat runs
+07:37:19 SQL> DELETE svmc_miss_num;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:37:19 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+07:37:19 SQL> DELETE svmc_clip;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.01
+07:37:19 SQL> DELETE svmc_norm;
+
+9 rows deleted.
+
+Elapsed: 00:00:00.00
+07:37:19 SQL> 
+07:37:19 SQL> 
+07:37:19 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+07:37:19 SQL> --
+07:37:19 SQL> -- DROP	TABLE svmc_settings ;
+07:37:19 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+07:37:19 SQL> -- DELETE svmc_settings;
+07:37:19 SQL> 
+07:37:19 SQL> -- The default classification algorithm is Naive Bayes. So override
+07:37:19 SQL> -- this choice to SVM using a settings table.
+07:37:19 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+07:37:19 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+07:37:19 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+07:37:19 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+07:37:19 SQL> -- models.
+07:37:19 SQL> --
+07:37:19 SQL> 
+07:37:19 SQL> -- Do this once and then comment it out.
+07:37:19 SQL> -- That makes script go faster.
+07:37:19 SQL> -- BEGIN
+07:37:19 SQL> -- -- Populate settings table
+07:37:19 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:37:19 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+07:37:19 SQL> --
+07:37:19 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:37:19 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+07:37:19 SQL> --
+07:37:19 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+07:37:19 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+07:37:19 SQL> --   COMMIT;
+07:37:19 SQL> -- END;
+07:37:19 SQL> -- /
+07:37:19 SQL> 
+07:37:19 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       99123123
+
+Elapsed: 00:00:00.00
+07:37:19 SQL> 
+07:37:19 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+07:37:19   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:19   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.03
+07:37:19 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+07:37:19   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:19   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:19 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+07:37:19   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:19   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:19 SQL> 
+07:37:19 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+07:37:19   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:19   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.03
+07:37:19 SQL> 
+07:37:19 SQL> --------------------------------
+07:37:19 SQL> -- PREPARE BUILD (TRAINING) DATA
+07:37:19 SQL> --
+07:37:19 SQL> 
+07:37:19 SQL> -- 1. Missing Value treatment for all Predictors and
+07:37:19 SQL> -- 2. Outlier Treatment and
+07:37:19 SQL> -- 3. Normalization are performed below.
+07:37:19 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+07:37:19 SQL> --    normalized here.
+07:37:19 SQL> 
+07:37:19 SQL> BEGIN
+07:37:19   2  	-- Perform missing value treatment for all predictors
+07:37:19   3  	-- create miss tables
+07:37:19   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+07:37:19   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+07:37:19   6  
+07:37:19   7  	-- populate miss tables
+07:37:19   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+07:37:19   9  	  miss_table_name => 'svmc_miss_num',
+07:37:19  10  	  data_table_name => '&bldtable',
+07:37:19  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:37:19  12  
+07:37:19  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+07:37:19  14  	  miss_table_name => 'svmc_miss_cat',
+07:37:19  15  	  data_table_name => '&bldtable',
+07:37:19  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:37:19  17  
+07:37:19  18  	-- xform input data to replace missing values
+07:37:19  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:37:19  20  	  miss_table_name => 'svmc_miss_num',
+07:37:19  21  	  data_table_name => '&bldtable',
+07:37:19  22  	  xform_view_name => 'xformed_build_miss_num');
+07:37:19  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:37:19  24  	  miss_table_name => 'svmc_miss_cat',
+07:37:19  25  	  data_table_name => '&bldtable',
+07:37:19  26  	  xform_view_name => 'xformed_build_miss_cat');
+07:37:19  27  
+07:37:19  28  	-- Perform outlier treatment.
+07:37:19  29  	-- create clip table
+07:37:19  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+07:37:19  31  
+07:37:19  32  	-- populate clip table
+07:37:19  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+07:37:19  34  	  clip_table_name => 'svmc_clip',
+07:37:19  35  	  data_table_name => '&bldtable',
+07:37:19  36  	  tail_frac	  => 0.025,
+07:37:19  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:37:19  38  
+07:37:19  39  	-- xform input data to winsorized data
+07:37:19  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+07:37:19  41  	  clip_table_name => 'svmc_clip',
+07:37:19  42  	  data_table_name => '&bldtable',
+07:37:19  43  	  xform_view_name => 'svmc_winsor');
+07:37:19  44  
+07:37:19  45  	-- create normalization table
+07:37:19  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+07:37:19  47  
+07:37:19  48  	-- populate normalization table based on winsorized data
+07:37:19  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+07:37:19  50  	  norm_table_name => 'svmc_norm',
+07:37:19  51  	  data_table_name => 'svmc_winsor',
+07:37:19  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+07:37:19  53  
+07:37:19  54  	-- normalize the original data
+07:37:19  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:37:19  56  	  norm_table_name => 'svmc_norm',
+07:37:19  57  	  data_table_name => '&bldtable',
+07:37:19  58  	  xform_view_name => 'svmc_build_prep');
+07:37:19  59  END;
+07:37:19  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.00
+07:37:20 SQL> 
+07:37:20 SQL> ---------------------
+07:37:20 SQL> -- CREATE A NEW MODEL
+07:37:20 SQL> --
+07:37:20 SQL> -- Cleanup old model with the same name for repeat runs
+07:37:20 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+07:37:20   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:20   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.13
+07:37:21 SQL> 
+07:37:21 SQL> -- Build a new SVM Model
+07:37:21 SQL> BEGIN
+07:37:21   2  	DBMS_DATA_MINING.CREATE_MODEL(
+07:37:21   3  	  model_name	      => '&model_name',
+07:37:21   4  	  mining_function     => dbms_data_mining.classification,
+07:37:21   5  	  data_table_name     => 'svmc_build_prep',
+07:37:21   6  	  case_id_column_name => '&case_id',
+07:37:21   7  	  target_column_name  => '&target',
+07:37:21   8  	  settings_table_name => 'svmc_settings');
+07:37:21   9  END;
+07:37:21  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:04.87
+07:37:26 SQL> 
+07:37:26 SQL> -----------------------------------------------------------------------
+07:37:26 SQL> --			       APPLY/score THE MODEL
+07:37:26 SQL> -----------------------------------------------------------------------
+07:37:26 SQL> 
+07:37:26 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+07:37:26 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+07:37:26   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:26   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:26 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+07:37:26   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:26   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.04
+07:37:26 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+07:37:26   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+07:37:26   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.02
+07:37:26 SQL> -----------------------
+07:37:26 SQL> -- PREPARE SCORING DATA
+07:37:26 SQL> --
+07:37:26 SQL> -- If the data for model creation has been prepared, then the data
+07:37:26 SQL> -- to be scored using the model must be prepared in the same manner
+07:37:26 SQL> -- in order to obtain meaningful results.
+07:37:26 SQL> --
+07:37:26 SQL> -- 1. Missing Value treatment for all Predictors and
+07:37:26 SQL> -- 2. Normalization
+07:37:26 SQL> -- No outlier treatment will be performed during test and apply. The
+07:37:26 SQL> -- normalization step is sufficient, since the normalization parameters
+07:37:26 SQL> -- already capture the effects of outlier treatment done with build data.
+07:37:26 SQL> --
+07:37:26 SQL> BEGIN
+07:37:26   2  	-- Xform Test data to replace missing values
+07:37:26   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+07:37:26   4  	  miss_table_name => 'svmc_miss_num',
+07:37:26   5  	  data_table_name => '&scoretable',
+07:37:26   6  	  xform_view_name => 'xformed_apply_miss_num');
+07:37:26   7  
+07:37:26   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+07:37:26   9  	  miss_table_name => 'svmc_miss_cat',
+07:37:26  10  	  data_table_name => '&scoretable',
+07:37:26  11  	  xform_view_name => 'xformed_apply_miss_cat');
+07:37:26  12  
+07:37:26  13  	-- Normalize the data to be scored
+07:37:26  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+07:37:26  15  	  norm_table_name => 'svmc_norm',
+07:37:26  16  	  data_table_name => '&scoretable',
+07:37:26  17  	  xform_view_name => 'svmc_apply_prep');
+07:37:26  18  END;
+07:37:26  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.12
+07:37:26 SQL> 
+07:37:26 SQL> -- Use same model_name used in score.sql
+07:37:26 SQL> DEFINE model_name = 'forex14'
+07:37:26 SQL> 
+07:37:26 SQL> -- Maybe I already collected a score for this prdate.
+07:37:26 SQL> -- DELETE it if I did:
+07:37:26 SQL> DELETE fxscores_demo_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.02
+07:37:26 SQL> 
+07:37:26 SQL> INSERT INTO fxscores_demo_gattn (prdate,score,rundate,pair,ydate)
+07:37:26   2  SELECT
+07:37:26   3  prdate
+07:37:26   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+07:37:26   5  ,sysdate
+07:37:26   6  ,SUBSTR(prdate,1,3)pair
+07:37:26   7  ,SUBSTR(prdate,4,19)ydate
+07:37:26   8  FROM svmc_apply_prep
+07:37:26   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.04
+07:37:26 SQL> Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options

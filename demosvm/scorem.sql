@@ -1,0 +1,10 @@
+@score1_5min_gattn.sql	2010-12-29 05:40:00
+@score1_5min_gattn.sql	2010-12-29 05:45:00
+@score1_5min_gattn.sql	2010-12-29 05:50:00
+@score1_5min_gattn.sql	2010-12-29 05:55:00
+@score1_5min_gattn.sql	2010-12-29 06:00:00
+@score1_5min_gattn.sql	2010-12-29 06:05:00
+@score1_5min_gattn.sql	2010-12-29 06:10:00
+@score1_5min_gattn.sql	2010-12-29 06:15:00
+@score1_5min_gattn.sql	2010-12-29 06:20:00
+@score1_5min_gattn.sql	2010-12-29 06:25:00
