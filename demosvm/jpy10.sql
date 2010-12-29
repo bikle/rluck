@@ -85,8 +85,8 @@ pair
 ,prdate
 ,clse
 ,g6
-,CASE WHEN g6 IS NULL THEN NULL WHEN g6 > 0.0012 THEN 'up' ELSE 'nup' END gatt
-,CASE WHEN g6 IS NULL THEN NULL WHEN g6< -0.0012 THEN 'up' ELSE 'nup' END gattn
+,CASE WHEN g6 IS NULL THEN NULL WHEN g6 > 0.10 THEN 'up' ELSE 'nup' END gatt
+,CASE WHEN g6 IS NULL THEN NULL WHEN g6< -0.10 THEN 'up' ELSE 'nup' END gattn
 ,CASE WHEN trend IS NULL THEN 1
       WHEN trend =0      THEN 1
       ELSE trend END trend
