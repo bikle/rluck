@@ -26,12 +26,14 @@ SELECT * FROM fxscores6       WHERE rundate> sysdate -0.5/24 AND score > 0.7 ORD
 
 SELECT * FROM fxscores6_gattn WHERE rundate> sysdate -0.5/24 AND score > 0.7 ORDER BY ydate;
 
+COLUMN clse  FORMAT 999.9999
+
 SELECT
 s.prdate
 ,score long_score
 ,gscore short_score
 ,rundate
-,clse
+,ROUND(clse,4)clse 
 FROM ocj s, di5min p
 WHERE s.ydate = p.ydate
 AND s.ydate > sysdate - 1/24
