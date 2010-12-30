@@ -1,5 +1,5 @@
 
-SQL*Plus: Release 11.2.0.1.0 Production on Wed Dec 29 21:33:05 2010
+SQL*Plus: Release 11.2.0.1.0 Production on Wed Dec 29 21:37:46 2010
 
 Copyright (c) 1982, 2009, Oracle.  All rights reserved.
 
@@ -8,159 +8,159 @@ Connected to:
 Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 
-21:33:05 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+21:37:46 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
 
 Session altered.
 
 Elapsed: 00:00:00.00
-21:33:05 SQL> 21:33:05 SQL> --
-21:33:05 SQL> -- jpy10.sql
-21:33:05 SQL> --
-21:33:05 SQL> 
-21:33:05 SQL> -- Creates views and tables for demonstrating SVM.
-21:33:05 SQL> 
-21:33:05 SQL> CREATE OR REPLACE VIEW jpy10 AS
-21:33:05   2  SELECT
-21:33:05   3  pair
-21:33:05   4  ,ydate
-21:33:05   5  ,prdate
-21:33:05   6  ,clse
-21:33:05   7  -- Derive some attributes from clse (the latest price of USD/JPY):
-21:33:05   8  ,MIN(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*6 PRECEDING AND CURRENT ROW)min6
-21:33:05   9  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*6 PRECEDING AND CURRENT ROW)avg6
-21:33:05  10  ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*6 PRECEDING AND CURRENT ROW)max6
-21:33:05  11  ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
-21:33:05  12  FROM di5min WHERE pair LIKE'%jpy%'
-21:33:05  13  -- I only want to see the last 95 days of data:
-21:33:05  14  AND ydate > sysdate - 95
-21:33:05  15  ORDER BY ydate
-21:33:05  16  /
+21:37:46 SQL> 21:37:46 SQL> --
+21:37:46 SQL> -- jpy10.sql
+21:37:46 SQL> --
+21:37:46 SQL> 
+21:37:46 SQL> -- Creates views and tables for demonstrating SVM.
+21:37:46 SQL> 
+21:37:46 SQL> CREATE OR REPLACE VIEW jpy10 AS
+21:37:46   2  SELECT
+21:37:46   3  pair
+21:37:46   4  ,ydate
+21:37:46   5  ,prdate
+21:37:46   6  ,clse
+21:37:46   7  -- Derive some attributes from clse (the latest price of USD/JPY):
+21:37:46   8  ,MIN(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*6 PRECEDING AND CURRENT ROW)min6
+21:37:46   9  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*6 PRECEDING AND CURRENT ROW)avg6
+21:37:46  10  ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*6 PRECEDING AND CURRENT ROW)max6
+21:37:46  11  ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
+21:37:46  12  FROM di5min WHERE pair LIKE'%jpy%'
+21:37:46  13  -- I only want to see the last 95 days of data:
+21:37:46  14  AND ydate > sysdate - 95
+21:37:46  15  ORDER BY ydate
+21:37:46  16  /
 
 View created.
 
 Elapsed: 00:00:00.04
-21:33:05 SQL> 
-21:33:05 SQL> -- rpt
-21:33:05 SQL> 
-21:33:05 SQL> SELECT
-21:33:05   2  pair
-21:33:05   3  ,COUNT(pair)
-21:33:05   4  ,MIN(clse),MAX(clse)
-21:33:05   5  ,MIN(avg6),MAX(avg6)
-21:33:05   6  ,MIN(ydate),MAX(ydate)
-21:33:05   7  FROM jpy10
-21:33:05   8  GROUP BY pair
-21:33:05   9  /
+21:37:46 SQL> 
+21:37:46 SQL> -- rpt
+21:37:46 SQL> 
+21:37:46 SQL> SELECT
+21:37:46   2  pair
+21:37:46   3  ,COUNT(pair)
+21:37:46   4  ,MIN(clse),MAX(clse)
+21:37:46   5  ,MIN(avg6),MAX(avg6)
+21:37:46   6  ,MIN(ydate),MAX(ydate)
+21:37:46   7  FROM jpy10
+21:37:46   8  GROUP BY pair
+21:37:46   9  /
 
 PAIR	COUNT(PAIR)  MIN(CLSE)	MAX(CLSE)  MIN(AVG6)  MAX(AVG6) MIN(YDATE)	    MAX(YDATE)
 ------- ----------- ---------- ---------- ---------- ---------- ------------------- -------------------
 usd_jpy       19553	 80.25	   84.485 80.3595205 84.3105479 2010-09-26 20:55:01 2010-12-29 20:45:00
 
-Elapsed: 00:00:00.28
-21:33:05 SQL> 
-21:33:05 SQL> -- Derive trend, clse-relations, moving correlation of clse, and date related params:
-21:33:05 SQL> DROP TABLE jpy12;
+Elapsed: 00:00:00.27
+21:37:46 SQL> 
+21:37:46 SQL> -- Derive trend, clse-relations, moving correlation of clse, and date related params:
+21:37:46 SQL> DROP TABLE jpy12;
 
 Table dropped.
 
-Elapsed: 00:00:00.07
-21:33:05 SQL> CREATE TABLE jpy12 COMPRESS AS
-21:33:05   2  SELECT
-21:33:05   3  pair
-21:33:05   4  ,ydate
-21:33:05   5  ,prdate
-21:33:05   6  ,clse
-21:33:05   7  -- g6 is important. I want to predict g6:
-21:33:05   8  ,ld6 - clse g6
-21:33:05   9  ,SIGN(avg6 - LAG(avg6,2,NULL)OVER(PARTITION BY pair ORDER BY ydate))trend
-21:33:05  10  -- I want more attributes from the ones I derived above:
-21:33:05  11  -- clse relation to moving-min
-21:33:05  12  ,clse-min6  cm6
-21:33:05  13  -- clse relation to moving-avg
-21:33:05  14  ,clse-avg6  ca6
-21:33:05  15  -- clse relation to moving-max
-21:33:05  16  ,clse-max6  cx6
-21:33:05  17  -- Derive date related attributes:
-21:33:05  18  ,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
-21:33:05  19  ,0+TO_CHAR(ydate,'D')d
-21:33:05  20  ,0+TO_CHAR(ydate,'W')w
-21:33:05  21  -- mpm stands for minutes-past-midnight:
-21:33:05  22  ,ROUND( (ydate - trunc(ydate))*24*60 )mpm
-21:33:05  23  -- mph stands for minutes-past-hour:
-21:33:05  24  ,0+TO_CHAR(ydate,'MI')mph
-21:33:05  25  FROM jpy10
-21:33:05  26  ORDER BY ydate
-21:33:05  27  /
+Elapsed: 00:00:00.08
+21:37:47 SQL> CREATE TABLE jpy12 COMPRESS AS
+21:37:47   2  SELECT
+21:37:47   3  pair
+21:37:47   4  ,ydate
+21:37:47   5  ,prdate
+21:37:47   6  ,clse
+21:37:47   7  -- g6 is important. I want to predict g6:
+21:37:47   8  ,ld6 - clse g6
+21:37:47   9  ,SIGN(avg6 - LAG(avg6,2,NULL)OVER(PARTITION BY pair ORDER BY ydate))trend
+21:37:47  10  -- I want more attributes from the ones I derived above:
+21:37:47  11  -- clse relation to moving-min
+21:37:47  12  ,clse-min6  cm6
+21:37:47  13  -- clse relation to moving-avg
+21:37:47  14  ,clse-avg6  ca6
+21:37:47  15  -- clse relation to moving-max
+21:37:47  16  ,clse-max6  cx6
+21:37:47  17  -- Derive date related attributes:
+21:37:47  18  ,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
+21:37:47  19  ,0+TO_CHAR(ydate,'D')d
+21:37:47  20  ,0+TO_CHAR(ydate,'W')w
+21:37:47  21  -- mpm stands for minutes-past-midnight:
+21:37:47  22  ,ROUND( (ydate - trunc(ydate))*24*60 )mpm
+21:37:47  23  -- mph stands for minutes-past-hour:
+21:37:47  24  ,0+TO_CHAR(ydate,'MI')mph
+21:37:47  25  FROM jpy10
+21:37:47  26  ORDER BY ydate
+21:37:47  27  /
 
 Table created.
 
-Elapsed: 00:00:00.65
-21:33:06 SQL> 
-21:33:06 SQL> -- rpt
-21:33:06 SQL> 
-21:33:06 SQL> SELECT
-21:33:06   2  pair
-21:33:06   3  ,COUNT(pair)
-21:33:06   4  ,MIN(clse),MAX(clse)
-21:33:06   5  ,MIN(ydate),MAX(ydate)
-21:33:06   6  FROM jpy12
-21:33:06   7  GROUP BY pair
-21:33:06   8  /
+Elapsed: 00:00:00.62
+21:37:47 SQL> 
+21:37:47 SQL> -- rpt
+21:37:47 SQL> 
+21:37:47 SQL> SELECT
+21:37:47   2  pair
+21:37:47   3  ,COUNT(pair)
+21:37:47   4  ,MIN(clse),MAX(clse)
+21:37:47   5  ,MIN(ydate),MAX(ydate)
+21:37:47   6  FROM jpy12
+21:37:47   7  GROUP BY pair
+21:37:47   8  /
 
 PAIR	COUNT(PAIR)  MIN(CLSE)	MAX(CLSE) MIN(YDATE)	      MAX(YDATE)
 ------- ----------- ---------- ---------- ------------------- -------------------
 usd_jpy       19553	 80.25	   84.485 2010-09-26 20:55:01 2010-12-29 20:45:00
 
-Elapsed: 00:00:00.06
-21:33:06 SQL> 
-21:33:06 SQL> -- Prepare for derivation of NTILE based parameters.
-21:33:06 SQL> -- Also derive the "trend" parameter:
-21:33:06 SQL> 
-21:33:06 SQL> DROP TABLE jpy14;
+Elapsed: 00:00:00.05
+21:37:47 SQL> 
+21:37:47 SQL> -- Prepare for derivation of NTILE based parameters.
+21:37:47 SQL> -- Also derive the "trend" parameter:
+21:37:47 SQL> 
+21:37:47 SQL> DROP TABLE jpy14;
 
 Table dropped.
 
 Elapsed: 00:00:00.09
-21:33:06 SQL> CREATE TABLE jpy14 COMPRESS AS
-21:33:06   2  SELECT
-21:33:06   3  pair
-21:33:06   4  ,ydate
-21:33:06   5  ,prdate
-21:33:06   6  ,clse
-21:33:06   7  ,g6
-21:33:06   8  ,CASE WHEN g6 IS NULL THEN NULL WHEN g6 > 0.10 THEN 'up' ELSE 'nup' END gatt
-21:33:06   9  ,CASE WHEN g6 IS NULL THEN NULL WHEN g6< -0.10 THEN 'up' ELSE 'nup' END gattn
-21:33:06  10  ,CASE WHEN trend IS NULL THEN 1
-21:33:06  11  	    WHEN trend =0      THEN 1
-21:33:06  12  	    ELSE trend END trend
-21:33:06  13  ,cm6
-21:33:06  14  ,ca6
-21:33:06  15  ,cx6
-21:33:06  16  ,hh
-21:33:06  17  ,d
-21:33:06  18  ,w
-21:33:06  19  ,mpm
-21:33:06  20  ,mph
-21:33:06  21  FROM jpy12
-21:33:06  22  ORDER BY ydate
-21:33:06  23  /
+21:37:47 SQL> CREATE TABLE jpy14 COMPRESS AS
+21:37:47   2  SELECT
+21:37:47   3  pair
+21:37:47   4  ,ydate
+21:37:47   5  ,prdate
+21:37:47   6  ,clse
+21:37:47   7  ,g6
+21:37:47   8  ,CASE WHEN g6 IS NULL THEN NULL WHEN g6 > 0.10 THEN 'up' ELSE 'nup' END gatt
+21:37:47   9  ,CASE WHEN g6 IS NULL THEN NULL WHEN g6< -0.10 THEN 'up' ELSE 'nup' END gattn
+21:37:47  10  ,CASE WHEN trend IS NULL THEN 1
+21:37:47  11  	    WHEN trend =0      THEN 1
+21:37:47  12  	    ELSE trend END trend
+21:37:47  13  ,cm6
+21:37:47  14  ,ca6
+21:37:47  15  ,cx6
+21:37:47  16  ,hh
+21:37:47  17  ,d
+21:37:47  18  ,w
+21:37:47  19  ,mpm
+21:37:47  20  ,mph
+21:37:47  21  FROM jpy12
+21:37:47  22  ORDER BY ydate
+21:37:47  23  /
 
 Table created.
 
-Elapsed: 00:00:00.27
-21:33:06 SQL> 
-21:33:06 SQL> -- rpt
-21:33:06 SQL> 
-21:33:06 SQL> SELECT
-21:33:06   2  pair
-21:33:06   3  ,trend
-21:33:06   4  ,gatt
-21:33:06   5  ,COUNT(pair)
-21:33:06   6  ,AVG(g6)
-21:33:06   7  FROM jpy14
-21:33:06   8  GROUP BY pair,trend,gatt
-21:33:06   9  ORDER BY pair,trend,gatt
-21:33:06  10  /
+Elapsed: 00:00:00.30
+21:37:48 SQL> 
+21:37:48 SQL> -- rpt
+21:37:48 SQL> 
+21:37:48 SQL> SELECT
+21:37:48   2  pair
+21:37:48   3  ,trend
+21:37:48   4  ,gatt
+21:37:48   5  ,COUNT(pair)
+21:37:48   6  ,AVG(g6)
+21:37:48   7  FROM jpy14
+21:37:48   8  GROUP BY pair,trend,gatt
+21:37:48   9  ORDER BY pair,trend,gatt
+21:37:48  10  /
 
 PAIR	     TREND GAT COUNT(PAIR)    AVG(G6)
 ------- ---------- --- ----------- ----------
@@ -171,53 +171,53 @@ usd_jpy 	 1 nup	      7002 -.10176851
 usd_jpy 	 1 up	      2266 .258861154
 
 Elapsed: 00:00:00.02
-21:33:06 SQL> 
-21:33:06 SQL> -- Derive NTILE based params:
-21:33:06 SQL> 
-21:33:06 SQL> DROP TABLE jpy16;
+21:37:48 SQL> 
+21:37:48 SQL> -- Derive NTILE based params:
+21:37:48 SQL> 
+21:37:48 SQL> DROP TABLE jpy16;
 
 Table dropped.
 
-Elapsed: 00:00:00.05
-21:33:06 SQL> CREATE TABLE jpy16 COMPRESS AS
-21:33:06   2  SELECT
-21:33:06   3  pair
-21:33:06   4  ,ydate
-21:33:06   5  ,prdate
-21:33:06   6  ,clse
-21:33:06   7  ,g6
-21:33:06   8  ,gatt
-21:33:06   9  ,gattn
-21:33:06  10  ,trend
-21:33:06  11  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm6)att00
-21:33:06  12  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca6)att01
-21:33:06  13  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx6)att02
-21:33:06  14  ,hh  att03
-21:33:06  15  ,d   att04
-21:33:06  16  ,w   att05
-21:33:06  17  ,mpm att06
-21:33:06  18  ,mph att07
-21:33:06  19  ,trend att08
-21:33:06  20  FROM jpy14
-21:33:06  21  ORDER BY ydate
-21:33:06  22  /
+Elapsed: 00:00:00.06
+21:37:48 SQL> CREATE TABLE jpy16 COMPRESS AS
+21:37:48   2  SELECT
+21:37:48   3  pair
+21:37:48   4  ,ydate
+21:37:48   5  ,prdate
+21:37:48   6  ,clse
+21:37:48   7  ,g6
+21:37:48   8  ,gatt
+21:37:48   9  ,gattn
+21:37:48  10  ,trend
+21:37:48  11  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm6)att00
+21:37:48  12  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca6)att01
+21:37:48  13  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx6)att02
+21:37:48  14  ,hh  att03
+21:37:48  15  ,d   att04
+21:37:48  16  ,w   att05
+21:37:48  17  ,mpm att06
+21:37:48  18  ,mph att07
+21:37:48  19  ,trend att08
+21:37:48  20  FROM jpy14
+21:37:48  21  ORDER BY ydate
+21:37:48  22  /
 
 Table created.
 
-Elapsed: 00:00:00.32
-21:33:07 SQL> 
-21:33:07 SQL> -- rpt
-21:33:07 SQL> 
-21:33:07 SQL> SELECT
-21:33:07   2  pair
-21:33:07   3  ,trend
-21:33:07   4  ,gatt
-21:33:07   5  ,COUNT(pair)
-21:33:07   6  ,AVG(g6)
-21:33:07   7  FROM jpy16
-21:33:07   8  GROUP BY pair,trend,gatt
-21:33:07   9  ORDER BY pair,trend,gatt
-21:33:07  10  /
+Elapsed: 00:00:00.36
+21:37:48 SQL> 
+21:37:48 SQL> -- rpt
+21:37:48 SQL> 
+21:37:48 SQL> SELECT
+21:37:48   2  pair
+21:37:48   3  ,trend
+21:37:48   4  ,gatt
+21:37:48   5  ,COUNT(pair)
+21:37:48   6  ,AVG(g6)
+21:37:48   7  FROM jpy16
+21:37:48   8  GROUP BY pair,trend,gatt
+21:37:48   9  ORDER BY pair,trend,gatt
+21:37:48  10  /
 
 PAIR	     TREND GAT COUNT(PAIR)    AVG(G6)
 ------- ---------- --- ----------- ----------
@@ -228,50 +228,50 @@ usd_jpy 	 1 nup	      7002 -.10176851
 usd_jpy 	 1 up	      2266 .258861154
 
 Elapsed: 00:00:00.02
-21:33:07 SQL> 
-21:33:07 SQL> 
-21:33:07 SQL> DROP TABLE jpy_ms;
+21:37:48 SQL> 
+21:37:48 SQL> 
+21:37:48 SQL> DROP TABLE jpy_ms;
 
 Table dropped.
 
-Elapsed: 00:00:00.05
-21:33:07 SQL> CREATE TABLE jpy_ms COMPRESS AS
-21:33:07   2  SELECT
-21:33:07   3  pair
-21:33:07   4  ,ydate
-21:33:07   5  ,prdate
-21:33:07   6  ,trend
-21:33:07   7  ,g6
-21:33:07   8  ,gatt
-21:33:07   9  ,gattn
-21:33:07  10  ,SUM(g6)OVER(PARTITION BY trend,att00 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g00
-21:33:07  11  ,SUM(g6)OVER(PARTITION BY trend,att01 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g01
-21:33:07  12  ,SUM(g6)OVER(PARTITION BY trend,att02 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g02
-21:33:07  13  ,SUM(g6)OVER(PARTITION BY trend,att03 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g03
-21:33:07  14  ,SUM(g6)OVER(PARTITION BY trend,att04 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g04
-21:33:07  15  ,SUM(g6)OVER(PARTITION BY trend,att05 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g05
-21:33:07  16  ,SUM(g6)OVER(PARTITION BY trend,att06 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g06
-21:33:07  17  ,SUM(g6)OVER(PARTITION BY trend,att07 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g07
-21:33:07  18  ,SUM(g6)OVER(PARTITION BY trend,att08 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g08
-21:33:07  19  FROM jpy16
-21:33:07  20  /
+Elapsed: 00:00:00.06
+21:37:48 SQL> CREATE TABLE jpy_ms COMPRESS AS
+21:37:48   2  SELECT
+21:37:48   3  pair
+21:37:48   4  ,ydate
+21:37:48   5  ,prdate
+21:37:48   6  ,trend
+21:37:48   7  ,g6
+21:37:48   8  ,gatt
+21:37:48   9  ,gattn
+21:37:48  10  ,SUM(g6)OVER(PARTITION BY trend,att00 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g00
+21:37:48  11  ,SUM(g6)OVER(PARTITION BY trend,att01 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g01
+21:37:48  12  ,SUM(g6)OVER(PARTITION BY trend,att02 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g02
+21:37:48  13  ,SUM(g6)OVER(PARTITION BY trend,att03 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g03
+21:37:48  14  ,SUM(g6)OVER(PARTITION BY trend,att04 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g04
+21:37:48  15  ,SUM(g6)OVER(PARTITION BY trend,att05 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g05
+21:37:48  16  ,SUM(g6)OVER(PARTITION BY trend,att06 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g06
+21:37:48  17  ,SUM(g6)OVER(PARTITION BY trend,att07 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g07
+21:37:48  18  ,SUM(g6)OVER(PARTITION BY trend,att08 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g08
+21:37:48  19  FROM jpy16
+21:37:48  20  /
 
 Table created.
 
-Elapsed: 00:00:00.80
-21:33:07 SQL> 
-21:33:07 SQL> -- rpt
-21:33:07 SQL> 
-21:33:07 SQL> SELECT
-21:33:07   2  pair
-21:33:07   3  ,trend
-21:33:07   4  ,gatt
-21:33:07   5  ,COUNT(pair)
-21:33:07   6  ,AVG(g6)
-21:33:07   7  FROM jpy_ms
-21:33:07   8  GROUP BY pair,trend,gatt
-21:33:07   9  ORDER BY pair,trend,gatt
-21:33:07  10  /
+Elapsed: 00:00:00.78
+21:37:49 SQL> 
+21:37:49 SQL> -- rpt
+21:37:49 SQL> 
+21:37:49 SQL> SELECT
+21:37:49   2  pair
+21:37:49   3  ,trend
+21:37:49   4  ,gatt
+21:37:49   5  ,COUNT(pair)
+21:37:49   6  ,AVG(g6)
+21:37:49   7  FROM jpy_ms
+21:37:49   8  GROUP BY pair,trend,gatt
+21:37:49   9  ORDER BY pair,trend,gatt
+21:37:49  10  /
 
 PAIR	     TREND GAT COUNT(PAIR)    AVG(G6)
 ------- ---------- --- ----------- ----------
@@ -282,7 +282,7 @@ usd_jpy 	 1 nup	      7002 -.10176851
 usd_jpy 	 1 up	      2266 .258861154
 
 Elapsed: 00:00:00.02
-21:33:08 SQL> 
-21:33:08 SQL> exit
+21:37:49 SQL> 
+21:37:49 SQL> exit
 Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
