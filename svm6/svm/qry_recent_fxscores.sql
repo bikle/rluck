@@ -34,6 +34,7 @@ s.prdate
 ,gscore short_score
 ,rundate
 ,ROUND(clse,4)clse 
+,s.ydate + 6/24 clse_date
 FROM ocj s, di5min p
 WHERE s.ydate = p.ydate
 AND s.ydate > sysdate - 2/24

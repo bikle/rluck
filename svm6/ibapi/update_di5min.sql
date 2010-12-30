@@ -58,7 +58,8 @@ FROM di5min0
 GROUP BY pair
 ORDER BY pair
 
-
+-- Create other pairs like EUR/CHF:
+@create_other_pairs.sql
 -- Here is what I want:
 
 CREATE TABLE di5min COMPRESS AS
@@ -66,16 +67,27 @@ SELECT
 prdate
 ,pair
 ,ydate
-,AVG(clse)clse
-FROM di5min0
-GROUP BY 
-prdate
-,pair
-,ydate
-ORDER BY 
-prdate
-,pair
-,ydate
+,clse
+FROM
+(
+  SELECT
+  prdate
+  ,pair
+  ,ydate
+  ,AVG(clse)clse
+  FROM di5min0
+  GROUP BY 
+  prdate
+  ,pair
+  ,ydate
+  UNION
+  SELECT
+  prdate
+  ,pair
+  ,ydate
+  ,clse
+  FROM op5min
+)
 /
 
 -- rpt
