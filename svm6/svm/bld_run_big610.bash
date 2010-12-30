@@ -19,9 +19,9 @@ cat abc610.sql | sed 's/abc/jpy/g' > jpy610.sql
 cat abc610.sql | sed 's/abc/cad/g' > cad610.sql
 cat abc610.sql | sed 's/abc/chf/g' > chf610.sql
 cat abc610.sql | sed 's/abc/ech/g' > ech610.sql
-cat abc610.sql | sed 's/abc/ech/g' > egb610.sql
-cat abc610.sql | sed 's/abc/ech/g' > ejp610.sql
-cat abc610.sql | sed 's/abc/ech/g' > ajp610.sql
+cat abc610.sql | sed 's/abc/egb/g' > egb610.sql
+cat abc610.sql | sed 's/abc/ejp/g' > ejp610.sql
+cat abc610.sql | sed 's/abc/ajp/g' > ajp610.sql
 
 cat \
 eur610.sql \
