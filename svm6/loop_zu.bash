@@ -34,5 +34,41 @@ chmod +x *bash
 
 # Now, for each pair, run SVM, collect scores, and act on the scores:
 
-#aud
+#ech
 ./ech_svm.bash > /pt/s/cron/out/ech_svm.${myts}.txt 2>&1
+
+#egb 
+cd $SVM6/ibapi
+# I need a table:
+./run5min_data.bash > /pt/s/cron/out/run5min_data.egb.${myts}.txt 2>&1
+sqt>/pt/s/cron/out/update_di5min.egb.${myts}.txt<<EOF
+@update_di5min.sql
+EOF
+cd $SVM6/svm/
+./bld_run_big610.bash > /pt/s/cron/out/bld_run_big610.${myts}.txt 2>&1
+chmod +x *bash
+./egb_svm.bash > /pt/s/cron/out/egb_svm.${myts}.txt 2>&1
+
+#ejp 
+cd $SVM6/ibapi
+# I need a table:
+./run5min_data.bash > /pt/s/cron/out/run5min_data.ejp.${myts}.txt 2>&1
+sqt>/pt/s/cron/out/update_di5min.ejp.${myts}.txt<<EOF
+@update_di5min.sql
+EOF
+cd $SVM6/svm/
+./bld_run_big610.bash > /pt/s/cron/out/bld_run_big610.${myts}.txt 2>&1
+chmod +x *bash
+./ejp_svm.bash > /pt/s/cron/out/ejp_svm.${myts}.txt 2>&1
+
+#ajp 
+cd $SVM6/ibapi
+# I need a table:
+./run5min_data.bash > /pt/s/cron/out/run5min_data.ajp.${myts}.txt 2>&1
+sqt>/pt/s/cron/out/update_di5min.ajp.${myts}.txt<<EOF
+@update_di5min.sql
+EOF
+cd $SVM6/svm/
+./bld_run_big610.bash > /pt/s/cron/out/bld_run_big610.${myts}.txt 2>&1
+chmod +x *bash
+./ajp_svm.bash > /pt/s/cron/out/ajp_svm.${myts}.txt 2>&1
