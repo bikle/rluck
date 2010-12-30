@@ -8,7 +8,7 @@
 #
 #  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash buy 30000 GBP USD 20101230_04:40:00_GMT
 #
-#  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash buy 30000 USD CAD 20101230_02:55:00_GMT
+#  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash buy 30000 USD CAD 20101230_10:40:00_GMT
 
 #  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash buy 30000 USD CHF 20101230_04:45:00_GMT
 
