@@ -2519,7 +2519,7 @@ SELECT COUNT(*)FROM svm6102;
 SELECT COUNT(*)FROM ech_att;
 
 --
--- ech610.sql
+-- egb610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy
@@ -2564,7 +2564,7 @@ pair
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*16 PRECEDING AND CURRENT ROW)max16
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)max18
 ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
-FROM di5min WHERE pair LIKE'%ech%'
+FROM di5min WHERE pair LIKE'%egb%'
 AND ydate > sysdate - 95
 ORDER BY ydate
 /
@@ -2811,75 +2811,75 @@ FROM svm6162
 
 ANALYZE TABLE modsrc COMPUTE STATISTICS;
 
-DROP   TABLE ech_ms610 ;
-CREATE TABLE ech_ms610 COMPRESS AS
+DROP   TABLE egb_ms610 ;
+CREATE TABLE egb_ms610 COMPRESS AS
 SELECT
 ydate
-,trend ech_trend
-,g6    ech_g6
-,gatt  ech_gatt
-,gattn ech_gattn
+,trend egb_trend
+,g6    egb_g6
+,gatt  egb_gatt
+,gattn egb_gattn
 FROM modsrc
 /
 
-ANALYZE TABLE ech_ms610 COMPUTE STATISTICS;
+ANALYZE TABLE egb_ms610 COMPUTE STATISTICS;
 
 -- I need a copy of the attributes:
 
 
-DROP   TABLE ech_att;
-CREATE TABLE ech_att COMPRESS AS
+DROP   TABLE egb_att;
+CREATE TABLE egb_att COMPRESS AS
 SELECT
 ydate
-,att00 ech_att00
-,att01 ech_att01
-,att02 ech_att02
-,att03 ech_att03
-,att04 ech_att04
-,att05 ech_att05
-,att06 ech_att06
-,att07 ech_att07
-,att08 ech_att08
-,att09 ech_att09
-,att10 ech_att10
-,att11 ech_att11
-,att12 ech_att12
-,att13 ech_att13
-,att14 ech_att14
-,att15 ech_att15
-,att16 ech_att16
-,att17 ech_att17
-,att18 ech_att18
-,att19 ech_att19
-,att20 ech_att20
-,att21 ech_att21
-,att22 ech_att22
-,att23 ech_att23
-,att24 ech_att24
-,att25 ech_att25
-,att26 ech_att26
-,att27 ech_att27
-,att28 ech_att28
-,att29 ech_att29
-,att30 ech_att30
-,att31 ech_att31
-,att32 ech_att32
-,att33 ech_att33
-,att34 ech_att34
-,att35 ech_att35
-,att36 ech_att36
-,att37 ech_att37
+,att00 egb_att00
+,att01 egb_att01
+,att02 egb_att02
+,att03 egb_att03
+,att04 egb_att04
+,att05 egb_att05
+,att06 egb_att06
+,att07 egb_att07
+,att08 egb_att08
+,att09 egb_att09
+,att10 egb_att10
+,att11 egb_att11
+,att12 egb_att12
+,att13 egb_att13
+,att14 egb_att14
+,att15 egb_att15
+,att16 egb_att16
+,att17 egb_att17
+,att18 egb_att18
+,att19 egb_att19
+,att20 egb_att20
+,att21 egb_att21
+,att22 egb_att22
+,att23 egb_att23
+,att24 egb_att24
+,att25 egb_att25
+,att26 egb_att26
+,att27 egb_att27
+,att28 egb_att28
+,att29 egb_att29
+,att30 egb_att30
+,att31 egb_att31
+,att32 egb_att32
+,att33 egb_att33
+,att34 egb_att34
+,att35 egb_att35
+,att36 egb_att36
+,att37 egb_att37
 FROM svm6162
 /
 
-ANALYZE TABLE ech_att COMPUTE STATISTICS;
+ANALYZE TABLE egb_att COMPUTE STATISTICS;
 
 -- rpt 
 SELECT COUNT(*)FROM svm6102;
-SELECT COUNT(*)FROM ech_att;
+SELECT COUNT(*)FROM egb_att;
 
 --
--- ech610.sql
+-- ejp610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy
@@ -2924,7 +2924,7 @@ pair
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*16 PRECEDING AND CURRENT ROW)max16
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)max18
 ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
-FROM di5min WHERE pair LIKE'%ech%'
+FROM di5min WHERE pair LIKE'%ejp%'
 AND ydate > sysdate - 95
 ORDER BY ydate
 /
@@ -3171,75 +3171,75 @@ FROM svm6162
 
 ANALYZE TABLE modsrc COMPUTE STATISTICS;
 
-DROP   TABLE ech_ms610 ;
-CREATE TABLE ech_ms610 COMPRESS AS
+DROP   TABLE ejp_ms610 ;
+CREATE TABLE ejp_ms610 COMPRESS AS
 SELECT
 ydate
-,trend ech_trend
-,g6    ech_g6
-,gatt  ech_gatt
-,gattn ech_gattn
+,trend ejp_trend
+,g6    ejp_g6
+,gatt  ejp_gatt
+,gattn ejp_gattn
 FROM modsrc
 /
 
-ANALYZE TABLE ech_ms610 COMPUTE STATISTICS;
+ANALYZE TABLE ejp_ms610 COMPUTE STATISTICS;
 
 -- I need a copy of the attributes:
 
 
-DROP   TABLE ech_att;
-CREATE TABLE ech_att COMPRESS AS
+DROP   TABLE ejp_att;
+CREATE TABLE ejp_att COMPRESS AS
 SELECT
 ydate
-,att00 ech_att00
-,att01 ech_att01
-,att02 ech_att02
-,att03 ech_att03
-,att04 ech_att04
-,att05 ech_att05
-,att06 ech_att06
-,att07 ech_att07
-,att08 ech_att08
-,att09 ech_att09
-,att10 ech_att10
-,att11 ech_att11
-,att12 ech_att12
-,att13 ech_att13
-,att14 ech_att14
-,att15 ech_att15
-,att16 ech_att16
-,att17 ech_att17
-,att18 ech_att18
-,att19 ech_att19
-,att20 ech_att20
-,att21 ech_att21
-,att22 ech_att22
-,att23 ech_att23
-,att24 ech_att24
-,att25 ech_att25
-,att26 ech_att26
-,att27 ech_att27
-,att28 ech_att28
-,att29 ech_att29
-,att30 ech_att30
-,att31 ech_att31
-,att32 ech_att32
-,att33 ech_att33
-,att34 ech_att34
-,att35 ech_att35
-,att36 ech_att36
-,att37 ech_att37
+,att00 ejp_att00
+,att01 ejp_att01
+,att02 ejp_att02
+,att03 ejp_att03
+,att04 ejp_att04
+,att05 ejp_att05
+,att06 ejp_att06
+,att07 ejp_att07
+,att08 ejp_att08
+,att09 ejp_att09
+,att10 ejp_att10
+,att11 ejp_att11
+,att12 ejp_att12
+,att13 ejp_att13
+,att14 ejp_att14
+,att15 ejp_att15
+,att16 ejp_att16
+,att17 ejp_att17
+,att18 ejp_att18
+,att19 ejp_att19
+,att20 ejp_att20
+,att21 ejp_att21
+,att22 ejp_att22
+,att23 ejp_att23
+,att24 ejp_att24
+,att25 ejp_att25
+,att26 ejp_att26
+,att27 ejp_att27
+,att28 ejp_att28
+,att29 ejp_att29
+,att30 ejp_att30
+,att31 ejp_att31
+,att32 ejp_att32
+,att33 ejp_att33
+,att34 ejp_att34
+,att35 ejp_att35
+,att36 ejp_att36
+,att37 ejp_att37
 FROM svm6162
 /
 
-ANALYZE TABLE ech_att COMPUTE STATISTICS;
+ANALYZE TABLE ejp_att COMPUTE STATISTICS;
 
 -- rpt 
 SELECT COUNT(*)FROM svm6102;
-SELECT COUNT(*)FROM ech_att;
+SELECT COUNT(*)FROM ejp_att;
 
 --
--- ech610.sql
+-- ajp610.sql
 --
 
 -- Creates views and tables for backtesting a forex SVM strategy
@@ -3284,7 +3284,7 @@ pair
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*16 PRECEDING AND CURRENT ROW)max16
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)max18
 ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld6
-FROM di5min WHERE pair LIKE'%ech%'
+FROM di5min WHERE pair LIKE'%ajp%'
 AND ydate > sysdate - 95
 ORDER BY ydate
 /
@@ -3531,70 +3531,70 @@ FROM svm6162
 
 ANALYZE TABLE modsrc COMPUTE STATISTICS;
 
-DROP   TABLE ech_ms610 ;
-CREATE TABLE ech_ms610 COMPRESS AS
+DROP   TABLE ajp_ms610 ;
+CREATE TABLE ajp_ms610 COMPRESS AS
 SELECT
 ydate
-,trend ech_trend
-,g6    ech_g6
-,gatt  ech_gatt
-,gattn ech_gattn
+,trend ajp_trend
+,g6    ajp_g6
+,gatt  ajp_gatt
+,gattn ajp_gattn
 FROM modsrc
 /
 
-ANALYZE TABLE ech_ms610 COMPUTE STATISTICS;
+ANALYZE TABLE ajp_ms610 COMPUTE STATISTICS;
 
 -- I need a copy of the attributes:
 
 
-DROP   TABLE ech_att;
-CREATE TABLE ech_att COMPRESS AS
+DROP   TABLE ajp_att;
+CREATE TABLE ajp_att COMPRESS AS
 SELECT
 ydate
-,att00 ech_att00
-,att01 ech_att01
-,att02 ech_att02
-,att03 ech_att03
-,att04 ech_att04
-,att05 ech_att05
-,att06 ech_att06
-,att07 ech_att07
-,att08 ech_att08
-,att09 ech_att09
-,att10 ech_att10
-,att11 ech_att11
-,att12 ech_att12
-,att13 ech_att13
-,att14 ech_att14
-,att15 ech_att15
-,att16 ech_att16
-,att17 ech_att17
-,att18 ech_att18
-,att19 ech_att19
-,att20 ech_att20
-,att21 ech_att21
-,att22 ech_att22
-,att23 ech_att23
-,att24 ech_att24
-,att25 ech_att25
-,att26 ech_att26
-,att27 ech_att27
-,att28 ech_att28
-,att29 ech_att29
-,att30 ech_att30
-,att31 ech_att31
-,att32 ech_att32
-,att33 ech_att33
-,att34 ech_att34
-,att35 ech_att35
-,att36 ech_att36
-,att37 ech_att37
+,att00 ajp_att00
+,att01 ajp_att01
+,att02 ajp_att02
+,att03 ajp_att03
+,att04 ajp_att04
+,att05 ajp_att05
+,att06 ajp_att06
+,att07 ajp_att07
+,att08 ajp_att08
+,att09 ajp_att09
+,att10 ajp_att10
+,att11 ajp_att11
+,att12 ajp_att12
+,att13 ajp_att13
+,att14 ajp_att14
+,att15 ajp_att15
+,att16 ajp_att16
+,att17 ajp_att17
+,att18 ajp_att18
+,att19 ajp_att19
+,att20 ajp_att20
+,att21 ajp_att21
+,att22 ajp_att22
+,att23 ajp_att23
+,att24 ajp_att24
+,att25 ajp_att25
+,att26 ajp_att26
+,att27 ajp_att27
+,att28 ajp_att28
+,att29 ajp_att29
+,att30 ajp_att30
+,att31 ajp_att31
+,att32 ajp_att32
+,att33 ajp_att33
+,att34 ajp_att34
+,att35 ajp_att35
+,att36 ajp_att36
+,att37 ajp_att37
 FROM svm6162
 /
 
-ANALYZE TABLE ech_att COMPUTE STATISTICS;
+ANALYZE TABLE ajp_att COMPUTE STATISTICS;
 
 -- rpt 
 SELECT COUNT(*)FROM svm6102;
-SELECT COUNT(*)FROM ech_att;
+SELECT COUNT(*)FROM ajp_att;
 

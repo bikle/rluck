@@ -57,3 +57,25 @@ WHERE rscore_short < 0.2
 GROUP BY rscore_long
 ORDER BY rscore_long
 /
+
+-- Now go looking for high scores for shorts:
+
+
+SELECT
+COUNT(ydate)
+,rscore_short
+,ROUND(AVG(g6),3)avg_g6
+FROM jpy_rpt10
+GROUP BY rscore_short
+ORDER BY rscore_short
+/
+
+SELECT
+COUNT(ydate)
+,rscore_short
+,ROUND(AVG(g6),3)avg_g6
+FROM jpy_rpt10
+WHERE rscore_long < 0.2
+GROUP BY rscore_short
+ORDER BY rscore_short
+/
