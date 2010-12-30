@@ -35,4 +35,4 @@ chmod +x *bash
 # Now, for each pair, run SVM, collect scores, and act on the scores:
 
 #aud
-./ech_svm.bash > /pt/s/cron/out/aud_svm.${myts}.txt 2>&1
+./ech_svm.bash > /pt/s/cron/out/ech_svm.${myts}.txt 2>&1
