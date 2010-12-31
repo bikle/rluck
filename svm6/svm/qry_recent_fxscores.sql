@@ -42,4 +42,3 @@ AND REPLACE(REPLACE(p.pair,'usd_',''),'_usd','') = s.pair
 ORDER BY s.ydate
 /
 
-exit

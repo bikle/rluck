@@ -1,6 +1,6 @@
-@eur_score1day.sql  2010-12-31 04:15:00
-@eur_score1day.sql  2010-12-31 04:20:00
-@eur_score1day.sql  2010-12-31 04:25:00
-@eur_score1day_gattn.sql  2010-12-31 04:15:00
-@eur_score1day_gattn.sql  2010-12-31 04:20:00
-@eur_score1day_gattn.sql  2010-12-31 04:25:00
+@eur_score1day.sql  2010-12-31 05:30:00
+@eur_score1day.sql  2010-12-31 05:35:00
+@eur_score1day.sql  2010-12-31 05:40:00
+@eur_score1day_gattn.sql  2010-12-31 05:30:00
+@eur_score1day_gattn.sql  2010-12-31 05:35:00
+@eur_score1day_gattn.sql  2010-12-31 05:40:00
