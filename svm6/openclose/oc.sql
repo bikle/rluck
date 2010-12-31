@@ -17,17 +17,11 @@ SPOOL oc_sql_spool.txt
 -- 4th cmd-line-arg constrains the 1st INSERT
 -- 5th cmd-line-arg constrains the 2nd INSERT
 
+-- View ocj created here: avg_recent_scores.sql
+
 -- done already
-CREATE OR REPLACE VIEW ocj AS
-SELECT
-s.prdate
-,s.score
-,s.rundate
-,s.pair
-,s.ydate
-,g.score gscore
-FROM fxscores6 s,fxscores6_gattn g
-WHERE s.prdate = g.prdate
+-- CREATE OR REPLACE VIEW ocj AS
+-- SELECT ...
 -- done already
 
 INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
