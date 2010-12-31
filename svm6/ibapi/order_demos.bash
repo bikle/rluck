@@ -2,7 +2,7 @@
 # I use this file as a syntax reference.
 
 #
-#  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash buy 30000 AUD USD 20101231_18:00:00_GMT
+#  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash sell 30000 AUD USD 20101231_12:20:00_GMT
 #
 #  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash sell 30000 EUR USD 20101231_010:20:00_GMT
 #

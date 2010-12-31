@@ -27,7 +27,9 @@ SELECT COUNT(*)FROM jpy_rpt10;
 
 -- Look for CORR():
 SELECT
-COUNT(ydate)
+MIN(ydate)
+,COUNT(ydate)
+,MAX(ydate)
 ,CORR(score_long, g6)
 ,CORR(score_short, g6)
 FROM jpy_rpt10
@@ -37,7 +39,9 @@ FROM jpy_rpt10
 -- A hich score means SVM has high confidence that the long position will be lucrative:
 
 SELECT
-COUNT(ydate)
+MIN(ydate)
+,COUNT(ydate)
+,MAX(ydate)
 ,rscore_long
 ,ROUND(AVG(g6),3)avg_g6
 FROM jpy_rpt10
@@ -49,7 +53,9 @@ ORDER BY rscore_long
 -- Where SVM has low confidence the position will be a lucrative short:
 
 SELECT
-COUNT(ydate)
+MIN(ydate)
+,COUNT(ydate)
+,MAX(ydate)
 ,rscore_long
 ,ROUND(AVG(g6),3)avg_g6
 FROM jpy_rpt10
@@ -62,7 +68,9 @@ ORDER BY rscore_long
 
 
 SELECT
-COUNT(ydate)
+MIN(ydate)
+,COUNT(ydate)
+,MAX(ydate)
 ,rscore_short
 ,ROUND(AVG(g6),3)avg_g6
 FROM jpy_rpt10
@@ -71,7 +79,9 @@ ORDER BY rscore_short
 /
 
 SELECT
-COUNT(ydate)
+MIN(ydate)
+,COUNT(ydate)
+,MAX(ydate)
 ,rscore_short
 ,ROUND(AVG(g6),3)avg_g6
 FROM jpy_rpt10

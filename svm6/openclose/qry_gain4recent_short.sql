@@ -8,9 +8,9 @@
 SELECT
 'avg_g6'
 ||'matchthis'
-,AVG(jpy_g6)
-FROM fxscores6_gattn s, jpy_ms610 m
-WHERE s.pair = 'jpy'
+,AVG(chf_g6)
+FROM fxscores6_gattn s, chf_ms610 m
+WHERE s.pair = 'chf'
 AND s.ydate = m.ydate
 AND score > 0.7
 AND s.ydate > sysdate - 1
