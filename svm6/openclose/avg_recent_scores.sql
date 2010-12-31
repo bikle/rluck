@@ -19,6 +19,7 @@ WHERE s.prdate = g.prdate
 -- Look for good longs:
 SELECT
 s.pair
+,COUNT(s.pair)cnt
 ,AVG(score) long_score
 ,AVG(gscore) short_score
 ,MIN(rundate)

@@ -1,151 +1,151 @@
-22:45:31 SQL> --
-22:45:31 SQL> -- oc.sql
-22:45:31 SQL> --
-22:45:31 SQL> 
-22:45:31 SQL> -- This script helps me open and close forex positions.
-22:45:31 SQL> -- Typically this script is called from oc.rb
-22:45:31 SQL> -- The script oc.rb uses a bit of logic to determine which cmd-line-args
-22:45:31 SQL> -- to supply to this script.
-22:45:31 SQL> 
-22:45:31 SQL> -- Demo:
-22:45:31 SQL> -- sqt @oc.sql aud 0.75  1.0 1.0 0.0416
-22:45:31 SQL> 
-22:45:31 SQL> -- 1st cmd-line-arg is a 3 letter code for pair: aud, eur, gbp, cad, chf, jpy, ech
-22:45:31 SQL> -- 2nd cmd-line-arg constrains the 1st INSERT
-22:45:31 SQL> -- 3rd cmd-line-arg constrains the 2nd INSERT
-22:45:31 SQL> -- 4th cmd-line-arg constrains the 1st INSERT
-22:45:31 SQL> -- 5th cmd-line-arg constrains the 2nd INSERT
-22:45:31 SQL> 
-22:45:31 SQL> -- done already
-22:45:31 SQL> CREATE OR REPLACE VIEW ocj AS
-22:45:31   2  SELECT
-22:45:31   3  s.prdate
-22:45:31   4  ,s.score
-22:45:31   5  ,s.rundate
-22:45:31   6  ,s.pair
-22:45:31   7  ,s.ydate
-22:45:31   8  ,g.score gscore
-22:45:31   9  FROM fxscores6 s,fxscores6_gattn g
-22:45:31  10  WHERE s.prdate = g.prdate
-22:45:31  11  -- done already
-22:45:31  12  
-22:45:31 SQL> INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
-22:45:31   2  SELECT
-22:45:31   3  prdate
-22:45:31   4  ,CASE WHEN SUBSTR(prdate,1,3)='aud'THEN'aud_usd'
-22:45:31   5  	    WHEN SUBSTR(prdate,1,3)='eur'THEN'eur_usd'
-22:45:31   6  	    WHEN SUBSTR(prdate,1,3)='gbp'THEN'gbp_usd'
-22:45:31   7  	    WHEN SUBSTR(prdate,1,3)='cad'THEN'usd_cad'
-22:45:31   8  	    WHEN SUBSTR(prdate,1,3)='chf'THEN'usd_chf'
-22:45:31   9  	    WHEN SUBSTR(prdate,1,3)='jpy'THEN'usd_jpy'
-22:45:31  10  	ELSE SUBSTR(prdate,1,3)
-22:45:31  11  	END    pair
-22:45:31  12  ,TO_DATE(SUBSTR(prdate,4,19))ydate
-22:45:31  13  ,'buy'   buysell
-22:45:31  14  ,score
-22:45:31  15  ,rundate
-22:45:31  16  ,sysdate opdate
-22:45:31  17  -- Deal with Fri-afternoon.
-22:45:31  18  -- I want to close Late-Fri-afternoon orders on Mon Morn 01:11 GMT
-22:45:31  19  -- This is 09:11am in Tokyo:
-22:45:31  20  ,CASE WHEN
-22:45:31  21  	(
-22:45:31  22  	0+TO_CHAR((sysdate),'D') = 6
-22:45:31  23  	AND
-22:45:31  24  	sysdate+6/24 > TRUNC(sysdate) + 21/24 + 50/60/24
-22:45:31  25  	)
-22:45:31  26  	THEN TRUNC(sysdate) + 3 + 1/24 + 11/60/24
-22:45:31  27  	WHEN 0+TO_CHAR((sysdate+6/24),'D') = 7
-22:45:31  28  	THEN TRUNC(sysdate) + 2 + 1/24 + 11/60/24
-22:45:31  29  	ELSE sysdate + 6/24 END clsdate
-22:45:31  30  FROM ocj
-22:45:31  31  -- The 2nd param corresponds to score_floor_long in oc.rb:
-22:45:31  32  WHERE score > '&2'
-22:45:31  33  AND gscore < 0.20
-22:45:31  34  -- The 1st param corresponds to pairname in oc.rb:
-22:45:31  35  AND pair = '&1'
-22:45:31  36  AND rundate > sysdate - 11/60/24
-22:45:31  37  AND prdate NOT IN(SELECT prdate FROM oc)
-22:45:31  38  -- Avoid entering too many orders close together:
-22:45:31  39  AND sysdate - '&4' >
-22:45:31  40  	(SELECT MAX(opdate)FROM oc WHERE pair='&1'AND buysell='buy')
-22:45:31  41  ORDER BY rundate
-22:45:31  42  /
+00:49:27 SQL> --
+00:49:27 SQL> -- oc.sql
+00:49:27 SQL> --
+00:49:27 SQL> 
+00:49:27 SQL> -- This script helps me open and close forex positions.
+00:49:27 SQL> -- Typically this script is called from oc.rb
+00:49:27 SQL> -- The script oc.rb uses a bit of logic to determine which cmd-line-args
+00:49:27 SQL> -- to supply to this script.
+00:49:27 SQL> 
+00:49:27 SQL> -- Demo:
+00:49:27 SQL> -- sqt @oc.sql aud 0.75  1.0 1.0 0.0416
+00:49:27 SQL> 
+00:49:27 SQL> -- 1st cmd-line-arg is a 3 letter code for pair: aud, eur, gbp, cad, chf, jpy, ech
+00:49:27 SQL> -- 2nd cmd-line-arg constrains the 1st INSERT
+00:49:27 SQL> -- 3rd cmd-line-arg constrains the 2nd INSERT
+00:49:27 SQL> -- 4th cmd-line-arg constrains the 1st INSERT
+00:49:27 SQL> -- 5th cmd-line-arg constrains the 2nd INSERT
+00:49:27 SQL> 
+00:49:27 SQL> -- done already
+00:49:27 SQL> CREATE OR REPLACE VIEW ocj AS
+00:49:27   2  SELECT
+00:49:27   3  s.prdate
+00:49:27   4  ,s.score
+00:49:27   5  ,s.rundate
+00:49:27   6  ,s.pair
+00:49:27   7  ,s.ydate
+00:49:27   8  ,g.score gscore
+00:49:27   9  FROM fxscores6 s,fxscores6_gattn g
+00:49:27  10  WHERE s.prdate = g.prdate
+00:49:27  11  -- done already
+00:49:27  12  
+00:49:27 SQL> INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
+00:49:27   2  SELECT
+00:49:27   3  prdate
+00:49:27   4  ,CASE WHEN SUBSTR(prdate,1,3)='aud'THEN'aud_usd'
+00:49:27   5  	    WHEN SUBSTR(prdate,1,3)='eur'THEN'eur_usd'
+00:49:27   6  	    WHEN SUBSTR(prdate,1,3)='gbp'THEN'gbp_usd'
+00:49:27   7  	    WHEN SUBSTR(prdate,1,3)='cad'THEN'usd_cad'
+00:49:27   8  	    WHEN SUBSTR(prdate,1,3)='chf'THEN'usd_chf'
+00:49:27   9  	    WHEN SUBSTR(prdate,1,3)='jpy'THEN'usd_jpy'
+00:49:27  10  	ELSE SUBSTR(prdate,1,3)
+00:49:27  11  	END    pair
+00:49:27  12  ,TO_DATE(SUBSTR(prdate,4,19))ydate
+00:49:27  13  ,'buy'   buysell
+00:49:27  14  ,score
+00:49:27  15  ,rundate
+00:49:27  16  ,sysdate opdate
+00:49:27  17  -- Deal with Fri-afternoon.
+00:49:27  18  -- I want to close Late-Fri-afternoon orders on Mon Morn 01:11 GMT
+00:49:27  19  -- This is 09:11am in Tokyo:
+00:49:27  20  ,CASE WHEN
+00:49:27  21  	(
+00:49:27  22  	0+TO_CHAR((sysdate),'D') = 6
+00:49:27  23  	AND
+00:49:27  24  	sysdate+6/24 > TRUNC(sysdate) + 21/24 + 50/60/24
+00:49:27  25  	)
+00:49:27  26  	THEN TRUNC(sysdate) + 3 + 1/24 + 11/60/24
+00:49:27  27  	WHEN 0+TO_CHAR((sysdate+6/24),'D') = 7
+00:49:27  28  	THEN TRUNC(sysdate) + 2 + 1/24 + 11/60/24
+00:49:27  29  	ELSE sysdate + 6/24 END clsdate
+00:49:27  30  FROM ocj
+00:49:27  31  -- The 2nd param corresponds to score_floor_long in oc.rb:
+00:49:27  32  WHERE score > '&2'
+00:49:27  33  AND gscore < 0.20
+00:49:27  34  -- The 1st param corresponds to pairname in oc.rb:
+00:49:27  35  AND pair = '&1'
+00:49:27  36  AND rundate > sysdate - 11/60/24
+00:49:27  37  AND prdate NOT IN(SELECT prdate FROM oc)
+00:49:27  38  -- Avoid entering too many orders close together:
+00:49:27  39  AND sysdate - '&4' >
+00:49:27  40  	(SELECT MAX(opdate)FROM oc WHERE pair='&1'AND buysell='buy')
+00:49:27  41  ORDER BY rundate
+00:49:27  42  /
 old  32: WHERE score > '&2'
 new  32: WHERE score > '1.0'
 old  35: AND pair = '&1'
-new  35: AND pair = 'gbp'
+new  35: AND pair = 'jpy'
 old  39: AND sysdate - '&4' >
 new  39: AND sysdate - '2.0' >
 old  40:   (SELECT MAX(opdate)FROM oc WHERE pair='&1'AND buysell='buy')
-new  40:   (SELECT MAX(opdate)FROM oc WHERE pair='gbp'AND buysell='buy')
+new  40:   (SELECT MAX(opdate)FROM oc WHERE pair='jpy'AND buysell='buy')
 
 0 rows created.
 
-Elapsed: 00:00:00.08
-22:45:31 SQL> 
-22:45:31 SQL> INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
-22:45:31   2  SELECT
-22:45:31   3  prdate
-22:45:31   4  ,CASE WHEN SUBSTR(prdate,1,3)='aud'THEN'aud_usd'
-22:45:31   5  	    WHEN SUBSTR(prdate,1,3)='eur'THEN'eur_usd'
-22:45:31   6  	    WHEN SUBSTR(prdate,1,3)='gbp'THEN'gbp_usd'
-22:45:31   7  	    WHEN SUBSTR(prdate,1,3)='cad'THEN'usd_cad'
-22:45:31   8  	    WHEN SUBSTR(prdate,1,3)='chf'THEN'usd_chf'
-22:45:31   9  	    WHEN SUBSTR(prdate,1,3)='jpy'THEN'usd_jpy'
-22:45:31  10  	ELSE SUBSTR(prdate,1,3)
-22:45:31  11  	END pair
-22:45:31  12  ,TO_DATE(SUBSTR(prdate,4,19))ydate
-22:45:31  13  ,'sell'	      buysell
-22:45:31  14  ,score
-22:45:31  15  ,rundate
-22:45:31  16  ,sysdate opdate
-22:45:31  17  -- Deal with Fri-afternoon.
-22:45:31  18  -- I want to close Fri-afternoon orders on Mon Morn 01:11 GMT:
-22:45:31  19  ,CASE WHEN
-22:45:31  20  	(
-22:45:31  21  	0+TO_CHAR((sysdate),'D') = 6
-22:45:31  22  	AND
-22:45:31  23  	sysdate+6/24 > TRUNC(sysdate) + 21/24 + 50/60/24
-22:45:31  24  	)
-22:45:31  25  	THEN TRUNC(sysdate) + 3 + 1/24 + 11/60/24
-22:45:31  26  	WHEN 0+TO_CHAR((sysdate+6/24),'D') = 7
-22:45:31  27  	THEN TRUNC(sysdate) + 2 + 1/24 + 11/60/24
-22:45:31  28  	ELSE sysdate + 6/24 END clsdate
-22:45:31  29  FROM ocj
-22:45:31  30  -- The 3rd param corresponds to score_floor_short in oc.rb:
-22:45:31  31  WHERE gscore > '&3'
-22:45:31  32  AND score < 0.20
-22:45:31  33  -- The 1st param corresponds to pairname in oc.rb:
-22:45:31  34  AND pair = '&1'
-22:45:31  35  AND rundate > sysdate - 11/60/24
-22:45:31  36  AND prdate NOT IN(SELECT prdate FROM oc)
-22:45:31  37  -- Avoid entering too many orders close together:
-22:45:31  38  AND sysdate - '&5' >
-22:45:31  39  	(SELECT MAX(opdate)FROM oc WHERE pair='&1'AND buysell='sell')
-22:45:31  40  ORDER BY rundate
-22:45:31  41  /
+Elapsed: 00:00:00.05
+00:49:27 SQL> 
+00:49:27 SQL> INSERT INTO oc(prdate,pair,ydate,buysell,score,rundate,opdate,clsdate)
+00:49:27   2  SELECT
+00:49:27   3  prdate
+00:49:27   4  ,CASE WHEN SUBSTR(prdate,1,3)='aud'THEN'aud_usd'
+00:49:27   5  	    WHEN SUBSTR(prdate,1,3)='eur'THEN'eur_usd'
+00:49:27   6  	    WHEN SUBSTR(prdate,1,3)='gbp'THEN'gbp_usd'
+00:49:27   7  	    WHEN SUBSTR(prdate,1,3)='cad'THEN'usd_cad'
+00:49:27   8  	    WHEN SUBSTR(prdate,1,3)='chf'THEN'usd_chf'
+00:49:27   9  	    WHEN SUBSTR(prdate,1,3)='jpy'THEN'usd_jpy'
+00:49:27  10  	ELSE SUBSTR(prdate,1,3)
+00:49:27  11  	END pair
+00:49:27  12  ,TO_DATE(SUBSTR(prdate,4,19))ydate
+00:49:27  13  ,'sell'	      buysell
+00:49:27  14  ,score
+00:49:27  15  ,rundate
+00:49:27  16  ,sysdate opdate
+00:49:27  17  -- Deal with Fri-afternoon.
+00:49:27  18  -- I want to close Fri-afternoon orders on Mon Morn 01:11 GMT:
+00:49:27  19  ,CASE WHEN
+00:49:27  20  	(
+00:49:27  21  	0+TO_CHAR((sysdate),'D') = 6
+00:49:27  22  	AND
+00:49:27  23  	sysdate+6/24 > TRUNC(sysdate) + 21/24 + 50/60/24
+00:49:27  24  	)
+00:49:27  25  	THEN TRUNC(sysdate) + 3 + 1/24 + 11/60/24
+00:49:27  26  	WHEN 0+TO_CHAR((sysdate+6/24),'D') = 7
+00:49:27  27  	THEN TRUNC(sysdate) + 2 + 1/24 + 11/60/24
+00:49:27  28  	ELSE sysdate + 6/24 END clsdate
+00:49:27  29  FROM ocj
+00:49:27  30  -- The 3rd param corresponds to score_floor_short in oc.rb:
+00:49:27  31  WHERE gscore > '&3'
+00:49:27  32  AND score < 0.20
+00:49:27  33  -- The 1st param corresponds to pairname in oc.rb:
+00:49:27  34  AND pair = '&1'
+00:49:27  35  AND rundate > sysdate - 11/60/24
+00:49:27  36  AND prdate NOT IN(SELECT prdate FROM oc)
+00:49:27  37  -- Avoid entering too many orders close together:
+00:49:27  38  AND sysdate - '&5' >
+00:49:27  39  	(SELECT MAX(opdate)FROM oc WHERE pair='&1'AND buysell='sell')
+00:49:27  40  ORDER BY rundate
+00:49:27  41  /
 old  31: WHERE gscore > '&3'
 new  31: WHERE gscore > '1.0'
 old  34: AND pair = '&1'
-new  34: AND pair = 'gbp'
+new  34: AND pair = 'jpy'
 old  38: AND sysdate - '&5' >
 new  38: AND sysdate - '2.0' >
 old  39:   (SELECT MAX(opdate)FROM oc WHERE pair='&1'AND buysell='sell')
-new  39:   (SELECT MAX(opdate)FROM oc WHERE pair='gbp'AND buysell='sell')
+new  39:   (SELECT MAX(opdate)FROM oc WHERE pair='jpy'AND buysell='sell')
 
 0 rows created.
 
-Elapsed: 00:00:00.03
-22:45:31 SQL> 
-22:45:31 SQL> -- rpt:
-22:45:31 SQL> 
-22:45:31 SQL> COLUMN prdate FORMAT A22
-22:45:31 SQL> 
-22:45:31 SQL> SELECT
-22:45:31   2  prdate,buysell,score,rundate,opdate,clsdate
-22:45:31   3  FROM oc
-22:45:31   4  WHERE rundate > sysdate - 1
-22:45:31   5  ORDER BY rundate
-22:45:31   6  
-22:45:31 SQL> exit
+Elapsed: 00:00:00.04
+00:49:27 SQL> 
+00:49:27 SQL> -- rpt:
+00:49:27 SQL> 
+00:49:27 SQL> COLUMN prdate FORMAT A22
+00:49:27 SQL> 
+00:49:27 SQL> SELECT
+00:49:27   2  prdate,buysell,score,rundate,opdate,clsdate
+00:49:27   3  FROM oc
+00:49:27   4  WHERE rundate > sysdate - 1
+00:49:27   5  ORDER BY rundate
+00:49:27   6  
+00:49:27 SQL> exit
