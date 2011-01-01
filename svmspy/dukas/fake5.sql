@@ -8,8 +8,6 @@ DROP TABLE dukas5min_stk;
 
 PURGE RECYCLEBIN;
 
-exit
-
 CREATE TABLE dukas5min_stk COMPRESS AS
 SELECT tkr,ydate,clse FROM
 (
@@ -37,7 +35,7 @@ ORDER BY tkr,ydate
 
 SELECT
 tkr
-,TO_CHAR(ydate,'MM')mnth
+,TO_CHAR(ydate,'YYYY_MM')mnth
 ,COUNT(tkr)
 FROM dukas5min_stk
 GROUP BY
