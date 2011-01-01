@@ -8,13 +8,13 @@ CREATE OR REPLACE VIEW stk10 AS
 SELECT
 tkr
 ,ydate
-,prdate
+,tkr||ydate tkrdate
 ,clse
 -- Derive some attributes from clse.
-,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*6 PRECEDING AND CURRENT ROW)min6
-,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*6 PRECEDING AND CURRENT ROW)avg6
-,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*6 PRECEDING AND CURRENT ROW)max6
-,LEAD(clse,12*6,NULL)OVER(PARTITION BY tkr ORDER BY ydate)ld6
+,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*4 PRECEDING AND CURRENT ROW)min4
+,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*4 PRECEDING AND CURRENT ROW)avg4
+,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*4 PRECEDING AND CURRENT ROW)max4
+,LEAD(clse,12*4,NULL)OVER(PARTITION BY tkr ORDER BY ydate)ld4
 FROM dukas5min_stk WHERE UPPER(tkr)='SPY'
 ORDER BY ydate
 /
@@ -25,7 +25,7 @@ SELECT
 tkr
 ,COUNT(tkr)
 ,MIN(clse),MAX(clse)
-,MIN(avg6),MAX(avg6)
+,MIN(avg4),MAX(avg4)
 ,MIN(ydate),MAX(ydate)
 FROM stk10
 GROUP BY tkr
@@ -37,18 +37,18 @@ CREATE TABLE stk12 COMPRESS AS
 SELECT
 tkr
 ,ydate
-,prdate
+,tkrdate
 ,clse
--- g6 is important. I want to predict g6:
-,ld6 - clse g6
-,SIGN(avg6 - LAG(avg6,2,NULL)OVER(PARTITION BY tkr ORDER BY ydate))trend
+-- g4 is important. I want to predict g4:
+,ld4 - clse g4
+,SIGN(avg4 - LAG(avg4,2,NULL)OVER(PARTITION BY tkr ORDER BY ydate))trend
 -- I want more attributes from the ones I derived above:
 -- clse relation to moving-min
-,clse-min6  cm6  
+,clse-min4  cm4  
 -- clse relation to moving-avg
-,clse-avg6  ca6  
+,clse-avg4  ca4  
 -- clse relation to moving-max
-,clse-max6  cx6  
+,clse-max4  cx4  
 -- Derive date related attributes:
 ,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
 ,0+TO_CHAR(ydate,'D')d
@@ -72,6 +72,8 @@ FROM stk12
 GROUP BY tkr
 /
 
+exit
+
 -- Prepare for derivation of NTILE based parameters.
 -- Also derive the "trend" parameter:
 
@@ -80,17 +82,17 @@ CREATE TABLE stk14 COMPRESS AS
 SELECT
 tkr
 ,ydate
-,prdate
+,tkrdate
 ,clse
-,g6
-,CASE WHEN g6 IS NULL THEN NULL WHEN g6 > 0.10 THEN 'up' ELSE 'nup' END gatt
-,CASE WHEN g6 IS NULL THEN NULL WHEN g6< -0.10 THEN 'up' ELSE 'nup' END gattn
+,g4
+,CASE WHEN g4 IS NULL THEN NULL WHEN g4 > 0.50 THEN 'up' ELSE 'nup' END gatt
+,CASE WHEN g4 IS NULL THEN NULL WHEN g4< -0.50 THEN 'up' ELSE 'nup' END gattn
 ,CASE WHEN trend IS NULL THEN 1
       WHEN trend =0      THEN 1
       ELSE trend END trend
-,cm6  
-,ca6  
-,cx6  
+,cm4  
+,ca4  
+,cx4  
 ,hh
 ,d
 ,w
@@ -107,7 +109,7 @@ tkr
 ,trend
 ,gatt
 ,COUNT(tkr)
-,AVG(g6)
+,AVG(g4)
 FROM stk14
 GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
@@ -120,15 +122,15 @@ CREATE TABLE stk16 COMPRESS AS
 SELECT
 tkr
 ,ydate
-,prdate
+,tkrdate
 ,clse
-,g6
+,g4
 ,gatt
 ,gattn
 ,trend
-,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm6)att00
-,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca6)att01
-,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx6)att02
+,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm4)att00
+,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca4)att01
+,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx4)att02
 ,hh  att03
 ,d   att04
 ,w   att05
@@ -146,7 +148,7 @@ tkr
 ,trend
 ,gatt
 ,COUNT(tkr)
-,AVG(g6)
+,AVG(g4)
 FROM stk16
 GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
@@ -158,20 +160,20 @@ CREATE TABLE stk_ms COMPRESS AS
 SELECT
 tkr
 ,ydate
-,prdate
+,tkrdate
 ,trend
-,g6
+,g4
 ,gatt
 ,gattn
-,SUM(g6)OVER(PARTITION BY trend,att00 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g00
-,SUM(g6)OVER(PARTITION BY trend,att01 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g01
-,SUM(g6)OVER(PARTITION BY trend,att02 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g02
-,SUM(g6)OVER(PARTITION BY trend,att03 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g03
-,SUM(g6)OVER(PARTITION BY trend,att04 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g04
-,SUM(g6)OVER(PARTITION BY trend,att05 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g05
-,SUM(g6)OVER(PARTITION BY trend,att06 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g06
-,SUM(g6)OVER(PARTITION BY trend,att07 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g07
-,SUM(g6)OVER(PARTITION BY trend,att08 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g08
+,SUM(g4)OVER(PARTITION BY trend,att00 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g00
+,SUM(g4)OVER(PARTITION BY trend,att01 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g01
+,SUM(g4)OVER(PARTITION BY trend,att02 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g02
+,SUM(g4)OVER(PARTITION BY trend,att03 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g03
+,SUM(g4)OVER(PARTITION BY trend,att04 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g04
+,SUM(g4)OVER(PARTITION BY trend,att05 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g05
+,SUM(g4)OVER(PARTITION BY trend,att06 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g06
+,SUM(g4)OVER(PARTITION BY trend,att07 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g07
+,SUM(g4)OVER(PARTITION BY trend,att08 ORDER BY ydate ROWS BETWEEN 12*22*30 PRECEDING AND CURRENT ROW)g08
 FROM stk16
 /
 
@@ -182,7 +184,7 @@ tkr
 ,trend
 ,gatt
 ,COUNT(tkr)
-,AVG(g6)
+,AVG(g4)
 FROM stk_ms
 GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
