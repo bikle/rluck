@@ -51,7 +51,7 @@ export socks4a='127.0.0.1:9050'
 
 # curl --socks4a $socks4a --user-agent 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)' --cookie-jar cj.txt --cookie cj.txt --no-buffer --output stock_${myts}.csv ${url0}${url2}${url4}${url_stock}${url8}
 
-curl --user-agent 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)' --cookie-jar cj.txt --cookie cj.txt --no-buffer --output stock_${myts}.csv ${url0}${url2}${url4}${url_stock}${url8}
+curl --user-agent 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)' --cookie-jar cj.txt --cookie cj.txt --no-buffer --output stock_${myts}.10min.csv ${url0}${url2}${url4}${url_stock}${url8}
 
 # Load the data into adhoc table
 
