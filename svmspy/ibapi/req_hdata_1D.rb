@@ -62,9 +62,9 @@ debugger
     # m_backfillEndTime= jl_str "20100816 23:59:59 GMT"
     m_backfillEndTime= jl_str gm_time
     # I want 3 Weeks of data:
-    m_backfillDuration= jl_str "3 W"
+    # m_backfillDuration= jl_str "1 W"
     # I want 1 day of data:
-    m_backfillDuration= jl_str "1 D"
+    m_backfillDuration= jl_str "5 D"
     # m_barSizeSetting= jl_str "1 hour"
     # I want prices for every 5 minutes
     m_barSizeSetting= jl_str "5 mins"
