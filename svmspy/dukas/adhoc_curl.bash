@@ -13,7 +13,7 @@ cd /pt/s/rluck/svmspy/dukas/
 export url0='http://www.dukascopy.com/freeApplets/exp/exp.php?'
 
 export url2='fromD='`date -u '+%m.%d.%Y'`
-export url2='fromD=03.19.2010'
+export url2='fromD=01.01.2011'
 
 # 3600 is 1 hr
 export url4='&np=2000&interval=3600&DF=m/d/y'
@@ -27,6 +27,18 @@ export url8='&endSym=unix&split=tz'
 # HTML of form is here:
 # dukasform.html
 export url_stock='&Stock=331'
+
+# dia:
+export url_stock='&Stock=330'
+
+# wmt:
+export url_stock='&Stock=58'
+
+# xom:
+export url_stock='&Stock=41'
+
+# qqqq:
+export url_stock='&Stock=329'
 
 # Get the data
 export myts=`date -u '+%Y_%m_%d_%H_%M'`
