@@ -5,7 +5,7 @@
 # Get recent data from dukascopy.com
 
 set -x
-cd /pt/s/dukas/
+cd /pt/s/rluck/svmspy/dukas/
 
 # I think that uagent cannot be passed via variable. So, hard code this string:
 # 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
