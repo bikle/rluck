@@ -40,10 +40,10 @@ tkr
 FROM dukas5min_stk
 GROUP BY
 tkr
-,TO_CHAR(ydate,'MM')
+,TO_CHAR(ydate,'YYYY_MM')
 ORDER BY
 tkr
-,TO_CHAR(ydate,'MM')
+,TO_CHAR(ydate,'YYYY_MM')
 /
 
 
