@@ -24,7 +24,7 @@ FROM
 
 -- DELETE contending records:
 DELETE dukas10min_stk 
-WHERE tkr= '&1' AND ydate IN
+WHERE UPPER(tkr) = UPPER('&1') AND ydate IN
   (
     SELECT 
     TO_DATE(ydate||'_'||ttime,'MM/DD/YY_HH24:MI:SS')ydate
@@ -39,18 +39,18 @@ set lines 166
 
 -- Do the merge here.
 -- Assume the data in hstage is better than the data in dukas10min_stk.
-INSERT INTO dukas10min_stk(tkr,ydate,vol,opn,clse,mn,mx)
+INSERT INTO dukas10min_stk(tkr,ydate,clse)
   SELECT 
-  '&1' tkr
+  UPPER('&1') tkr
   ,TO_DATE(ydate||'_'||ttime,'MM/DD/YY_HH24:MI:SS')ydate
-  ,vol,opn,clse,mn,mx
+  ,clse
   FROM hstage
 /
 
 -- I should get a perfect match here:
 SELECT COUNT(ydate)FROM hstage;
 SELECT COUNT(ydate)FROM dukas10min_stk
-WHERE tkr= '&1' AND ydate IN
+WHERE UPPER(tkr) = UPPER('&1') AND ydate IN
   (SELECT 
    TO_DATE(ydate||'_'||ttime,'MM/DD/YY_HH24:MI:SS')ydate
    FROM hstage

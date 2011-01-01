@@ -4,6 +4,9 @@
 
 # Demo: load_tkr_10min.bash SPY
 
+if [ $# -eq 1 ]
+then
+
 . /pt/s/rluck/svmspy/.orcl
 . /pt/s/rluck/svmspy/.jruby
 
@@ -38,5 +41,12 @@ wc -l hstage.csv
 sqt<<EOF
 @merge_dukas10min.sql  $1
 EOF
+
+exit 0
+
+else
+  echo You need to give a tkr to this script.
+  echo Demo: $0 SPY
+fi
 
 exit
