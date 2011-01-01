@@ -39,7 +39,7 @@ wc -l hstage.csv
 
 # Merge hstage into dukas10min
 sqt<<EOF
-@merge_dukas10min.sql  $1
+@merge_dukas10min_stk.sql  $1
 EOF
 
 exit 0

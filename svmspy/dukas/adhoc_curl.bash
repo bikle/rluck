@@ -12,8 +12,8 @@ cd /pt/s/rluck/svmspy/dukas/
 
 export url0='http://www.dukascopy.com/freeApplets/exp/exp.php?'
 
-export url2='fromD=09.06.2010'
 export url2='fromD='`date -u '+%m.%d.%Y'`
+export url2='fromD=05.31.2010'
 
 # 3600 is 1 hr
 export url4='&np=2000&interval=3600&DF=m/d/y'

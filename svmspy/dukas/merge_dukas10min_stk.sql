@@ -1,5 +1,5 @@
 --
--- merge_dukas10min.sql
+-- merge_dukas10min_stk.sql
 --
 
 -- rpt
