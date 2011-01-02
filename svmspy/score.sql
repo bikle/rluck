@@ -6,11 +6,17 @@
 
 -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
 
-DEFINE target     = 'gatt'
-DEFINE model_name = 'svmspy100'
-DEFINE bldtable   = 'bme'
-DEFINE scoretable = 'sme'
-DEFINE case_id    = 'tkrdate'
+-- DEFINE target     = 'gatt'
+-- DEFINE model_name = 'svmspy100'
+-- DEFINE bldtable   = 'bme'
+-- DEFINE scoretable = 'sme'
+-- DEFINE case_id    = 'tkrdate'
+
+DEFINE target     = '&1'
+DEFINE model_name = '&2'
+DEFINE bldtable   = '&3'
+DEFINE scoretable = '&4'
+DEFINE case_id    = '&5'
 
 -- Define a variable to help me exclude some columns from some data mining calls
 DEFINE exclude1 = "'&target','&case_id'"

@@ -51,4 +51,4 @@ SELECT gatt, COUNT(tkrdate) FROM bme GROUP BY gatt;
 SELECT MAX(tkrdate) FROM bme;
 
 -- Now build model from bme and score sme
-@score1.sql
+@score1.sql gatt
