@@ -151,4 +151,16 @@ WHERE ydate > sysdate - 1.5/24
 ORDER BY tkr,ydate
 /
 
+-- Look at date ranges
+
+SELECT
+tkr
+,MIN(ydate)
+,COUNT(ydate)
+,MAX(ydate)
+FROM ibs5min
+GROUP BY tkr
+ORDER BY tkr
+/
+
 exit
