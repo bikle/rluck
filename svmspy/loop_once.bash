@@ -6,6 +6,7 @@ svmtkr.bash SPY
 svmtkr.bash QQQQ
 svmtkr.bash DIA
 svmtkr.bash DIS
+svmtkr.bash GOOG
 svmtkr.bash WMT
 svmtkr.bash XOM
 svmtkr.bash EBAY

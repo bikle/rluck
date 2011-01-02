@@ -67,7 +67,7 @@ MIN(ydate)
 ,ROUND(STDDEV(g4),3)stddv_g4
 ,ROUND(MAX(g4),3)max_g4
 FROM tkr_rpt10
-WHERE rscore_short < 0.2
+WHERE rscore_short < 0.3
 GROUP BY rscore_long
 ORDER BY rscore_long
 /
@@ -100,7 +100,7 @@ MIN(ydate)
 ,ROUND(STDDEV(g4),3)stddv_g4
 ,ROUND(MAX(g4),3)max_g4
 FROM tkr_rpt10
-WHERE rscore_long < 0.2
+WHERE rscore_long < 0.3
 GROUP BY rscore_short
 ORDER BY rscore_short
 /
