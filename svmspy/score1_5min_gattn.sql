@@ -47,7 +47,7 @@ AND tkr = '&3'
 -- rpt
 -- We should see just 1 row:
 
-SELECT COUNT(tkrdate) FROM sme;
+SELECT COUNT(tkrdate) FROM sme
 
 -- Build the model:
 CREATE OR REPLACE VIEW bme AS
@@ -93,9 +93,9 @@ AND tkr = '&3'
 
 -- rpt
 
-SELECT gattn, COUNT(tkrdate) FROM bme GROUP BY gattn;
+SELECT gattn, COUNT(tkrdate) FROM bme GROUP BY gattn
 
-SELECT MAX(tkrdate) FROM bme;
+SELECT MAX(tkrdate) FROM bme
 
 -- Now build model from bme and score sme
 @score1.sql gattn
