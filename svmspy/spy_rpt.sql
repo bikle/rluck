@@ -12,18 +12,18 @@ l.score  score_long
 ,m.ydate
 ,ROUND(l.score,1)rscore_long
 ,ROUND(s.score,1)rscore_short
-FROM stkscores l,stkscores_gattn s,stk_ms m
+FROM stkscores l, stkscores s,stk_ms m
 WHERE l.ydate = s.ydate
 AND   l.ydate = m.ydate
 AND l.tkr = 'SPY'
 AND l.tkr = s.tkr
+AND l.targ = 'gatt'
+AND s.targ = 'gattn'
 /
 
 -- rpt
 
 SELECT COUNT(*)FROM stkscores;
-
-SELECT COUNT(*)FROM stkscores_gattn;
 
 SELECT COUNT(*)FROM spy_rpt10;
 
