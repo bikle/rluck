@@ -22,7 +22,7 @@ WHERE ydate = '&1'||' '||'&2'
 -- rpt
 -- We should see just 1 row:
 
-SELECT COUNT(prdate) FROM sme
+SELECT COUNT(prdate) FROM sme;
 
 -- Build the model:
 CREATE OR REPLACE VIEW bme AS

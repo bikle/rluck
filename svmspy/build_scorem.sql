@@ -8,11 +8,11 @@
 SELECT cmd,ydate FROM
 (
 SELECT '@score1_5min.sql 'cmd,ydate FROM stk_ms
-WHERE ydate NOT IN (SELECT ydate FROM fxscores_demo)
+WHERE ydate NOT IN (SELECT ydate FROM stkscores)
 AND ydate > sysdate - 11
 UNION
 SELECT '@score1_5min_gattn.sql 'cmd,ydate FROM stk_ms
-WHERE ydate NOT IN (SELECT ydate FROM fxscores_demo_gattn)
+WHERE ydate NOT IN (SELECT ydate FROM stkscores_gattn)
 AND ydate > sysdate - 11
 )
 ORDER BY ydate,cmd
