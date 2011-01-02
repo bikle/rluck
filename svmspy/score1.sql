@@ -1,9 +1,20 @@
 -- score1.sql
 
--- Does the 1st SVM score
+-- I use this script to send 5 params to score.sql
+-- which does the heavy lifting of creating an SVM model.
+-- Then at the very end of this script I use the model
+-- inside an INSERT via a call to: PREDICTION_PROBABILITY()
 
--- Fill up svmc_apply_prep
--- Use same model_name used in score.sql
+-- I call this script from 2 other scripts:
+-- score1_5min.sql
+-- score1_5min_gattn.sql
+
+-- Demo:
+-- @score1.sql 'gatt'
+-- @score1.sql 'gattn'
+
+-- Now, I fill up svmc_apply_prep.
+-- I use same model_name used in score.sql
 DEFINE model_name = 'svmspy100'
 DEFINE bldtable   = 'bme'
 DEFINE scoretable = 'sme'
@@ -15,6 +26,8 @@ DEFINE case_id    = 'tkrdate'
 -- Maybe I already collected a score for this tkrdate.
 -- DELETE it if I did:
 DELETE stkscores WHERE score > 0 AND tkrdate IN(SELECT tkrdate FROM svmc_apply_prep);
+
+-- We do a drumroll here:
 
 INSERT INTO stkscores (tkrdate,score,rundate,tkr,ydate)
 SELECT
