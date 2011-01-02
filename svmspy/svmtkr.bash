@@ -32,8 +32,6 @@ EOF
 # Massage the output txt into a sql script
 grep score1_5min scorem_tkr_out.txt | grep -v SELECT > scorem_tkr.sql
 
-exit 0
-
 # Run scorem_tkr
 sqt>out_of_scorem_tkr.txt<<EOF
 @scorem_tkr.sql
