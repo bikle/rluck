@@ -15,6 +15,27 @@ tkrdate
 ,g06
 ,g07
 ,g08
+,g09
+,g10
+,g11
+,g12
+,g13
+,g14
+,g15
+,g16
+,g17
+,g18
+,g19
+,g20
+,g21
+,g22
+,g23
+,g24
+,g25
+,g26
+,g27
+,g28
+,g29
 FROM stk_ms
 WHERE ydate = '&1'||' '||'&2'
 /
@@ -38,6 +59,27 @@ tkrdate
 ,g06
 ,g07
 ,g08
+,g09
+,g10
+,g11
+,g12
+,g13
+,g14
+,g15
+,g16
+,g17
+,g18
+,g19
+,g20
+,g21
+,g22
+,g23
+,g24
+,g25
+,g26
+,g27
+,g28
+,g29
 FROM stk_ms
 WHERE gatt IN('nup','up')
 -- Use only rows which are older than 1 day:
