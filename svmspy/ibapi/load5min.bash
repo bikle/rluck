@@ -41,6 +41,10 @@ sqlldr trade/t bindsize=20971520 readsize=20971520 rows=123456 control=ibs_stage
 grep loaded ibs_stage.log
 wc -l ibs_stage.csv
 
+sqt>merge.txt<<EOF
+@merge.sql
+EOF
+
 exit 0
 
 # end of if [ $# -ne 1 ] #######

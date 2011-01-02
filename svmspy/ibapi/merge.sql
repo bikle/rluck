@@ -2,52 +2,49 @@
 -- merge.sql
 --
 
--- I use this script to merge data from ibf_stage into ibf5min.
+-- I use this script to merge data from ibs_stage into ibs5min.
 
 
--- CREATE TABLE ibf_old     (pair VARCHAR2(8),ydate DATE,clse NUMBER);
--- CREATE TABLE ibf_dups_old(pair VARCHAR2(8),ydate DATE,clse NUMBER);
+-- CREATE TABLE ibs_old     (tkr VARCHAR2(8),ydate DATE,clse NUMBER);
+-- CREATE TABLE ibs_dups_old(tkr VARCHAR2(8),ydate DATE,clse NUMBER);
 
-DROP TABLE ibf_old;
-RENAME ibf5min TO ibf_old;
+DROP TABLE ibs_old;
+RENAME ibs5min TO ibs_old;
 
-DROP TABLE ibf_dups_old;
-RENAME ibf_dups TO ibf_dups_old;
+DROP TABLE ibs_dups_old;
+RENAME ibs_dups TO ibs_dups_old;
 
-CREATE TABLE ibf_dups COMPRESS AS
+CREATE TABLE ibs_dups COMPRESS AS
 SELECT
-pair
+tkr
 ,(TO_DATE('1970-01-01','YYYY-MM-DD')+(epochsec/24/3600))ydate
 ,clse
-FROM ibf_stage
+FROM ibs_stage
 UNION
-SELECT pair,ydate,clse
-FROM ibf_old
+SELECT tkr,ydate,clse
+FROM ibs_old
 /
 
-CREATE TABLE ibf5min COMPRESS AS
+CREATE TABLE ibs5min COMPRESS AS
 SELECT
-pair
+tkr
 ,ydate
 ,AVG(clse)clse
-FROM ibf_dups
-GROUP BY pair,ydate
+FROM ibs_dups
+GROUP BY tkr,ydate
 /
 
--- I distrust the data before 2010-11-30
-DELETE ibf5min WHERE ydate < '2010-11-30';
-
-ANALYZE TABLE ibf5min COMPUTE STATISTICS;
+ANALYZE TABLE ibs5min COMPUTE STATISTICS;
 
 -- I should see less than 60 min:
 SELECT
-pair
+tkr
 ,(sysdate - MAX(ydate))*24*60 minutes_age
 ,MIN(ydate)
 ,COUNT(ydate)
 ,MAX(ydate)FROM
-ibf5min
-GROUP BY pair
+ibs5min
+GROUP BY tkr
 /
 
 exit
