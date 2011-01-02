@@ -29,8 +29,6 @@ EOF
 # Massage the output txt into a sql script
 grep score1_5min scorem_SPY_out.txt | grep -v SELECT > scorem_spy.sql
 
-exit
-
 # Run scorem_spy
 sqt>out_of_scorem_spy.txt<<EOF
 @scorem_spy.sql
