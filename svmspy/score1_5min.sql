@@ -4,7 +4,7 @@
 
 CREATE OR REPLACE VIEW sme AS
 SELECT
-prdate
+tkrdate
 ,NULL gatt
 ,g00
 ,g01
@@ -22,12 +22,12 @@ WHERE ydate = '&1'||' '||'&2'
 -- rpt
 -- We should see just 1 row:
 
-SELECT COUNT(prdate) FROM sme;
+SELECT COUNT(tkrdate) FROM sme;
 
 -- Build the model:
 CREATE OR REPLACE VIEW bme AS
 SELECT
-prdate
+tkrdate
 ,gatt
 ,g00
 ,g01
@@ -46,9 +46,9 @@ AND 1+ydate < '&1'||' '||'&2'
 
 -- rpt
 
-SELECT gatt, COUNT(prdate) FROM bme GROUP BY gatt;
+SELECT gatt, COUNT(tkrdate) FROM bme GROUP BY gatt;
 
-SELECT MAX(prdate) FROM bme;
+SELECT MAX(tkrdate) FROM bme;
 
 -- Now build model from bme and score sme
 -- @score1.sql
