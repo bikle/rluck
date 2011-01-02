@@ -19,8 +19,6 @@ sqt>spy10.txt<<EOF
 @stk10.sql SPY
 EOF
 
-exit
-
 date
 
 # Build a SQL script full of calls to a set of scoring scipts:
@@ -30,6 +28,8 @@ EOF
 
 # Massage the output txt into a sql script
 grep score1_5min scorem_SPY_out.txt | grep -v SELECT > scorem_spy.sql
+
+exit
 
 # Run scorem_spy
 sqt>out_of_scorem_spy.txt<<EOF
