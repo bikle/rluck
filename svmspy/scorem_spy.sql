@@ -1244,3 +1244,5 @@
 @score1_5min_gattn.sql	2010-12-31 20:40:01
 @score1_5min.sql	2010-12-31 20:45:01
 @score1_5min_gattn.sql	2010-12-31 20:45:01
+@score1_5min.sql	2010-12-31 20:50:01
+@score1_5min_gattn.sql	2010-12-31 20:50:01

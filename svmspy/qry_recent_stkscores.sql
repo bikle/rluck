@@ -6,6 +6,4 @@
 
 SELECT * FROM stkscores WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
 
-SELECT * FROM stkscores_gattn WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
-
 exit

@@ -9,6 +9,9 @@
 -- score1_5min.sql
 -- score1_5min_gattn.sql
 
+-- The 1st param is the name of the target attribute.
+-- I like to call my target attributes either gatt or gattn.
+
 -- Demo:
 -- @score1.sql 'gatt'
 -- @score1.sql 'gattn'
@@ -25,7 +28,12 @@ DEFINE case_id    = 'tkrdate'
 
 -- Maybe I already collected a score for this tkrdate.
 -- DELETE it if I did:
-DELETE stkscores WHERE score > 0 AND tkrdate IN(SELECT tkrdate FROM svmc_apply_prep);
+DELETE stkscores
+WHERE score > 0
+AND tkrdate IN(SELECT tkrdate FROM svmc_apply_prep)
+-- I need to supply the target attribute name:
+AND targ = '&1'
+/
 
 -- We do a drumroll here:
 
