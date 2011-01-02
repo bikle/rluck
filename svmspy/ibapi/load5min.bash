@@ -4,15 +4,40 @@
 
 # I use this script to load price data into ibf5min.
 
-. /pt/s/rluck/svm6/.orcl
+# Demo:
+# 5min_data.bash SPY
+
+if [ $# -ne 1 ]
+then
+  echo You need to give a tkr.
+  echo Demo:
+  echo $0 SPY
+  exit 1
+else
+
+. /pt/s/rluck/svmspy/.jruby
+. /pt/s/rluck/svmspy/.orcl
 
 set -x
 
-cd /pt/s/rluck/svm6/ibapi/
+cd $SVMSPY/ibapi
 
 cd csv_files/
 
 # Loop through the CSV files.
+
+sort ${1}* |uniq|grep 1|grep -v finished|awk -v awk_var=$1 -F, '{print awk_var","$2","$3}'> ibs_stage.csv
+
+exit 0
+
+# end of if [ $# -ne 1 ] #######
+fi
+# end of if [ $# -ne 1 ] #######
+
+
+
+exit
+
 sort AUD_USD* |uniq|grep 1|grep -v finished|awk -F, '{print "aud_usd,"$2","$3}'> ibf_stage.csv
 sort EUR_USD* |uniq|grep 1|grep -v finished|awk -F, '{print "eur_usd,"$2","$3}'>> ibf_stage.csv
 sort GBP_USD* |uniq|grep 1|grep -v finished|awk -F, '{print "gbp_usd,"$2","$3}'>> ibf_stage.csv

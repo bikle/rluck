@@ -5,7 +5,6 @@
 # Gets historical data from IB TWS
 
 require 'rubygems' 
-require 'ruby-debug'
 
 require 'java'
 
@@ -35,7 +34,6 @@ class ReqHdata
 
   # Derived from main() in SampleRfq.java
   def self.get_hdata
-debugger
     if $*.size != 1
       p "I want you to give me SYMBOL."
       p "Usage: req_hdata.rb SYMBOL"
