@@ -21,3 +21,5 @@ tkrdate
 FROM svmc_apply_prep
 /
 
+SELECT TO_CHAR(ydate,'W') , COUNT(tkr)FROM stk_ms GROUP BY TO_CHAR(ydate,'W')ORDER BY TO_CHAR(ydate,'W');
+

@@ -121,8 +121,8 @@ tkr
 ,tkrdate
 ,clse
 ,g4
-,CASE WHEN g4 IS NULL THEN NULL WHEN g4 > 0.30 THEN 'up' ELSE 'nup' END gatt
-,CASE WHEN g4 IS NULL THEN NULL WHEN g4< -0.30 THEN 'up' ELSE 'nup' END gattn
+,CASE WHEN g4 IS NULL THEN NULL WHEN g4/clse >  0.30/120 THEN 'up' ELSE 'nup' END gatt
+,CASE WHEN g4 IS NULL THEN NULL WHEN g4/clse < -0.30/120 THEN 'up' ELSE 'nup' END gattn
 ,CASE WHEN trend IS NULL THEN 1
       WHEN trend =0      THEN 1
       ELSE trend END trend
@@ -153,6 +153,8 @@ tkr
 ,mpm
 ,mph
 FROM stk12
+-- Guard against divide by 0:
+WHERE clse > 0
 ORDER BY ydate
 /
 
