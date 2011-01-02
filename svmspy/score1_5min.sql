@@ -2,6 +2,9 @@
 -- score1_5min.sql
 --
 
+-- Demo:
+-- @score1_5min.sql 2010-12-31 20:45:01 SPY
+
 CREATE OR REPLACE VIEW sme AS
 SELECT
 tkrdate
@@ -38,6 +41,7 @@ tkrdate
 ,g29
 FROM stk_ms
 WHERE ydate = '&1'||' '||'&2'
+AND tkr = '&3'
 /
 
 -- rpt
@@ -84,6 +88,7 @@ FROM stk_ms
 WHERE gatt IN('nup','up')
 -- Use only rows which are older than 1 day:
 AND 1+ydate < '&1'||' '||'&2'
+AND tkr = '&3'
 /
 
 -- rpt
