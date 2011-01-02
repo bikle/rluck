@@ -72,8 +72,6 @@ FROM stk12
 GROUP BY tkr
 /
 
-exit
-
 -- Prepare for derivation of NTILE based parameters.
 -- Also derive the "trend" parameter:
 
@@ -85,8 +83,8 @@ tkr
 ,tkrdate
 ,clse
 ,g4
-,CASE WHEN g4 IS NULL THEN NULL WHEN g4 > 0.50 THEN 'up' ELSE 'nup' END gatt
-,CASE WHEN g4 IS NULL THEN NULL WHEN g4< -0.50 THEN 'up' ELSE 'nup' END gattn
+,CASE WHEN g4 IS NULL THEN NULL WHEN g4 > 0.30 THEN 'up' ELSE 'nup' END gatt
+,CASE WHEN g4 IS NULL THEN NULL WHEN g4< -0.30 THEN 'up' ELSE 'nup' END gattn
 ,CASE WHEN trend IS NULL THEN 1
       WHEN trend =0      THEN 1
       ELSE trend END trend
@@ -153,7 +151,6 @@ FROM stk16
 GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
 /
-
 
 DROP TABLE stk_ms;
 CREATE TABLE stk_ms COMPRESS AS
