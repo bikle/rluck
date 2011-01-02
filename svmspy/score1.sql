@@ -12,12 +12,12 @@ DEFINE model_name = 'svmspy100'
 -- DELETE it if I did:
 DELETE stkscores WHERE score > 0 AND tkrdate IN(SELECT tkrdate FROM svmc_apply_prep);
 
-INSERT INTO stkscores (tkrdate,score,rundate,pair,ydate)
+INSERT INTO stkscores (tkrdate,score,rundate,tkr,ydate)
 SELECT
 tkrdate
 ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
 ,sysdate
-,SUBSTR(tkrdate,1,3)pair
+,SUBSTR(tkrdate,1,3)tkr
 ,SUBSTR(tkrdate,4,19)ydate
 FROM svmc_apply_prep
 /
