@@ -29,7 +29,7 @@ DELETE stkscores WHERE score > 0 AND tkrdate IN(SELECT tkrdate FROM svmc_apply_p
 
 -- We do a drumroll here:
 
-INSERT INTO stkscores (tkrdate,score,rundate,tkr,ydate)
+INSERT INTO stkscores (tkrdate,score,rundate,tkr,ydate,targ)
 SELECT
 tkrdate
 ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
@@ -38,5 +38,6 @@ tkrdate
 -- rluck/oracle_sql_demos/substr.sql :
 ,SUBSTR(tkrdate,-LENGTH(tkrdate),LENGTH(tkrdate)-19)tkr
 ,SUBSTR(tkrdate,-19)ydate
+,'&1'
 FROM svmc_apply_prep
 /
