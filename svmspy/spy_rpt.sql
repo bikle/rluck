@@ -88,6 +88,8 @@ GROUP BY rscore_short
 ORDER BY rscore_short
 /
 
+-- Now I combine high rscore_short and low rscore_long:
+
 SELECT
 MIN(ydate)
 ,COUNT(ydate)
