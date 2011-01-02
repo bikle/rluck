@@ -24,7 +24,7 @@ set -x
 date
 
 cd $SVMSPY/ibapi
-./load5min.bash $1
+./5min_data.bash $1
 
 cd $SVMSPY
 # Not quite yet.
