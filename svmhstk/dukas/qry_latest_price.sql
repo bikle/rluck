@@ -11,3 +11,13 @@ FROM dukas1hr_stk
 WHERE ydate IN (SELECT MAX(ydate)FROM dukas1hr_stk)
 ORDER BY tkr
 /
+
+SELECT
+tkr
+,MIN(ydate)
+,COUNT(ydate)
+,MAX(ydate)
+FROM dukas1hr_stk
+GROUP BY tkr
+ORDER BY tkr
+/
