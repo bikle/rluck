@@ -3,6 +3,8 @@
 # load1hr.bash
 
 # I use this script to load data from CSV files into table, ibs1hr.
+# I call this script from: 1hr_data.bash
+
 
 # Demo:
 # ./load1hr.bash SPY

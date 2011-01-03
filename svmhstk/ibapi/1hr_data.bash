@@ -22,7 +22,9 @@ set -x
 
 cd $SVMHSTK/ibapi
 
-jruby req_hdata_1D.rb $1
+## debug
+## debug jruby req_hdata_1D.rb $1
+## debug
 
 
 export myts=`date +%Y_%m_%d_%H_%M`
@@ -36,9 +38,8 @@ fi
 
 exit 0
 
-export myts=`date +%Y_%m_%d_%H_%M`
-# Now I load the data into table, ibs1hr:
-./load1hr.bash $1 > /pt/s/cron/out/load1hr.${myts}.txt 2>&1
+###################################
+# add this later:
 
 # Look at data in ibs1hr
 

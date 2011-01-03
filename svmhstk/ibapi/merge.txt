@@ -1,0 +1,107 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Jan 3 02:36:05 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+02:36:06 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+02:36:06 SQL> 02:36:06 SQL> --
+02:36:06 SQL> -- merge.sql
+02:36:06 SQL> --
+02:36:06 SQL> 
+02:36:06 SQL> -- I use this script to merge data from ibs_stage into ibs1hr.
+02:36:06 SQL> 
+02:36:06 SQL> 
+02:36:06 SQL> -- CREATE TABLE ibs_old	  (tkr VARCHAR2(8),ydate DATE,clse NUMBER);
+02:36:06 SQL> -- CREATE TABLE ibs_dups_old(tkr VARCHAR2(8),ydate DATE,clse NUMBER);
+02:36:06 SQL> 
+02:36:06 SQL> DROP TABLE ibs_old;
+DROP TABLE ibs_old
+           *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
+
+Elapsed: 00:00:00.18
+02:36:06 SQL> RENAME ibs1hr TO ibs_old;
+
+Table renamed.
+
+Elapsed: 00:00:00.25
+02:36:06 SQL> 
+02:36:06 SQL> DROP TABLE ibs_dups_old;
+
+Table dropped.
+
+Elapsed: 00:00:00.37
+02:36:06 SQL> RENAME ibs_dups TO ibs_dups_old;
+RENAME ibs_dups TO ibs_dups_old
+*
+ERROR at line 1:
+ORA-04043: object IBS_DUPS does not exist
+
+
+Elapsed: 00:00:00.02
+02:36:06 SQL> 
+02:36:06 SQL> CREATE TABLE ibs_dups COMPRESS AS
+02:36:06   2  SELECT
+02:36:06   3  tkr
+02:36:06   4  ,(TO_DATE('1970-01-01','YYYY-MM-DD')+(epochsec/24/3600))ydate
+02:36:06   5  ,clse
+02:36:06   6  FROM ibs_stage
+02:36:06   7  UNION
+02:36:06   8  SELECT tkr,ydate,clse
+02:36:06   9  FROM ibs_old
+02:36:06  10  /
+
+Table created.
+
+Elapsed: 00:00:00.23
+02:36:07 SQL> 
+02:36:07 SQL> CREATE TABLE ibs1hr COMPRESS AS
+02:36:07   2  SELECT
+02:36:07   3  tkr
+02:36:07   4  ,ydate
+02:36:07   5  ,AVG(clse)clse
+02:36:07   6  FROM ibs_dups
+02:36:07   7  GROUP BY tkr,ydate
+02:36:07   8  /
+
+Table created.
+
+Elapsed: 00:00:00.08
+02:36:07 SQL> 
+02:36:07 SQL> ANALYZE TABLE ibs1hr COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.16
+02:36:07 SQL> 
+02:36:07 SQL> -- I should see less than 60 min:
+02:36:07 SQL> SELECT
+02:36:07   2  tkr
+02:36:07   3  ,(sysdate - MAX(ydate))*24*60 minutes_age
+02:36:07   4  ,MIN(ydate)
+02:36:07   5  ,COUNT(ydate)
+02:36:07   6  ,MAX(ydate)FROM
+02:36:07   7  ibs1hr
+02:36:07   8  GROUP BY tkr
+02:36:07   9  /
+
+TKR	 MINUTES_AGE MIN(YDATE) 	 COUNT(YDATE) MAX(YDATE)
+-------- ----------- ------------------- ------------ -------------------
+SPY	  3036.11667 2010-12-13 09:00:00	  224 2011-01-01 00:00:00
+
+Elapsed: 00:00:00.05
+02:36:07 SQL> 
+02:36:07 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options

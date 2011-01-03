@@ -1,17 +1,17 @@
 --
--- qry_ibs5min.sql
+-- qry_ibs1hr.sql
 --
 
--- I use this script to look for dups and bad data in ibs5min
+-- I use this script to look for dups and bad data in ibs1hr
 
 SET LINES 66
-DESC ibs5min
+DESC ibs1hr
 SET LINES 166
 
 SELECT
 tkr
 ,COUNT(tkr)
-FROM ibs5min
+FROM ibs1hr
 GROUP BY tkr
 ORDER BY tkr
 /
@@ -23,7 +23,7 @@ SELECT
 tkr
 ,ydate
 ,COUNT(tkr)
-FROM ibs5min
+FROM ibs1hr
 GROUP BY tkr,ydate
 HAVING COUNT(tkr)>1
 )
@@ -31,10 +31,10 @@ HAVING COUNT(tkr)>1
 
 -- Use LAG() to look for big jumps.
 
-CREATE OR REPLACE VIEW ibs5min10 AS
+CREATE OR REPLACE VIEW ibs1hr10 AS
 SELECT
 tkr
--- ydate is granular down to 5 min:
+-- ydate is granular down to 1 hr:
 ,ydate
 ,clse
 -- Use analytic function to get LAG()
@@ -42,12 +42,12 @@ tkr
 ,(ydate - LAG(ydate,1,NULL)OVER(PARTITION BY tkr ORDER BY ydate))*24*60 minutes_diff
 ,LAG(clse,1,NULL)OVER(PARTITION BY tkr ORDER BY ydate)               lag_clse
 ,(clse - LAG(clse,1,NULL)OVER(PARTITION BY tkr ORDER BY ydate))/clse lag_diff
-FROM ibs5min
+FROM ibs1hr
 WHERE clse>0
 ORDER BY tkr, ydate
 /
 
-CREATE OR REPLACE VIEW ibs5min_ld AS
+CREATE OR REPLACE VIEW ibs1hr_ld AS
 SELECT
 tkr
 ,MIN(lag_diff)    min_lag_diff
@@ -55,17 +55,17 @@ tkr
 ,STDDEV(lag_diff) stddev_lag_diff
 ,MAX(lag_diff)    max_lag_diff
 ,COUNT(lag_diff)  cnt_lag_diff
-FROM ibs5min10
+FROM ibs1hr10
 GROUP BY tkr
 /
 
-SELECT * FROM ibs5min_ld;
+SELECT * FROM ibs1hr_ld;
 
-SELECT * FROM ibs5min10 WHERE lag_diff = (SELECT MIN(min_lag_diff)FROM ibs5min_ld);
+SELECT * FROM ibs1hr10 WHERE lag_diff = (SELECT MIN(min_lag_diff)FROM ibs1hr_ld);
 
-SELECT * FROM ibs5min10 WHERE lag_diff = (SELECT MAX(max_lag_diff)FROM ibs5min_ld);
+SELECT * FROM ibs1hr10 WHERE lag_diff = (SELECT MAX(max_lag_diff)FROM ibs1hr_ld);
 
--- SELECT COUNT(*)FROM ibs5min10 WHERE lag_diff IN(SELECT max_lag_diff FROM ibs5min_ld);
+-- SELECT COUNT(*)FROM ibs1hr10 WHERE lag_diff IN(SELECT max_lag_diff FROM ibs1hr_ld);
 
 -- Get a closer look at the smallest lag_diffs:
 
@@ -79,7 +79,7 @@ l.tkr
 ,i.lag_diff
 ,i.lag_diff/stddev_lag_diff ld_st_ratio
 ,i.minutes_diff
-FROM ibs5min_ld l, ibs5min10 i
+FROM ibs1hr_ld l, ibs1hr10 i
 WHERE l.min_lag_diff = i.lag_diff
 ORDER BY i.ydate,l.tkr
 /
@@ -96,17 +96,17 @@ l.tkr
 ,i.lag_diff
 ,i.lag_diff/stddev_lag_diff ld_st_ratio
 ,i.minutes_diff
-FROM ibs5min_ld l, ibs5min10 i
+FROM ibs1hr_ld l, ibs1hr10 i
 WHERE l.max_lag_diff = i.lag_diff
 ORDER BY i.ydate,l.tkr
 /
 
 -- I want to see rows around the rows which are connected to the max/min clse values
 
-CREATE OR REPLACE VIEW ibs5min12 AS
+CREATE OR REPLACE VIEW ibs1hr12 AS
 SELECT
 tkr
--- ydate is granular down to 5 min:
+-- ydate is granular down to 1 hr:
 ,ydate
 ,LAG(clse,3,NULL)OVER(PARTITION BY tkr ORDER BY ydate) lag_clse3
 ,LAG(clse,2,NULL)OVER(PARTITION BY tkr ORDER BY ydate) lag_clse2
@@ -116,12 +116,12 @@ tkr
 ,LEAD(clse,2,NULL)OVER(PARTITION BY tkr ORDER BY ydate) lead_clse2
 ,LEAD(clse,3,NULL)OVER(PARTITION BY tkr ORDER BY ydate) lead_clse3
 ,(clse - LAG(clse,1,NULL)OVER(PARTITION BY tkr ORDER BY ydate))/clse lag_diff
-FROM ibs5min
+FROM ibs1hr
 WHERE clse>0
 ORDER BY tkr, ydate
 /
 
--- Now join ibs5min12 with ibs5min_ld
+-- Now join ibs1hr12 with ibs1hr_ld
 
 SELECT
 l.tkr
@@ -134,7 +134,7 @@ l.tkr
 ,lead_clse1
 ,lead_clse2
 ,lead_clse3
-FROM ibs5min_ld l, ibs5min12 i
+FROM ibs1hr_ld l, ibs1hr12 i
 WHERE l.max_lag_diff = i.lag_diff
 OR    l.min_lag_diff = i.lag_diff
 ORDER BY i.ydate,l.tkr
@@ -146,7 +146,7 @@ SELECT
 tkr
 ,ydate
 ,clse
-FROM ibs5min
+FROM ibs1hr
 WHERE ydate > sysdate - 1.5/24
 ORDER BY tkr,ydate
 /
@@ -158,7 +158,7 @@ tkr
 ,MIN(ydate)
 ,COUNT(ydate)
 ,MAX(ydate)
-FROM ibs5min
+FROM ibs1hr
 GROUP BY tkr
 ORDER BY tkr
 /
