@@ -100,6 +100,6 @@ tkr
 ,ROUND(clse,4)clse
 ,ydate
 FROM di5min_stk
-WHERE ydate > sysdate - 3/24
+WHERE ydate > sysdate - 0.5/24
 ORDER BY tkr,ydate
 /

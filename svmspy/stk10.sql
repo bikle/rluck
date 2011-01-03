@@ -34,7 +34,8 @@ tkr
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*7 PRECEDING AND CURRENT ROW)max7
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*8 PRECEDING AND CURRENT ROW)max8
 ,LEAD(clse,12*4,NULL)OVER(PARTITION BY tkr ORDER BY ydate)ld4
-FROM dukas5min_stk WHERE UPPER(tkr)='&1'
+-- FROM dukas5min_stk WHERE UPPER(tkr)='&1'
+FROM di5min_stk WHERE UPPER(tkr)='&1'
 ORDER BY ydate
 /
 
@@ -285,6 +286,14 @@ tkr
 FROM stk_ms
 GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
+/
+
+SELECT
+tkr
+,COUNT(tkr)
+,MIN(ydate),MAX(ydate)
+FROM stk_ms
+GROUP BY tkr
 /
 
 exit

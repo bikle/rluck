@@ -26,10 +26,14 @@ date
 cd $SVMSPY/ibapi
 ./5min_data.bash $1
 
+# Merge IB data with Dukas data:
+sqt>update_di5min_stk.txt<<EOF
+@update_di5min_stk.sql
+EOF
+
 cd $SVMSPY
-# Not quite yet.
-# svmtkr.bash is currently occupied by a backtest:
-echo ./svmtkr.bash $1
+
+./svmtkr.bash $1
 
 # end of if [ $# -ne 1 ] #######
 fi

@@ -1,0 +1,256 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Jan 3 21:02:25 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+21:02:25 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+21:02:25 SQL> 21:02:25 SQL> --
+21:02:25 SQL> -- update_di5min_stk.sql
+21:02:25 SQL> --
+21:02:25 SQL> 
+21:02:25 SQL> -- I use this script to keep di5min_stk up to date.
+21:02:25 SQL> 
+21:02:25 SQL> -- The table, di5min_stk, contains data from duakas before '2010-12-27 09:00:00'
+21:02:25 SQL> -- After that date, it holds data from IB.
+21:02:25 SQL> 
+21:02:25 SQL> -- CREATE TABLE di5min_stk0(tkrdate VARCHAR2(26),tkr VARCHAR2(7),ydate DATE,clse NUMBER);
+21:02:25 SQL> -- CREATE TABLE di5min_stk (tkrdate VARCHAR2(26),tkr VARCHAR2(7),ydate DATE,clse NUMBER);
+21:02:25 SQL> 
+21:02:25 SQL> TRUNCATE TABLE di5min_stk0;
+
+Table truncated.
+
+Elapsed: 00:00:00.34
+21:02:26 SQL> DROP TABLE di5min_stk;
+
+Table dropped.
+
+Elapsed: 00:00:00.04
+21:02:26 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.45
+21:02:26 SQL> 
+21:02:26 SQL> -- Copy in data from ibs5min:
+21:02:26 SQL> 
+21:02:26 SQL> INSERT INTO di5min_stk0(tkrdate,tkr,ydate,clse)
+21:02:26   2  SELECT	     tkr||ydate,tkr,ydate,clse
+21:02:26   3  FROM ibs5min
+21:02:26   4  WHERE ydate >= '2010-12-27 09:00:00'
+21:02:26   5  /
+
+10660 rows created.
+
+Elapsed: 00:00:00.06
+21:02:26 SQL> 
+21:02:26 SQL> -- rpt
+21:02:26 SQL> SELECT
+21:02:26   2  tkr
+21:02:26   3  ,MIN(ydate)
+21:02:26   4  ,COUNT(tkr)
+21:02:26   5  ,MAX(ydate)
+21:02:26   6  FROM di5min_stk0
+21:02:26   7  GROUP BY tkr
+21:02:26   8  ORDER BY tkr
+21:02:26   9  /
+
+TKR	MIN(YDATE)	    COUNT(TKR) MAX(YDATE)
+------- ------------------- ---------- -------------------
+DIA	2010-12-27 09:00:00	  1101 2011-01-03 20:45:00
+DIS	2010-12-27 09:00:00	  1018 2011-01-03 20:50:00
+EBAY	2010-12-27 09:00:00	  1044 2011-01-03 20:55:00
+GOOG	2010-12-27 09:00:00	  1091 2011-01-03 20:40:00
+HPQ	2010-12-27 09:00:00	  1059 2011-01-03 21:00:00
+IBM	2010-12-27 09:00:00	  1043 2011-01-03 20:35:00
+QQQQ	2010-12-27 09:00:00	  1101 2011-01-03 20:45:00
+SPY	2010-12-27 09:00:00	  1101 2011-01-03 20:40:00
+WMT	2010-12-27 09:00:00	  1047 2011-01-03 20:50:00
+XOM	2010-12-27 09:00:00	  1055 2011-01-03 20:55:00
+
+10 rows selected.
+
+Elapsed: 00:00:00.02
+21:02:26 SQL> 
+21:02:26 SQL> -- Next, copy in data from dukas.
+21:02:26 SQL> -- dukas5min_stk depends on:
+21:02:26 SQL> -- - dukas10min_stk
+21:02:26 SQL> -- - svmspy/dukas/fake5.sql
+21:02:26 SQL> 
+21:02:26 SQL> INSERT INTO di5min_stk0(tkrdate,tkr,ydate,clse)
+21:02:26   2  SELECT	     tkr||ydate,tkr,ydate,clse
+21:02:26   3  FROM dukas5min_stk
+21:02:26   4  WHERE ydate < '2010-12-27 09:00:00'
+21:02:26   5  /
+
+230382 rows created.
+
+Elapsed: 00:00:00.86
+21:02:27 SQL> 
+21:02:27 SQL> -- rpt
+21:02:27 SQL> SELECT
+21:02:27   2  tkr
+21:02:27   3  ,MIN(ydate)
+21:02:27   4  ,COUNT(tkr)
+21:02:27   5  ,MAX(ydate)
+21:02:27   6  FROM dukas5min_stk
+21:02:27   7  WHERE ydate < '2010-12-27 09:00:00'
+21:02:27   8  GROUP BY tkr
+21:02:27   9  ORDER BY tkr
+21:02:27  10  /
+
+TKR	 MIN(YDATE)	     COUNT(TKR) MAX(YDATE)
+-------- ------------------- ---------- -------------------
+DIA	 2009-10-28 18:10:01	  23429 2010-12-24 20:50:01
+DIS	 2009-10-28 18:10:01	  23429 2010-12-24 20:50:01
+EBAY	 2009-10-28 18:10:01	  23429 2010-12-24 20:50:01
+GOOG	 2009-10-28 18:10:01	  23429 2010-12-24 20:50:01
+HPQ	 2009-10-28 18:10:01	  23429 2010-12-24 20:50:01
+IBM	 2009-10-28 18:10:01	  23429 2010-12-24 20:50:01
+QQQQ	 2009-10-28 18:10:01	  23429 2010-12-24 20:50:01
+SPY	 2009-10-28 18:10:01	  19521 2010-12-24 20:50:01
+WMT	 2009-10-28 18:10:01	  23429 2010-12-24 20:50:01
+XOM	 2009-10-28 18:10:01	  23429 2010-12-24 20:50:01
+
+10 rows selected.
+
+Elapsed: 00:00:00.39
+21:02:28 SQL> 
+21:02:28 SQL> -- rpt
+21:02:28 SQL> SELECT
+21:02:28   2  tkr
+21:02:28   3  ,MIN(ydate)
+21:02:28   4  ,COUNT(tkr)
+21:02:28   5  ,MAX(ydate)
+21:02:28   6  FROM di5min_stk0
+21:02:28   7  GROUP BY tkr
+21:02:28   8  ORDER BY tkr
+21:02:28   9  /
+
+TKR	MIN(YDATE)	    COUNT(TKR) MAX(YDATE)
+------- ------------------- ---------- -------------------
+DIA	2009-10-28 18:10:01	 24530 2011-01-03 20:45:00
+DIS	2009-10-28 18:10:01	 24447 2011-01-03 20:50:00
+EBAY	2009-10-28 18:10:01	 24473 2011-01-03 20:55:00
+GOOG	2009-10-28 18:10:01	 24520 2011-01-03 20:40:00
+HPQ	2009-10-28 18:10:01	 24488 2011-01-03 21:00:00
+IBM	2009-10-28 18:10:01	 24472 2011-01-03 20:35:00
+QQQQ	2009-10-28 18:10:01	 24530 2011-01-03 20:45:00
+SPY	2009-10-28 18:10:01	 20622 2011-01-03 20:40:00
+WMT	2009-10-28 18:10:01	 24476 2011-01-03 20:50:00
+XOM	2009-10-28 18:10:01	 24484 2011-01-03 20:55:00
+
+10 rows selected.
+
+Elapsed: 00:00:00.33
+21:02:28 SQL> 
+21:02:28 SQL> CREATE TABLE di5min_stk COMPRESS AS
+21:02:28   2  SELECT
+21:02:28   3  tkrdate
+21:02:28   4  ,tkr
+21:02:28   5  ,ydate
+21:02:28   6  ,AVG(clse)clse
+21:02:28   7  FROM di5min_stk0
+21:02:28   8  GROUP BY
+21:02:28   9  tkrdate
+21:02:28  10  ,tkr
+21:02:28  11  ,ydate
+21:02:28  12  /
+
+Table created.
+
+Elapsed: 00:00:09.01
+21:02:37 SQL> 
+21:02:37 SQL> -- rpt
+21:02:37 SQL> SELECT
+21:02:37   2  tkr
+21:02:37   3  ,MIN(ydate)
+21:02:37   4  ,COUNT(ydate)
+21:02:37   5  ,MAX(ydate)
+21:02:37   6  ,MIN(clse)
+21:02:37   7  ,AVG(clse)
+21:02:37   8  ,MAX(clse)
+21:02:37   9  FROM di5min_stk
+21:02:37  10  GROUP BY tkr
+21:02:37  11  ORDER BY tkr
+21:02:37  12  /
+
+TKR	MIN(YDATE)	    COUNT(YDATE) MAX(YDATE)	      MIN(CLSE)  AVG(CLSE)  MAX(CLSE)
+------- ------------------- ------------ ------------------- ---------- ---------- ----------
+DIA	2009-10-28 18:10:01	   24530 2011-01-03 20:45:00	  96.34 106.465582     116.84
+DIS	2009-10-28 18:10:01	   24447 2011-01-03 20:50:00	  27.06 33.6776755	37.99
+EBAY	2009-10-28 18:10:01	   24473 2011-01-03 20:55:00	  19.17 24.4945111	31.48
+GOOG	2009-10-28 18:10:01	   24520 2011-01-03 20:40:00	  434.6 545.135969     629.82
+HPQ	2009-10-28 18:10:01	   24488 2011-01-03 21:00:00	  37.45 46.7125715	 54.7
+IBM	2009-10-28 18:10:01	   24472 2011-01-03 20:35:00	 119.59 131.559167     150.76
+QQQQ	2009-10-28 18:10:01	   24530 2011-01-03 20:45:00	   40.7 47.4824999	55.66
+SPY	2009-10-28 18:10:01	   20622 2011-01-03 20:40:00	 103.18 114.886976    127.545
+WMT	2009-10-28 18:10:01	   24476 2011-01-03 20:50:00	  47.76 53.0866999	56.15
+XOM	2009-10-28 18:10:01	   24484 2011-01-03 20:55:00	  56.05 66.3232412	 76.5
+
+10 rows selected.
+
+Elapsed: 00:00:03.43
+21:02:40 SQL> 
+21:02:40 SQL> COLUMN clse FORMAT 999.9999
+21:02:40 SQL> SELECT
+21:02:40   2  tkr
+21:02:40   3  ,ROUND(clse,4)clse
+21:02:40   4  ,ydate
+21:02:40   5  FROM di5min_stk
+21:02:40   6  WHERE ydate > sysdate - 0.5/24
+21:02:40   7  ORDER BY tkr,ydate
+21:02:40   8  /
+
+TKR	     CLSE YDATE
+------- --------- -------------------
+DIA	 116.5200 2011-01-03 20:35:00
+DIA	 116.4900 2011-01-03 20:40:00
+DIA	 116.6000 2011-01-03 20:45:00
+DIS	  37.8400 2011-01-03 20:35:00
+DIS	  37.8700 2011-01-03 20:40:00
+DIS	  37.8900 2011-01-03 20:45:00
+DIS	  37.9100 2011-01-03 20:50:00
+EBAY	  28.6900 2011-01-03 20:35:00
+EBAY	  28.7400 2011-01-03 20:40:00
+EBAY	  28.7300 2011-01-03 20:45:00
+EBAY	  28.6900 2011-01-03 20:50:00
+EBAY	  28.6800 2011-01-03 20:55:00
+GOOG	 604.1800 2011-01-03 20:35:00
+GOOG	 603.6300 2011-01-03 20:40:00
+HPQ	  42.8550 2011-01-03 20:35:00
+HPQ	  42.8200 2011-01-03 20:40:00
+HPQ	  42.8400 2011-01-03 20:45:00
+HPQ	  42.8200 2011-01-03 20:50:00
+HPQ	  42.7300 2011-01-03 20:55:00
+HPQ	  42.7400 2011-01-03 21:00:00
+IBM	 147.6800 2011-01-03 20:35:00
+QQQQ	  55.3100 2011-01-03 20:35:00
+QQQQ	  55.2700 2011-01-03 20:40:00
+QQQQ	  55.2900 2011-01-03 20:45:00
+SPY	 127.1100 2011-01-03 20:35:00
+SPY	 127.0800 2011-01-03 20:40:00
+WMT	  54.7200 2011-01-03 20:35:00
+WMT	  54.7000 2011-01-03 20:40:00
+WMT	  54.7100 2011-01-03 20:45:00
+WMT	  54.6300 2011-01-03 20:50:00
+XOM	  74.6500 2011-01-03 20:35:00
+XOM	  74.6600 2011-01-03 20:40:00
+XOM	  74.7100 2011-01-03 20:45:00
+XOM	  74.6300 2011-01-03 20:50:00
+XOM	  74.6300 2011-01-03 20:55:00
+
+35 rows selected.
+
+Elapsed: 00:00:00.06
+21:02:40 SQL> Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options

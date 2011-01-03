@@ -1,25 +1,14 @@
 
-select max(tkrdate)from svmc_apply_prep;
-
-select SUBSTR(max(tkrdate),1,4)from svmc_apply_prep;
-
-select SUBSTR(max(tkrdate),-19,4)from svmc_apply_prep;
-
--- rluck/oracle_sql_demos/substr.sql
-
-select SUBSTR(max(tkrdate),-LENGTH(max(tkrdate)),LENGTH(max(tkrdate))-19)from svmc_apply_prep;
-
+COLUMN clse  FORMAT 999.9999
 
 SELECT
 tkrdate
-,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
-,sysdate rundate
--- ,SUBSTR(tkrdate,1,3)tkr
--- rluck/oracle_sql_demos/substr.sql :
-,SUBSTR(tkrdate,-LENGTH(tkrdate),LENGTH(tkrdate)-19)tkr
-,SUBSTR(tkrdate,-19)ydate
-FROM svmc_apply_prep
+,score long_score
+,gscore short_score
+,rundate
+,ROUND(clse,4)clse 
+,ydate + 6/24 clse_date
+FROM ocj_stk
+WHERE ydate > sysdate - 2/24
+ORDER BY tkr, ydate
 /
-
-SELECT TO_CHAR(ydate,'W') , COUNT(tkr)FROM stk_ms GROUP BY TO_CHAR(ydate,'W')ORDER BY TO_CHAR(ydate,'W');
-
