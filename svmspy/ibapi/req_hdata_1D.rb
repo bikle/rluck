@@ -62,11 +62,11 @@ class ReqHdata
     # I want 3 Weeks of data:
     # m_backfillDuration= jl_str "1 W"
 
-    # I want 1 day of data:
-    m_backfillDuration= jl_str "1 D"
-
     # I want 5 days of data:
     m_backfillDuration= jl_str "5 D"
+
+    # I want 1 day of data:
+    m_backfillDuration= jl_str "1 D"
 
     # I want prices for every hour
     # m_barSizeSetting= jl_str "1 hour"
