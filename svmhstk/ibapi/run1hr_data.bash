@@ -12,9 +12,6 @@ cd /pt/s/rluck/svmhstk/ibapi/
 
 ./1hr_data.bash SPY  > /pt/s/cron/out/1hr_data.${myts}.txt 2>&1
 ./1hr_data.bash QQQQ > /pt/s/cron/out/1hr_data.${myts}.txt 2>&1
-
-exit
-
 ./1hr_data.bash DIA  > /pt/s/cron/out/1hr_data.${myts}.txt 2>&1
 ./1hr_data.bash DIS  > /pt/s/cron/out/1hr_data.${myts}.txt 2>&1
 ./1hr_data.bash GOOG > /pt/s/cron/out/1hr_data.${myts}.txt 2>&1
