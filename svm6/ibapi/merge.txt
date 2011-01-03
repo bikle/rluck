@@ -1,5 +1,5 @@
 
-SQL*Plus: Release 11.2.0.1.0 Production on Mon Jan 3 06:27:40 2011
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Jan 3 06:53:26 2011
 
 Copyright (c) 1982, 2009, Oracle.  All rights reserved.
 
@@ -8,63 +8,108 @@ Connected to:
 Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 
-06:27:40 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+06:53:26 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
 
 Session altered.
 
 Elapsed: 00:00:00.00
-06:27:40 SQL> 06:27:40 SQL> --
-06:27:40 SQL> -- merge.sql
-06:27:40 SQL> --
-06:27:40 SQL> 
-06:27:40 SQL> -- I use this script to merge data from ibf_stage into ibf5min.
-06:27:40 SQL> 
-06:27:40 SQL> 
-06:27:40 SQL> -- CREATE TABLE ibf_old	  (pair VARCHAR2(8),ydate DATE,clse NUMBER);
-06:27:40 SQL> -- CREATE TABLE ibf_dups_old(pair VARCHAR2(8),ydate DATE,clse NUMBER);
-06:27:40 SQL> 
-06:27:40 SQL> DROP TABLE ibf_old;
+06:53:26 SQL> 06:53:26 SQL> --
+06:53:26 SQL> -- merge.sql
+06:53:26 SQL> --
+06:53:26 SQL> 
+06:53:26 SQL> -- I use this script to merge data from ibf_stage into ibf5min.
+06:53:26 SQL> 
+06:53:26 SQL> 
+06:53:26 SQL> -- CREATE TABLE ibf_old	  (pair VARCHAR2(8),ydate DATE,clse NUMBER);
+06:53:26 SQL> -- CREATE TABLE ibf_dups_old(pair VARCHAR2(8),ydate DATE,clse NUMBER);
+06:53:26 SQL> 
+06:53:26 SQL> DROP TABLE ibf_old;
 
 Table dropped.
 
-Elapsed: 00:00:00.28
-06:27:40 SQL> RENAME ibf5min TO ibf_old;
+Elapsed: 00:00:00.06
+06:53:26 SQL> RENAME ibf5min TO ibf_old;
 
 Table renamed.
 
-Elapsed: 00:00:00.09
-06:27:40 SQL> 
-06:27:40 SQL> DROP TABLE ibf_dups_old;
+Elapsed: 00:00:00.05
+06:53:26 SQL> 
+06:53:26 SQL> DROP TABLE ibf_dups_old;
 
 Table dropped.
 
-Elapsed: 00:00:00.07
-06:27:40 SQL> RENAME ibf_dups TO ibf_dups_old;
+Elapsed: 00:00:00.05
+06:53:26 SQL> RENAME ibf_dups TO ibf_dups_old;
 
 Table renamed.
 
-Elapsed: 00:00:00.03
-06:27:40 SQL> 
-06:27:40 SQL> CREATE TABLE ibf_dups COMPRESS AS
-06:27:40   2  SELECT
-06:27:40   3  pair
-06:27:40   4  ,(TO_DATE('1970-01-01','YYYY-MM-DD')+(epochsec/24/3600))ydate
-06:27:40   5  ,clse
-06:27:40   6  FROM ibf_stage
-06:27:40   7  UNION
-06:27:40   8  SELECT pair,ydate,clse
-06:27:40   9  FROM ibf_old
-06:27:40  10  /
+Elapsed: 00:00:00.04
+06:53:26 SQL> 
+06:53:26 SQL> CREATE TABLE ibf_dups COMPRESS AS
+06:53:26   2  SELECT
+06:53:26   3  pair
+06:53:26   4  ,(TO_DATE('1970-01-01','YYYY-MM-DD')+(epochsec/24/3600))ydate
+06:53:26   5  ,clse
+06:53:26   6  FROM ibf_stage
+06:53:26   7  UNION
+06:53:26   8  SELECT pair,ydate,clse
+06:53:26   9  FROM ibf_old
+06:53:26  10  /
 
 Table created.
 
-Elapsed: 00:00:00.40
-06:27:41 SQL> 
-06:27:41 SQL> CREATE TABLE ibf5min COMPRESS AS
-06:27:41   2  SELECT
-06:27:41   3  pair
-06:27:41   4  ,ydate
-06:27:41   5  ,AVG(clse)clse
-06:27:41   6  FROM ibf_dups
-06:27:41   7  GROUP BY pair,ydate
-06:27:41   8  /
+Elapsed: 00:00:00.35
+06:53:27 SQL> 
+06:53:27 SQL> CREATE TABLE ibf5min COMPRESS AS
+06:53:27   2  SELECT
+06:53:27   3  pair
+06:53:27   4  ,ydate
+06:53:27   5  ,AVG(clse)clse
+06:53:27   6  FROM ibf_dups
+06:53:27   7  GROUP BY pair,ydate
+06:53:27   8  /
+
+Table created.
+
+Elapsed: 00:00:00.20
+06:53:27 SQL> 
+06:53:27 SQL> -- I distrust the data before 2010-11-30
+06:53:27 SQL> DELETE ibf5min WHERE ydate < '2010-11-30';
+
+1 row deleted.
+
+Elapsed: 00:00:00.02
+06:53:27 SQL> 
+06:53:27 SQL> ANALYZE TABLE ibf5min COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.26
+06:53:27 SQL> 
+06:53:27 SQL> -- I should see less than 60 min:
+06:53:27 SQL> SELECT
+06:53:27   2  pair
+06:53:27   3  ,(sysdate - MAX(ydate))*24*60 minutes_age
+06:53:27   4  ,MIN(ydate)
+06:53:27   5  ,COUNT(ydate)
+06:53:27   6  ,MAX(ydate)FROM
+06:53:27   7  ibf5min
+06:53:27   8  GROUP BY pair
+06:53:27   9  /
+
+PAIR	 MINUTES_AGE MIN(YDATE) 	 COUNT(YDATE) MAX(YDATE)
+-------- ----------- ------------------- ------------ -------------------
+eur_usd 	8.45 2010-11-30 00:00:00	 6860 2011-01-03 06:45:00
+gbp_usd 	8.45 2010-11-30 00:00:00	 6859 2011-01-03 06:45:00
+usd_jpy 	3.45 2010-11-30 00:00:00	 6858 2011-01-03 06:50:00
+aud_usd 	8.45 2010-11-30 00:00:00	 6857 2011-01-03 06:45:00
+usd_cad 	8.45 2010-11-30 00:00:00	 6857 2011-01-03 06:45:00
+usd_chf 	8.45 2010-11-30 00:00:00	 6860 2011-01-03 06:45:00
+
+6 rows selected.
+
+Elapsed: 00:00:00.02
+06:53:27 SQL> 
+06:53:27 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options

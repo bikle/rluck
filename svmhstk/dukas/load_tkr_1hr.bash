@@ -4,6 +4,9 @@
 
 # Demo: load_tkr_1hr.bash SPY
 
+# I use this script as a wrapper for sqlldr.
+# This script is called from cmd line, not another script.
+
 if [ $# -eq 1 ]
 then
 
