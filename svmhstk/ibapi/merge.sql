@@ -2,14 +2,14 @@
 -- merge.sql
 --
 
--- I use this script to merge data from ibs_stage into ibs5min.
+-- I use this script to merge data from ibs_stage into ibs1hr.
 
 
 -- CREATE TABLE ibs_old     (tkr VARCHAR2(8),ydate DATE,clse NUMBER);
 -- CREATE TABLE ibs_dups_old(tkr VARCHAR2(8),ydate DATE,clse NUMBER);
 
 DROP TABLE ibs_old;
-RENAME ibs5min TO ibs_old;
+RENAME ibs1hr TO ibs_old;
 
 DROP TABLE ibs_dups_old;
 RENAME ibs_dups TO ibs_dups_old;
@@ -25,7 +25,7 @@ SELECT tkr,ydate,clse
 FROM ibs_old
 /
 
-CREATE TABLE ibs5min COMPRESS AS
+CREATE TABLE ibs1hr COMPRESS AS
 SELECT
 tkr
 ,ydate
@@ -34,7 +34,7 @@ FROM ibs_dups
 GROUP BY tkr,ydate
 /
 
-ANALYZE TABLE ibs5min COMPUTE STATISTICS;
+ANALYZE TABLE ibs1hr COMPUTE STATISTICS;
 
 -- I should see less than 60 min:
 SELECT
@@ -43,7 +43,7 @@ tkr
 ,MIN(ydate)
 ,COUNT(ydate)
 ,MAX(ydate)FROM
-ibs5min
+ibs1hr
 GROUP BY tkr
 /
 

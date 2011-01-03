@@ -7,8 +7,13 @@
 # Demo:
 # 1hr_data.bash SPY
 
-if [ $# -eq 1 ]
+if [ $# -ne 1 ]
 then
+  echo You need to give a tkr.
+  echo Demo:
+  echo $0 SPY
+  exit 1
+else
 
 . /pt/s/rluck/svmhstk/.jruby
 . /pt/s/rluck/svmhstk/.orcl
@@ -19,33 +24,28 @@ cd $SVMHSTK/ibapi
 
 jruby req_hdata_1D.rb $1
 
-exit
 
 export myts=`date +%Y_%m_%d_%H_%M`
 # Now I load the data into table, ibs1hr:
 
 ./load1hr.bash $1 > /pt/s/cron/out/load1hr.${myts}.ibs.txt 2>&1
 
-else
-  echo You need to give a tkr.
-  echo Demo:
-  echo $0 SPY
-  exit 1
+# end of if ########
 fi
+# end of if ########
 
-
-exit
+exit 0
 
 export myts=`date +%Y_%m_%d_%H_%M`
-# Now I load the data into table, ibf1hr:
+# Now I load the data into table, ibs1hr:
 ./load1hr.bash $1 > /pt/s/cron/out/load1hr.${myts}.txt 2>&1
 
-# Look at data in ibf1hr
+# Look at data in ibs1hr
 
-sqt>qry_ibf1hr.txt<<EOF
-@qry_ibf1hr.sql
+sqt>qry_ibs1hr.txt<<EOF
+@qry_ibs1hr.sql
 EOF
-cp -p qry_ibf1hr.txt /pt/s/cron/out/qry_ibf1hr.${myts}.txt
+cp -p qry_ibs1hr.txt /pt/s/cron/out/qry_ibs1hr.${myts}.txt
 
 # Get a backup
 ./expdp1hr.bash  > /pt/s/cron/out/expdp1hr.${myts}.txt 2>&1
