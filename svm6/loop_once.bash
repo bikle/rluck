@@ -8,6 +8,10 @@
 
 # I run this script frequently, perhaps every 10 minutes.
 
+#debug
+/pt/s/rluck/svm6/test1thing.bash > /pt/s/cron/out/test1thing.txt 2>&1
+#debug
+
 . /pt/s/rluck/svm6/.orcl
 . /pt/s/rluck/svm6/.jruby
 
