@@ -13,11 +13,14 @@
 ## svmtkr.bash HPQ
 ## svmtkr.bash IBM
 
+dl_then_svm.bash GOOG
+
+exit
+
 dl_then_svm.bash SPY
 dl_then_svm.bash QQQQ
 dl_then_svm.bash DIA
 dl_then_svm.bash DIS
-dl_then_svm.bash GOOG
 dl_then_svm.bash WMT
 dl_then_svm.bash XOM
 dl_then_svm.bash EBAY
