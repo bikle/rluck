@@ -2592,3 +2592,2907 @@ old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude
 new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gatt','prdate'));
 old  57:     data_table_name => '&bldtable',
 new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:18.03
+00:55:26 SQL> 
+00:55:26 SQL> ---------------------
+00:55:26 SQL> -- CREATE A NEW MODEL
+00:55:26 SQL> --
+00:55:26 SQL> -- Cleanup old model with the same name for repeat runs
+00:55:26 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+00:55:26   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:55:26   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:02.02
+00:55:28 SQL> 
+00:55:28 SQL> -- Build a new SVM Model
+00:55:28 SQL> BEGIN
+00:55:28   2  	DBMS_DATA_MINING.CREATE_MODEL(
+00:55:28   3  	  model_name	      => '&model_name',
+00:55:28   4  	  mining_function     => dbms_data_mining.classification,
+00:55:28   5  	  data_table_name     => 'svmc_build_prep',
+00:55:28   6  	  case_id_column_name => '&case_id',
+00:55:28   7  	  target_column_name  => '&target',
+00:55:28   8  	  settings_table_name => 'svmc_settings');
+00:55:28   9  END;
+00:55:28  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gatt',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:27.42
+00:55:56 SQL> 
+00:55:56 SQL> -----------------------------------------------------------------------
+00:55:56 SQL> --			       APPLY/score THE MODEL
+00:55:56 SQL> -----------------------------------------------------------------------
+00:55:56 SQL> 
+00:55:56 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+00:55:56 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+00:55:56   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:55:56   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.05
+00:55:56 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+00:55:56   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:55:56   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.07
+00:55:56 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+00:55:56   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:55:56   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.06
+00:55:56 SQL> -----------------------
+00:55:56 SQL> -- PREPARE SCORING DATA
+00:55:56 SQL> --
+00:55:56 SQL> -- If the data for model creation has been prepared, then the data
+00:55:56 SQL> -- to be scored using the model must be prepared in the same manner
+00:55:56 SQL> -- in order to obtain meaningful results.
+00:55:56 SQL> --
+00:55:56 SQL> -- 1. Missing Value treatment for all Predictors and
+00:55:56 SQL> -- 2. Normalization
+00:55:56 SQL> -- No outlier treatment will be performed during test and apply. The
+00:55:56 SQL> -- normalization step is sufficient, since the normalization parameters
+00:55:56 SQL> -- already capture the effects of outlier treatment done with build data.
+00:55:56 SQL> --
+00:55:56 SQL> BEGIN
+00:55:56   2  	-- Xform Test data to replace missing values
+00:55:56   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+00:55:56   4  	  miss_table_name => 'svmc_miss_num',
+00:55:56   5  	  data_table_name => '&scoretable',
+00:55:56   6  	  xform_view_name => 'xformed_apply_miss_num');
+00:55:56   7  
+00:55:56   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+00:55:56   9  	  miss_table_name => 'svmc_miss_cat',
+00:55:56  10  	  data_table_name => '&scoretable',
+00:55:56  11  	  xform_view_name => 'xformed_apply_miss_cat');
+00:55:56  12  
+00:55:56  13  	-- Normalize the data to be scored
+00:55:56  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+00:55:56  15  	  norm_table_name => 'svmc_norm',
+00:55:56  16  	  data_table_name => '&scoretable',
+00:55:56  17  	  xform_view_name => 'svmc_apply_prep');
+00:55:56  18  END;
+00:55:56  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.27
+00:55:57 SQL> 
+00:55:57 SQL> -- Use same model_name used in score.sql
+00:55:57 SQL> DEFINE model_name = 'forex14'
+00:55:57 SQL> 
+00:55:57 SQL> -- CREATE TABLE fxscores6 (prdate VARCHAR2(30),score NUMBER,rundate DATE,pair VARCHAR2(8),ydate DATE);
+00:55:57 SQL> 
+00:55:57 SQL> DELETE fxscores6 WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.05
+00:55:57 SQL> 
+00:55:57 SQL> INSERT INTO fxscores6 (prdate,score,rundate,pair,ydate)
+00:55:57   2  SELECT
+00:55:57   3  prdate
+00:55:57   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+00:55:57   5  ,sysdate
+00:55:57   6  ,SUBSTR(prdate,1,3)pair
+00:55:57   7  ,SUBSTR(prdate,4,19)ydate
+00:55:57   8  FROM svmc_apply_prep
+00:55:57   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.17
+00:55:58 SQL> @aud_score1day_gattn.sql	2011-01-03 00:30:00
+00:55:58 SQL> --
+00:55:58 SQL> -- aud_score1day_gattn.sql
+00:55:58 SQL> --
+00:55:58 SQL> 
+00:55:58 SQL> CREATE OR REPLACE VIEW sme AS
+00:55:58   2  SELECT
+00:55:58   3  'aud'||m.ydate prdate
+00:55:58   4  ,NULL gattn
+00:55:58   5  ,m.ydate - TO_DATE('2000-01-01','YYYY-MM-DD')daycount
+00:55:58   6  ,eur_g00
+00:55:58   7  ,eur_g01
+00:55:58   8  ,eur_g02
+00:55:58   9  ,eur_g03
+00:55:58  10  ,eur_g04
+00:55:58  11  ,eur_g05
+00:55:58  12  ,eur_g06
+00:55:58  13  ,eur_g07
+00:55:58  14  ,eur_g08
+00:55:58  15  ,eur_g09
+00:55:58  16  ,eur_g10
+00:55:58  17  ,eur_g11
+00:55:58  18  ,eur_g12
+00:55:58  19  ,eur_g13
+00:55:58  20  ,eur_g14
+00:55:58  21  ,eur_g15
+00:55:58  22  ,eur_g16
+00:55:58  23  ,eur_g17
+00:55:58  24  ,eur_g18
+00:55:58  25  ,eur_g19
+00:55:58  26  ,eur_g20
+00:55:58  27  ,eur_g21
+00:55:58  28  ,eur_g22
+00:55:58  29  ,eur_g23
+00:55:58  30  ,eur_g24
+00:55:58  31  ,eur_g25
+00:55:58  32  ,eur_g26
+00:55:58  33  ,eur_g27
+00:55:58  34  ,eur_g28
+00:55:58  35  ,eur_g29
+00:55:58  36  ,eur_g30
+00:55:58  37  ,eur_g31
+00:55:58  38  ,eur_g32
+00:55:58  39  ,eur_g33
+00:55:58  40  ,eur_g34
+00:55:58  41  ,eur_g35
+00:55:58  42  ,eur_g36
+00:55:58  43  ,eur_g37
+00:55:58  44  ,eur_g38
+00:55:58  45  ,eur_g39
+00:55:58  46  ,eur_g40
+00:55:58  47  ,eur_g41
+00:55:58  48  ,aud_g00
+00:55:58  49  ,aud_g01
+00:55:58  50  ,aud_g02
+00:55:58  51  ,aud_g03
+00:55:58  52  ,aud_g04
+00:55:58  53  ,aud_g05
+00:55:58  54  ,aud_g06
+00:55:58  55  ,aud_g07
+00:55:58  56  ,aud_g08
+00:55:58  57  ,aud_g09
+00:55:58  58  ,aud_g10
+00:55:58  59  ,aud_g11
+00:55:58  60  ,aud_g12
+00:55:58  61  ,aud_g13
+00:55:58  62  ,aud_g14
+00:55:58  63  ,aud_g15
+00:55:58  64  ,aud_g16
+00:55:58  65  ,aud_g17
+00:55:58  66  ,aud_g18
+00:55:58  67  ,aud_g19
+00:55:58  68  ,aud_g20
+00:55:58  69  ,aud_g21
+00:55:58  70  ,aud_g22
+00:55:58  71  ,aud_g23
+00:55:58  72  ,aud_g24
+00:55:58  73  ,aud_g25
+00:55:58  74  ,aud_g26
+00:55:58  75  ,aud_g27
+00:55:58  76  ,aud_g28
+00:55:58  77  ,aud_g29
+00:55:58  78  ,aud_g30
+00:55:58  79  ,aud_g31
+00:55:58  80  ,aud_g32
+00:55:58  81  ,aud_g33
+00:55:58  82  ,aud_g34
+00:55:58  83  ,aud_g35
+00:55:58  84  ,aud_g36
+00:55:58  85  ,aud_g37
+00:55:58  86  ,aud_g38
+00:55:58  87  ,aud_g39
+00:55:58  88  ,aud_g40
+00:55:58  89  ,aud_g41
+00:55:58  90  ,gbp_g00
+00:55:58  91  ,gbp_g01
+00:55:58  92  ,gbp_g02
+00:55:58  93  ,gbp_g03
+00:55:58  94  ,gbp_g04
+00:55:58  95  ,gbp_g05
+00:55:58  96  ,gbp_g06
+00:55:58  97  ,gbp_g07
+00:55:58  98  ,gbp_g08
+00:55:58  99  ,gbp_g09
+00:55:58 100  ,gbp_g10
+00:55:58 101  ,gbp_g11
+00:55:58 102  ,gbp_g12
+00:55:58 103  ,gbp_g13
+00:55:58 104  ,gbp_g14
+00:55:58 105  ,gbp_g15
+00:55:58 106  ,gbp_g16
+00:55:58 107  ,gbp_g17
+00:55:58 108  ,gbp_g18
+00:55:58 109  ,gbp_g19
+00:55:58 110  ,gbp_g20
+00:55:58 111  ,gbp_g21
+00:55:58 112  ,gbp_g22
+00:55:58 113  ,gbp_g23
+00:55:58 114  ,gbp_g24
+00:55:58 115  ,gbp_g25
+00:55:58 116  ,gbp_g26
+00:55:58 117  ,gbp_g27
+00:55:58 118  ,gbp_g28
+00:55:58 119  ,gbp_g29
+00:55:58 120  ,gbp_g30
+00:55:58 121  ,gbp_g31
+00:55:58 122  ,gbp_g32
+00:55:58 123  ,gbp_g33
+00:55:58 124  ,gbp_g34
+00:55:58 125  ,gbp_g35
+00:55:58 126  ,gbp_g36
+00:55:58 127  ,gbp_g37
+00:55:58 128  ,gbp_g38
+00:55:58 129  ,gbp_g39
+00:55:58 130  ,gbp_g40
+00:55:58 131  ,gbp_g41
+00:55:58 132  ,jpy_g00
+00:55:58 133  ,jpy_g01
+00:55:58 134  ,jpy_g02
+00:55:58 135  ,jpy_g03
+00:55:58 136  ,jpy_g04
+00:55:58 137  ,jpy_g05
+00:55:58 138  ,jpy_g06
+00:55:58 139  ,jpy_g07
+00:55:58 140  ,jpy_g08
+00:55:58 141  ,jpy_g09
+00:55:58 142  ,jpy_g10
+00:55:58 143  ,jpy_g11
+00:55:58 144  ,jpy_g12
+00:55:58 145  ,jpy_g13
+00:55:58 146  ,jpy_g14
+00:55:58 147  ,jpy_g15
+00:55:58 148  ,jpy_g16
+00:55:58 149  ,jpy_g17
+00:55:58 150  ,jpy_g18
+00:55:58 151  ,jpy_g19
+00:55:58 152  ,jpy_g20
+00:55:58 153  ,jpy_g21
+00:55:58 154  ,jpy_g22
+00:55:58 155  ,jpy_g23
+00:55:58 156  ,jpy_g24
+00:55:58 157  ,jpy_g25
+00:55:58 158  ,jpy_g26
+00:55:58 159  ,jpy_g27
+00:55:58 160  ,jpy_g28
+00:55:58 161  ,jpy_g29
+00:55:58 162  ,jpy_g30
+00:55:58 163  ,jpy_g31
+00:55:58 164  ,jpy_g32
+00:55:58 165  ,jpy_g33
+00:55:58 166  ,jpy_g34
+00:55:58 167  ,jpy_g35
+00:55:58 168  ,jpy_g36
+00:55:58 169  ,jpy_g37
+00:55:58 170  ,jpy_g38
+00:55:58 171  ,jpy_g39
+00:55:58 172  ,jpy_g40
+00:55:58 173  ,jpy_g41
+00:55:58 174  ,cad_g00
+00:55:58 175  ,cad_g01
+00:55:58 176  ,cad_g02
+00:55:58 177  ,cad_g03
+00:55:58 178  ,cad_g04
+00:55:58 179  ,cad_g05
+00:55:58 180  ,cad_g06
+00:55:58 181  ,cad_g07
+00:55:58 182  ,cad_g08
+00:55:58 183  ,cad_g09
+00:55:58 184  ,cad_g10
+00:55:58 185  ,cad_g11
+00:55:58 186  ,cad_g12
+00:55:58 187  ,cad_g13
+00:55:58 188  ,cad_g14
+00:55:58 189  ,cad_g15
+00:55:58 190  ,cad_g16
+00:55:58 191  ,cad_g17
+00:55:58 192  ,cad_g18
+00:55:58 193  ,cad_g19
+00:55:58 194  ,cad_g20
+00:55:58 195  ,cad_g21
+00:55:58 196  ,cad_g22
+00:55:58 197  ,cad_g23
+00:55:58 198  ,cad_g24
+00:55:58 199  ,cad_g25
+00:55:58 200  ,cad_g26
+00:55:58 201  ,cad_g27
+00:55:58 202  ,cad_g28
+00:55:58 203  ,cad_g29
+00:55:58 204  ,cad_g30
+00:55:58 205  ,cad_g31
+00:55:58 206  ,cad_g32
+00:55:58 207  ,cad_g33
+00:55:58 208  ,cad_g34
+00:55:58 209  ,cad_g35
+00:55:58 210  ,cad_g36
+00:55:58 211  ,cad_g37
+00:55:58 212  ,cad_g38
+00:55:58 213  ,cad_g39
+00:55:58 214  ,cad_g40
+00:55:58 215  ,cad_g41
+00:55:58 216  ,chf_g00
+00:55:58 217  ,chf_g01
+00:55:58 218  ,chf_g02
+00:55:58 219  ,chf_g03
+00:55:58 220  ,chf_g04
+00:55:58 221  ,chf_g05
+00:55:58 222  ,chf_g06
+00:55:58 223  ,chf_g07
+00:55:58 224  ,chf_g08
+00:55:58 225  ,chf_g09
+00:55:58 226  ,chf_g10
+00:55:58 227  ,chf_g11
+00:55:58 228  ,chf_g12
+00:55:58 229  ,chf_g13
+00:55:58 230  ,chf_g14
+00:55:58 231  ,chf_g15
+00:55:58 232  ,chf_g16
+00:55:58 233  ,chf_g17
+00:55:58 234  ,chf_g18
+00:55:58 235  ,chf_g19
+00:55:58 236  ,chf_g20
+00:55:58 237  ,chf_g21
+00:55:58 238  ,chf_g22
+00:55:58 239  ,chf_g23
+00:55:58 240  ,chf_g24
+00:55:58 241  ,chf_g25
+00:55:58 242  ,chf_g26
+00:55:58 243  ,chf_g27
+00:55:58 244  ,chf_g28
+00:55:58 245  ,chf_g29
+00:55:58 246  ,chf_g30
+00:55:58 247  ,chf_g31
+00:55:58 248  ,chf_g32
+00:55:58 249  ,chf_g33
+00:55:58 250  ,chf_g34
+00:55:58 251  ,chf_g35
+00:55:58 252  ,chf_g36
+00:55:58 253  ,chf_g37
+00:55:58 254  ,chf_g38
+00:55:58 255  ,chf_g39
+00:55:58 256  ,chf_g40
+00:55:58 257  ,chf_g41
+00:55:58 258  FROM aud_ms6 m
+00:55:58 259  WHERE m.ydate = '&1'||' '||'&2'
+00:55:58 260  /
+old 259: WHERE m.ydate = '&1'||' '||'&2'
+new 259: WHERE m.ydate = '2011-01-03'||' '||'00:30:00'
+
+View created.
+
+Elapsed: 00:00:00.13
+00:55:58 SQL> 
+00:55:58 SQL> -- rpt
+00:55:58 SQL> -- We should see just 1 row:
+00:55:58 SQL> 
+00:55:58 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.02
+00:55:58 SQL> 
+00:55:58 SQL> -- Build the model:
+00:55:58 SQL> CREATE OR REPLACE VIEW bme AS
+00:55:58   2  SELECT
+00:55:58   3  'aud'||m.ydate prdate
+00:55:58   4  ,gattn
+00:55:58   5  ,m.ydate - TO_DATE('2000-01-01','YYYY-MM-DD')daycount
+00:55:58   6  ,eur_g00
+00:55:58   7  ,eur_g01
+00:55:58   8  ,eur_g02
+00:55:58   9  ,eur_g03
+00:55:58  10  ,eur_g04
+00:55:58  11  ,eur_g05
+00:55:58  12  ,eur_g06
+00:55:58  13  ,eur_g07
+00:55:58  14  ,eur_g08
+00:55:58  15  ,eur_g09
+00:55:58  16  ,eur_g10
+00:55:58  17  ,eur_g11
+00:55:58  18  ,eur_g12
+00:55:58  19  ,eur_g13
+00:55:58  20  ,eur_g14
+00:55:58  21  ,eur_g15
+00:55:58  22  ,eur_g16
+00:55:58  23  ,eur_g17
+00:55:58  24  ,eur_g18
+00:55:58  25  ,eur_g19
+00:55:58  26  ,eur_g20
+00:55:58  27  ,eur_g21
+00:55:58  28  ,eur_g22
+00:55:58  29  ,eur_g23
+00:55:58  30  ,eur_g24
+00:55:58  31  ,eur_g25
+00:55:58  32  ,eur_g26
+00:55:58  33  ,eur_g27
+00:55:58  34  ,eur_g28
+00:55:58  35  ,eur_g29
+00:55:58  36  ,eur_g30
+00:55:58  37  ,eur_g31
+00:55:58  38  ,eur_g32
+00:55:58  39  ,eur_g33
+00:55:58  40  ,eur_g34
+00:55:58  41  ,eur_g35
+00:55:58  42  ,eur_g36
+00:55:58  43  ,eur_g37
+00:55:58  44  ,eur_g38
+00:55:58  45  ,eur_g39
+00:55:58  46  ,eur_g40
+00:55:58  47  ,eur_g41
+00:55:58  48  ,aud_g00
+00:55:58  49  ,aud_g01
+00:55:58  50  ,aud_g02
+00:55:58  51  ,aud_g03
+00:55:58  52  ,aud_g04
+00:55:58  53  ,aud_g05
+00:55:58  54  ,aud_g06
+00:55:58  55  ,aud_g07
+00:55:58  56  ,aud_g08
+00:55:58  57  ,aud_g09
+00:55:58  58  ,aud_g10
+00:55:58  59  ,aud_g11
+00:55:58  60  ,aud_g12
+00:55:58  61  ,aud_g13
+00:55:58  62  ,aud_g14
+00:55:58  63  ,aud_g15
+00:55:58  64  ,aud_g16
+00:55:58  65  ,aud_g17
+00:55:58  66  ,aud_g18
+00:55:58  67  ,aud_g19
+00:55:58  68  ,aud_g20
+00:55:58  69  ,aud_g21
+00:55:58  70  ,aud_g22
+00:55:58  71  ,aud_g23
+00:55:58  72  ,aud_g24
+00:55:58  73  ,aud_g25
+00:55:58  74  ,aud_g26
+00:55:58  75  ,aud_g27
+00:55:58  76  ,aud_g28
+00:55:58  77  ,aud_g29
+00:55:58  78  ,aud_g30
+00:55:58  79  ,aud_g31
+00:55:58  80  ,aud_g32
+00:55:58  81  ,aud_g33
+00:55:58  82  ,aud_g34
+00:55:58  83  ,aud_g35
+00:55:58  84  ,aud_g36
+00:55:58  85  ,aud_g37
+00:55:58  86  ,aud_g38
+00:55:58  87  ,aud_g39
+00:55:58  88  ,aud_g40
+00:55:58  89  ,aud_g41
+00:55:58  90  ,gbp_g00
+00:55:58  91  ,gbp_g01
+00:55:58  92  ,gbp_g02
+00:55:58  93  ,gbp_g03
+00:55:58  94  ,gbp_g04
+00:55:58  95  ,gbp_g05
+00:55:58  96  ,gbp_g06
+00:55:58  97  ,gbp_g07
+00:55:58  98  ,gbp_g08
+00:55:58  99  ,gbp_g09
+00:55:58 100  ,gbp_g10
+00:55:58 101  ,gbp_g11
+00:55:58 102  ,gbp_g12
+00:55:58 103  ,gbp_g13
+00:55:58 104  ,gbp_g14
+00:55:58 105  ,gbp_g15
+00:55:58 106  ,gbp_g16
+00:55:58 107  ,gbp_g17
+00:55:58 108  ,gbp_g18
+00:55:58 109  ,gbp_g19
+00:55:58 110  ,gbp_g20
+00:55:58 111  ,gbp_g21
+00:55:58 112  ,gbp_g22
+00:55:58 113  ,gbp_g23
+00:55:58 114  ,gbp_g24
+00:55:58 115  ,gbp_g25
+00:55:58 116  ,gbp_g26
+00:55:58 117  ,gbp_g27
+00:55:58 118  ,gbp_g28
+00:55:58 119  ,gbp_g29
+00:55:58 120  ,gbp_g30
+00:55:58 121  ,gbp_g31
+00:55:58 122  ,gbp_g32
+00:55:58 123  ,gbp_g33
+00:55:58 124  ,gbp_g34
+00:55:58 125  ,gbp_g35
+00:55:58 126  ,gbp_g36
+00:55:58 127  ,gbp_g37
+00:55:58 128  ,gbp_g38
+00:55:58 129  ,gbp_g39
+00:55:58 130  ,gbp_g40
+00:55:58 131  ,gbp_g41
+00:55:58 132  ,jpy_g00
+00:55:58 133  ,jpy_g01
+00:55:58 134  ,jpy_g02
+00:55:58 135  ,jpy_g03
+00:55:58 136  ,jpy_g04
+00:55:58 137  ,jpy_g05
+00:55:58 138  ,jpy_g06
+00:55:58 139  ,jpy_g07
+00:55:58 140  ,jpy_g08
+00:55:58 141  ,jpy_g09
+00:55:58 142  ,jpy_g10
+00:55:58 143  ,jpy_g11
+00:55:58 144  ,jpy_g12
+00:55:58 145  ,jpy_g13
+00:55:58 146  ,jpy_g14
+00:55:58 147  ,jpy_g15
+00:55:58 148  ,jpy_g16
+00:55:58 149  ,jpy_g17
+00:55:58 150  ,jpy_g18
+00:55:58 151  ,jpy_g19
+00:55:58 152  ,jpy_g20
+00:55:58 153  ,jpy_g21
+00:55:58 154  ,jpy_g22
+00:55:58 155  ,jpy_g23
+00:55:58 156  ,jpy_g24
+00:55:58 157  ,jpy_g25
+00:55:58 158  ,jpy_g26
+00:55:58 159  ,jpy_g27
+00:55:58 160  ,jpy_g28
+00:55:58 161  ,jpy_g29
+00:55:58 162  ,jpy_g30
+00:55:58 163  ,jpy_g31
+00:55:58 164  ,jpy_g32
+00:55:58 165  ,jpy_g33
+00:55:58 166  ,jpy_g34
+00:55:58 167  ,jpy_g35
+00:55:58 168  ,jpy_g36
+00:55:58 169  ,jpy_g37
+00:55:58 170  ,jpy_g38
+00:55:58 171  ,jpy_g39
+00:55:58 172  ,jpy_g40
+00:55:58 173  ,jpy_g41
+00:55:58 174  ,cad_g00
+00:55:58 175  ,cad_g01
+00:55:58 176  ,cad_g02
+00:55:58 177  ,cad_g03
+00:55:58 178  ,cad_g04
+00:55:58 179  ,cad_g05
+00:55:58 180  ,cad_g06
+00:55:58 181  ,cad_g07
+00:55:58 182  ,cad_g08
+00:55:58 183  ,cad_g09
+00:55:58 184  ,cad_g10
+00:55:58 185  ,cad_g11
+00:55:58 186  ,cad_g12
+00:55:58 187  ,cad_g13
+00:55:58 188  ,cad_g14
+00:55:58 189  ,cad_g15
+00:55:58 190  ,cad_g16
+00:55:58 191  ,cad_g17
+00:55:58 192  ,cad_g18
+00:55:58 193  ,cad_g19
+00:55:58 194  ,cad_g20
+00:55:58 195  ,cad_g21
+00:55:58 196  ,cad_g22
+00:55:58 197  ,cad_g23
+00:55:58 198  ,cad_g24
+00:55:58 199  ,cad_g25
+00:55:58 200  ,cad_g26
+00:55:58 201  ,cad_g27
+00:55:58 202  ,cad_g28
+00:55:58 203  ,cad_g29
+00:55:58 204  ,cad_g30
+00:55:58 205  ,cad_g31
+00:55:58 206  ,cad_g32
+00:55:58 207  ,cad_g33
+00:55:58 208  ,cad_g34
+00:55:58 209  ,cad_g35
+00:55:58 210  ,cad_g36
+00:55:58 211  ,cad_g37
+00:55:58 212  ,cad_g38
+00:55:58 213  ,cad_g39
+00:55:58 214  ,cad_g40
+00:55:58 215  ,cad_g41
+00:55:58 216  ,chf_g00
+00:55:58 217  ,chf_g01
+00:55:58 218  ,chf_g02
+00:55:58 219  ,chf_g03
+00:55:58 220  ,chf_g04
+00:55:58 221  ,chf_g05
+00:55:58 222  ,chf_g06
+00:55:58 223  ,chf_g07
+00:55:58 224  ,chf_g08
+00:55:58 225  ,chf_g09
+00:55:58 226  ,chf_g10
+00:55:58 227  ,chf_g11
+00:55:58 228  ,chf_g12
+00:55:58 229  ,chf_g13
+00:55:58 230  ,chf_g14
+00:55:58 231  ,chf_g15
+00:55:58 232  ,chf_g16
+00:55:58 233  ,chf_g17
+00:55:58 234  ,chf_g18
+00:55:58 235  ,chf_g19
+00:55:58 236  ,chf_g20
+00:55:58 237  ,chf_g21
+00:55:58 238  ,chf_g22
+00:55:58 239  ,chf_g23
+00:55:58 240  ,chf_g24
+00:55:58 241  ,chf_g25
+00:55:58 242  ,chf_g26
+00:55:58 243  ,chf_g27
+00:55:58 244  ,chf_g28
+00:55:58 245  ,chf_g29
+00:55:58 246  ,chf_g30
+00:55:58 247  ,chf_g31
+00:55:58 248  ,chf_g32
+00:55:58 249  ,chf_g33
+00:55:58 250  ,chf_g34
+00:55:58 251  ,chf_g35
+00:55:58 252  ,chf_g36
+00:55:58 253  ,chf_g37
+00:55:58 254  ,chf_g38
+00:55:58 255  ,chf_g39
+00:55:58 256  ,chf_g40
+00:55:58 257  ,chf_g41
+00:55:58 258  FROM aud_ms6 m
+00:55:58 259  WHERE gattn IN('nup','up')
+00:55:58 260  AND 1+m.ydate < '&1'||' '||'&2'
+00:55:58 261  /
+old 260: AND 1+m.ydate < '&1'||' '||'&2'
+new 260: AND 1+m.ydate < '2011-01-03'||' '||'00:30:00'
+
+View created.
+
+Elapsed: 00:00:00.13
+00:55:58 SQL> 
+00:55:58 SQL> -- rpt
+00:55:58 SQL> 
+00:55:58 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	    12873
+up	     6300
+
+Elapsed: 00:00:00.04
+00:55:58 SQL> 
+00:55:58 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+aud2010-12-31 18:25:00
+
+Elapsed: 00:00:00.04
+00:55:58 SQL> 
+00:55:58 SQL> -- Now build model from bme and score sme
+00:55:58 SQL> @score1gattn.sql
+00:55:58 SQL> -- score1gattn.sql
+00:55:58 SQL> 
+00:55:58 SQL> -- Does the 1st SVM score
+00:55:58 SQL> 
+00:55:58 SQL> -- Fill up svmc_apply_prep
+00:55:58 SQL> @score_gattn.sql
+00:55:58 SQL> --
+00:55:58 SQL> -- score_gattn.sql
+00:55:58 SQL> --
+00:55:58 SQL> 
+00:55:58 SQL> -- usage: score_gattn.sql
+00:55:58 SQL> 
+00:55:58 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+00:55:58 SQL> 
+00:55:58 SQL> DEFINE target	= 'gattn'
+00:55:58 SQL> DEFINE model_name = 'forex14'
+00:55:58 SQL> DEFINE bldtable	= 'bme'
+00:55:58 SQL> DEFINE scoretable = 'sme'
+00:55:58 SQL> DEFINE case_id	= 'prdate'
+00:55:58 SQL> 
+00:55:58 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+00:55:58 SQL> DEFINE exclude1 = "'&target','&case_id'"
+00:55:58 SQL> 
+00:55:58 SQL> -- Builds an SVM model using pl/sql.
+00:55:58 SQL> 
+00:55:58 SQL> -----------------------------------------------------------------------
+00:55:58 SQL> --			    BUILD THE MODEL
+00:55:58 SQL> -----------------------------------------------------------------------
+00:55:58 SQL> 
+00:55:58 SQL> -- Cleanup old build data preparation objects for repeat runs
+00:55:58 SQL> DELETE svmc_miss_num;
+
+253 rows deleted.
+
+Elapsed: 00:00:00.00
+00:55:58 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+00:55:58 SQL> DELETE svmc_clip;
+
+253 rows deleted.
+
+Elapsed: 00:00:00.01
+00:55:58 SQL> DELETE svmc_norm;
+
+253 rows deleted.
+
+Elapsed: 00:00:00.01
+00:55:58 SQL> 
+00:55:58 SQL> 
+00:55:58 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+00:55:58 SQL> --
+00:55:58 SQL> -- DROP	TABLE svmc_settings ;
+00:55:58 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+00:55:58 SQL> -- DELETE svmc_settings;
+00:55:58 SQL> 
+00:55:58 SQL> -- The default classification algorithm is Naive Bayes. So override
+00:55:58 SQL> -- this choice to SVM using a settings table.
+00:55:58 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+00:55:58 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+00:55:58 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+00:55:58 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+00:55:58 SQL> -- models.
+00:55:58 SQL> --
+00:55:58 SQL> 
+00:55:58 SQL> -- Do this once and then comment it out.
+00:55:58 SQL> -- That makes script go faster.
+00:55:58 SQL> -- BEGIN
+00:55:58 SQL> -- -- Populate settings table
+00:55:58 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+00:55:58 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+00:55:58 SQL> --
+00:55:58 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+00:55:58 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+00:55:58 SQL> --
+00:55:58 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+00:55:58 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+00:55:58 SQL> --   COMMIT;
+00:55:58 SQL> -- END;
+00:55:58 SQL> -- /
+00:55:58 SQL> 
+00:55:58 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       320123123
+
+Elapsed: 00:00:00.00
+00:55:58 SQL> 
+00:55:58 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+00:55:58   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:55:58   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.12
+00:55:58 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+00:55:58   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:55:58   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.07
+00:55:58 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+00:55:58   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:55:58   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.06
+00:55:58 SQL> 
+00:55:58 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+00:55:58   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:55:58   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.06
+00:55:58 SQL> 
+00:55:58 SQL> --------------------------------
+00:55:58 SQL> -- PREPARE BUILD (TRAINING) DATA
+00:55:58 SQL> --
+00:55:58 SQL> 
+00:55:58 SQL> -- 1. Missing Value treatment for all Predictors and
+00:55:58 SQL> -- 2. Outlier Treatment and
+00:55:58 SQL> -- 3. Normalization are performed below.
+00:55:58 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+00:55:58 SQL> --    normalized here.
+00:55:58 SQL> 
+00:55:58 SQL> BEGIN
+00:55:58   2  	-- Perform missing value treatment for all predictors
+00:55:58   3  	-- create miss tables
+00:55:58   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+00:55:58   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+00:55:58   6  
+00:55:58   7  	-- populate miss tables
+00:55:58   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+00:55:58   9  	  miss_table_name => 'svmc_miss_num',
+00:55:58  10  	  data_table_name => '&bldtable',
+00:55:58  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+00:55:58  12  
+00:55:58  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+00:55:58  14  	  miss_table_name => 'svmc_miss_cat',
+00:55:58  15  	  data_table_name => '&bldtable',
+00:55:58  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+00:55:58  17  
+00:55:58  18  	-- xform input data to replace missing values
+00:55:58  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+00:55:58  20  	  miss_table_name => 'svmc_miss_num',
+00:55:58  21  	  data_table_name => '&bldtable',
+00:55:58  22  	  xform_view_name => 'xformed_build_miss_num');
+00:55:58  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+00:55:58  24  	  miss_table_name => 'svmc_miss_cat',
+00:55:58  25  	  data_table_name => '&bldtable',
+00:55:58  26  	  xform_view_name => 'xformed_build_miss_cat');
+00:55:58  27  
+00:55:58  28  	-- Perform outlier treatment.
+00:55:58  29  	-- create clip table
+00:55:58  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+00:55:58  31  
+00:55:58  32  	-- populate clip table
+00:55:58  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+00:55:58  34  	  clip_table_name => 'svmc_clip',
+00:55:58  35  	  data_table_name => '&bldtable',
+00:55:58  36  	  tail_frac	  => 0.025,
+00:55:58  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+00:55:58  38  
+00:55:58  39  	-- xform input data to winsorized data
+00:55:58  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+00:55:58  41  	  clip_table_name => 'svmc_clip',
+00:55:58  42  	  data_table_name => '&bldtable',
+00:55:58  43  	  xform_view_name => 'svmc_winsor');
+00:55:58  44  
+00:55:58  45  	-- create normalization table
+00:55:58  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+00:55:58  47  
+00:55:58  48  	-- populate normalization table based on winsorized data
+00:55:58  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+00:55:58  50  	  norm_table_name => 'svmc_norm',
+00:55:58  51  	  data_table_name => 'svmc_winsor',
+00:55:58  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+00:55:58  53  
+00:55:58  54  	-- normalize the original data
+00:55:58  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+00:55:58  56  	  norm_table_name => 'svmc_norm',
+00:55:58  57  	  data_table_name => '&bldtable',
+00:55:58  58  	  xform_view_name => 'svmc_build_prep');
+00:55:58  59  END;
+00:55:58  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:18.23
+00:56:17 SQL> 
+00:56:17 SQL> ---------------------
+00:56:17 SQL> -- CREATE A NEW MODEL
+00:56:17 SQL> --
+00:56:17 SQL> -- Cleanup old model with the same name for repeat runs
+00:56:17 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+00:56:17   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:56:17   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.97
+00:56:17 SQL> 
+00:56:17 SQL> -- Build a new SVM Model
+00:56:17 SQL> BEGIN
+00:56:17   2  	DBMS_DATA_MINING.CREATE_MODEL(
+00:56:17   3  	  model_name	      => '&model_name',
+00:56:17   4  	  mining_function     => dbms_data_mining.classification,
+00:56:17   5  	  data_table_name     => 'svmc_build_prep',
+00:56:17   6  	  case_id_column_name => '&case_id',
+00:56:17   7  	  target_column_name  => '&target',
+00:56:17   8  	  settings_table_name => 'svmc_settings');
+00:56:17   9  END;
+00:56:17  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:26.40
+00:56:44 SQL> 
+00:56:44 SQL> -----------------------------------------------------------------------
+00:56:44 SQL> --			       APPLY/score THE MODEL
+00:56:44 SQL> -----------------------------------------------------------------------
+00:56:44 SQL> 
+00:56:44 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+00:56:44 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+00:56:44   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:56:44   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.05
+00:56:44 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+00:56:44   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:56:44   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.05
+00:56:44 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+00:56:44   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:56:44   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.06
+00:56:44 SQL> -----------------------
+00:56:44 SQL> -- PREPARE SCORING DATA
+00:56:44 SQL> --
+00:56:44 SQL> -- If the data for model creation has been prepared, then the data
+00:56:44 SQL> -- to be scored using the model must be prepared in the same manner
+00:56:44 SQL> -- in order to obtain meaningful results.
+00:56:44 SQL> --
+00:56:44 SQL> -- 1. Missing Value treatment for all Predictors and
+00:56:44 SQL> -- 2. Normalization
+00:56:44 SQL> -- No outlier treatment will be performed during test and apply. The
+00:56:44 SQL> -- normalization step is sufficient, since the normalization parameters
+00:56:44 SQL> -- already capture the effects of outlier treatment done with build data.
+00:56:44 SQL> --
+00:56:44 SQL> BEGIN
+00:56:44   2  	-- Xform Test data to replace missing values
+00:56:44   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+00:56:44   4  	  miss_table_name => 'svmc_miss_num',
+00:56:44   5  	  data_table_name => '&scoretable',
+00:56:44   6  	  xform_view_name => 'xformed_apply_miss_num');
+00:56:44   7  
+00:56:44   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+00:56:44   9  	  miss_table_name => 'svmc_miss_cat',
+00:56:44  10  	  data_table_name => '&scoretable',
+00:56:44  11  	  xform_view_name => 'xformed_apply_miss_cat');
+00:56:44  12  
+00:56:44  13  	-- Normalize the data to be scored
+00:56:44  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+00:56:44  15  	  norm_table_name => 'svmc_norm',
+00:56:44  16  	  data_table_name => '&scoretable',
+00:56:44  17  	  xform_view_name => 'svmc_apply_prep');
+00:56:44  18  END;
+00:56:44  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.18
+00:56:45 SQL> 
+00:56:45 SQL> -- Use same model_name used in score_gattn.sql
+00:56:45 SQL> DEFINE model_name = 'forex14'
+00:56:45 SQL> 
+00:56:45 SQL> DELETE fxscores6_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.04
+00:56:45 SQL> 
+00:56:45 SQL> INSERT INTO fxscores6_gattn (prdate,score,rundate,pair,ydate)
+00:56:45   2  SELECT
+00:56:45   3  prdate
+00:56:45   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+00:56:45   5  ,sysdate
+00:56:45   6  ,SUBSTR(prdate,1,3)pair
+00:56:45   7  ,SUBSTR(prdate,4,19)ydate
+00:56:45   8  FROM svmc_apply_prep
+00:56:45   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.17
+00:56:45 SQL> @aud_score1day_gattn.sql	2011-01-03 00:35:00
+00:56:45 SQL> --
+00:56:45 SQL> -- aud_score1day_gattn.sql
+00:56:45 SQL> --
+00:56:45 SQL> 
+00:56:45 SQL> CREATE OR REPLACE VIEW sme AS
+00:56:45   2  SELECT
+00:56:45   3  'aud'||m.ydate prdate
+00:56:45   4  ,NULL gattn
+00:56:45   5  ,m.ydate - TO_DATE('2000-01-01','YYYY-MM-DD')daycount
+00:56:45   6  ,eur_g00
+00:56:45   7  ,eur_g01
+00:56:45   8  ,eur_g02
+00:56:45   9  ,eur_g03
+00:56:45  10  ,eur_g04
+00:56:45  11  ,eur_g05
+00:56:45  12  ,eur_g06
+00:56:45  13  ,eur_g07
+00:56:45  14  ,eur_g08
+00:56:45  15  ,eur_g09
+00:56:45  16  ,eur_g10
+00:56:45  17  ,eur_g11
+00:56:45  18  ,eur_g12
+00:56:45  19  ,eur_g13
+00:56:45  20  ,eur_g14
+00:56:45  21  ,eur_g15
+00:56:45  22  ,eur_g16
+00:56:45  23  ,eur_g17
+00:56:45  24  ,eur_g18
+00:56:45  25  ,eur_g19
+00:56:45  26  ,eur_g20
+00:56:45  27  ,eur_g21
+00:56:45  28  ,eur_g22
+00:56:45  29  ,eur_g23
+00:56:45  30  ,eur_g24
+00:56:45  31  ,eur_g25
+00:56:45  32  ,eur_g26
+00:56:45  33  ,eur_g27
+00:56:45  34  ,eur_g28
+00:56:45  35  ,eur_g29
+00:56:45  36  ,eur_g30
+00:56:45  37  ,eur_g31
+00:56:45  38  ,eur_g32
+00:56:45  39  ,eur_g33
+00:56:45  40  ,eur_g34
+00:56:45  41  ,eur_g35
+00:56:45  42  ,eur_g36
+00:56:45  43  ,eur_g37
+00:56:45  44  ,eur_g38
+00:56:45  45  ,eur_g39
+00:56:45  46  ,eur_g40
+00:56:45  47  ,eur_g41
+00:56:45  48  ,aud_g00
+00:56:45  49  ,aud_g01
+00:56:45  50  ,aud_g02
+00:56:45  51  ,aud_g03
+00:56:45  52  ,aud_g04
+00:56:45  53  ,aud_g05
+00:56:45  54  ,aud_g06
+00:56:45  55  ,aud_g07
+00:56:45  56  ,aud_g08
+00:56:45  57  ,aud_g09
+00:56:45  58  ,aud_g10
+00:56:45  59  ,aud_g11
+00:56:45  60  ,aud_g12
+00:56:45  61  ,aud_g13
+00:56:45  62  ,aud_g14
+00:56:45  63  ,aud_g15
+00:56:45  64  ,aud_g16
+00:56:45  65  ,aud_g17
+00:56:45  66  ,aud_g18
+00:56:45  67  ,aud_g19
+00:56:45  68  ,aud_g20
+00:56:45  69  ,aud_g21
+00:56:45  70  ,aud_g22
+00:56:45  71  ,aud_g23
+00:56:45  72  ,aud_g24
+00:56:45  73  ,aud_g25
+00:56:45  74  ,aud_g26
+00:56:45  75  ,aud_g27
+00:56:45  76  ,aud_g28
+00:56:45  77  ,aud_g29
+00:56:45  78  ,aud_g30
+00:56:45  79  ,aud_g31
+00:56:45  80  ,aud_g32
+00:56:45  81  ,aud_g33
+00:56:45  82  ,aud_g34
+00:56:45  83  ,aud_g35
+00:56:45  84  ,aud_g36
+00:56:45  85  ,aud_g37
+00:56:45  86  ,aud_g38
+00:56:45  87  ,aud_g39
+00:56:45  88  ,aud_g40
+00:56:45  89  ,aud_g41
+00:56:45  90  ,gbp_g00
+00:56:45  91  ,gbp_g01
+00:56:45  92  ,gbp_g02
+00:56:45  93  ,gbp_g03
+00:56:45  94  ,gbp_g04
+00:56:45  95  ,gbp_g05
+00:56:45  96  ,gbp_g06
+00:56:45  97  ,gbp_g07
+00:56:45  98  ,gbp_g08
+00:56:45  99  ,gbp_g09
+00:56:45 100  ,gbp_g10
+00:56:45 101  ,gbp_g11
+00:56:45 102  ,gbp_g12
+00:56:45 103  ,gbp_g13
+00:56:45 104  ,gbp_g14
+00:56:45 105  ,gbp_g15
+00:56:45 106  ,gbp_g16
+00:56:45 107  ,gbp_g17
+00:56:45 108  ,gbp_g18
+00:56:45 109  ,gbp_g19
+00:56:45 110  ,gbp_g20
+00:56:45 111  ,gbp_g21
+00:56:45 112  ,gbp_g22
+00:56:45 113  ,gbp_g23
+00:56:45 114  ,gbp_g24
+00:56:45 115  ,gbp_g25
+00:56:45 116  ,gbp_g26
+00:56:45 117  ,gbp_g27
+00:56:45 118  ,gbp_g28
+00:56:45 119  ,gbp_g29
+00:56:45 120  ,gbp_g30
+00:56:45 121  ,gbp_g31
+00:56:45 122  ,gbp_g32
+00:56:45 123  ,gbp_g33
+00:56:45 124  ,gbp_g34
+00:56:45 125  ,gbp_g35
+00:56:45 126  ,gbp_g36
+00:56:45 127  ,gbp_g37
+00:56:45 128  ,gbp_g38
+00:56:45 129  ,gbp_g39
+00:56:45 130  ,gbp_g40
+00:56:45 131  ,gbp_g41
+00:56:45 132  ,jpy_g00
+00:56:45 133  ,jpy_g01
+00:56:45 134  ,jpy_g02
+00:56:45 135  ,jpy_g03
+00:56:45 136  ,jpy_g04
+00:56:45 137  ,jpy_g05
+00:56:45 138  ,jpy_g06
+00:56:45 139  ,jpy_g07
+00:56:45 140  ,jpy_g08
+00:56:45 141  ,jpy_g09
+00:56:45 142  ,jpy_g10
+00:56:45 143  ,jpy_g11
+00:56:45 144  ,jpy_g12
+00:56:45 145  ,jpy_g13
+00:56:45 146  ,jpy_g14
+00:56:45 147  ,jpy_g15
+00:56:45 148  ,jpy_g16
+00:56:45 149  ,jpy_g17
+00:56:45 150  ,jpy_g18
+00:56:45 151  ,jpy_g19
+00:56:45 152  ,jpy_g20
+00:56:45 153  ,jpy_g21
+00:56:45 154  ,jpy_g22
+00:56:45 155  ,jpy_g23
+00:56:45 156  ,jpy_g24
+00:56:45 157  ,jpy_g25
+00:56:45 158  ,jpy_g26
+00:56:45 159  ,jpy_g27
+00:56:45 160  ,jpy_g28
+00:56:45 161  ,jpy_g29
+00:56:45 162  ,jpy_g30
+00:56:45 163  ,jpy_g31
+00:56:45 164  ,jpy_g32
+00:56:45 165  ,jpy_g33
+00:56:45 166  ,jpy_g34
+00:56:45 167  ,jpy_g35
+00:56:45 168  ,jpy_g36
+00:56:45 169  ,jpy_g37
+00:56:45 170  ,jpy_g38
+00:56:45 171  ,jpy_g39
+00:56:45 172  ,jpy_g40
+00:56:45 173  ,jpy_g41
+00:56:45 174  ,cad_g00
+00:56:45 175  ,cad_g01
+00:56:45 176  ,cad_g02
+00:56:45 177  ,cad_g03
+00:56:45 178  ,cad_g04
+00:56:45 179  ,cad_g05
+00:56:45 180  ,cad_g06
+00:56:45 181  ,cad_g07
+00:56:45 182  ,cad_g08
+00:56:45 183  ,cad_g09
+00:56:45 184  ,cad_g10
+00:56:45 185  ,cad_g11
+00:56:45 186  ,cad_g12
+00:56:45 187  ,cad_g13
+00:56:45 188  ,cad_g14
+00:56:45 189  ,cad_g15
+00:56:45 190  ,cad_g16
+00:56:45 191  ,cad_g17
+00:56:45 192  ,cad_g18
+00:56:45 193  ,cad_g19
+00:56:45 194  ,cad_g20
+00:56:45 195  ,cad_g21
+00:56:45 196  ,cad_g22
+00:56:45 197  ,cad_g23
+00:56:45 198  ,cad_g24
+00:56:45 199  ,cad_g25
+00:56:45 200  ,cad_g26
+00:56:45 201  ,cad_g27
+00:56:45 202  ,cad_g28
+00:56:45 203  ,cad_g29
+00:56:45 204  ,cad_g30
+00:56:45 205  ,cad_g31
+00:56:45 206  ,cad_g32
+00:56:45 207  ,cad_g33
+00:56:45 208  ,cad_g34
+00:56:45 209  ,cad_g35
+00:56:45 210  ,cad_g36
+00:56:45 211  ,cad_g37
+00:56:45 212  ,cad_g38
+00:56:45 213  ,cad_g39
+00:56:45 214  ,cad_g40
+00:56:45 215  ,cad_g41
+00:56:45 216  ,chf_g00
+00:56:45 217  ,chf_g01
+00:56:45 218  ,chf_g02
+00:56:45 219  ,chf_g03
+00:56:45 220  ,chf_g04
+00:56:45 221  ,chf_g05
+00:56:45 222  ,chf_g06
+00:56:45 223  ,chf_g07
+00:56:45 224  ,chf_g08
+00:56:45 225  ,chf_g09
+00:56:45 226  ,chf_g10
+00:56:45 227  ,chf_g11
+00:56:45 228  ,chf_g12
+00:56:45 229  ,chf_g13
+00:56:45 230  ,chf_g14
+00:56:45 231  ,chf_g15
+00:56:45 232  ,chf_g16
+00:56:45 233  ,chf_g17
+00:56:45 234  ,chf_g18
+00:56:45 235  ,chf_g19
+00:56:45 236  ,chf_g20
+00:56:45 237  ,chf_g21
+00:56:45 238  ,chf_g22
+00:56:45 239  ,chf_g23
+00:56:45 240  ,chf_g24
+00:56:45 241  ,chf_g25
+00:56:45 242  ,chf_g26
+00:56:45 243  ,chf_g27
+00:56:45 244  ,chf_g28
+00:56:45 245  ,chf_g29
+00:56:45 246  ,chf_g30
+00:56:45 247  ,chf_g31
+00:56:45 248  ,chf_g32
+00:56:45 249  ,chf_g33
+00:56:45 250  ,chf_g34
+00:56:45 251  ,chf_g35
+00:56:45 252  ,chf_g36
+00:56:45 253  ,chf_g37
+00:56:45 254  ,chf_g38
+00:56:45 255  ,chf_g39
+00:56:45 256  ,chf_g40
+00:56:45 257  ,chf_g41
+00:56:45 258  FROM aud_ms6 m
+00:56:45 259  WHERE m.ydate = '&1'||' '||'&2'
+00:56:45 260  /
+old 259: WHERE m.ydate = '&1'||' '||'&2'
+new 259: WHERE m.ydate = '2011-01-03'||' '||'00:35:00'
+
+View created.
+
+Elapsed: 00:00:00.12
+00:56:46 SQL> 
+00:56:46 SQL> -- rpt
+00:56:46 SQL> -- We should see just 1 row:
+00:56:46 SQL> 
+00:56:46 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.02
+00:56:46 SQL> 
+00:56:46 SQL> -- Build the model:
+00:56:46 SQL> CREATE OR REPLACE VIEW bme AS
+00:56:46   2  SELECT
+00:56:46   3  'aud'||m.ydate prdate
+00:56:46   4  ,gattn
+00:56:46   5  ,m.ydate - TO_DATE('2000-01-01','YYYY-MM-DD')daycount
+00:56:46   6  ,eur_g00
+00:56:46   7  ,eur_g01
+00:56:46   8  ,eur_g02
+00:56:46   9  ,eur_g03
+00:56:46  10  ,eur_g04
+00:56:46  11  ,eur_g05
+00:56:46  12  ,eur_g06
+00:56:46  13  ,eur_g07
+00:56:46  14  ,eur_g08
+00:56:46  15  ,eur_g09
+00:56:46  16  ,eur_g10
+00:56:46  17  ,eur_g11
+00:56:46  18  ,eur_g12
+00:56:46  19  ,eur_g13
+00:56:46  20  ,eur_g14
+00:56:46  21  ,eur_g15
+00:56:46  22  ,eur_g16
+00:56:46  23  ,eur_g17
+00:56:46  24  ,eur_g18
+00:56:46  25  ,eur_g19
+00:56:46  26  ,eur_g20
+00:56:46  27  ,eur_g21
+00:56:46  28  ,eur_g22
+00:56:46  29  ,eur_g23
+00:56:46  30  ,eur_g24
+00:56:46  31  ,eur_g25
+00:56:46  32  ,eur_g26
+00:56:46  33  ,eur_g27
+00:56:46  34  ,eur_g28
+00:56:46  35  ,eur_g29
+00:56:46  36  ,eur_g30
+00:56:46  37  ,eur_g31
+00:56:46  38  ,eur_g32
+00:56:46  39  ,eur_g33
+00:56:46  40  ,eur_g34
+00:56:46  41  ,eur_g35
+00:56:46  42  ,eur_g36
+00:56:46  43  ,eur_g37
+00:56:46  44  ,eur_g38
+00:56:46  45  ,eur_g39
+00:56:46  46  ,eur_g40
+00:56:46  47  ,eur_g41
+00:56:46  48  ,aud_g00
+00:56:46  49  ,aud_g01
+00:56:46  50  ,aud_g02
+00:56:46  51  ,aud_g03
+00:56:46  52  ,aud_g04
+00:56:46  53  ,aud_g05
+00:56:46  54  ,aud_g06
+00:56:46  55  ,aud_g07
+00:56:46  56  ,aud_g08
+00:56:46  57  ,aud_g09
+00:56:46  58  ,aud_g10
+00:56:46  59  ,aud_g11
+00:56:46  60  ,aud_g12
+00:56:46  61  ,aud_g13
+00:56:46  62  ,aud_g14
+00:56:46  63  ,aud_g15
+00:56:46  64  ,aud_g16
+00:56:46  65  ,aud_g17
+00:56:46  66  ,aud_g18
+00:56:46  67  ,aud_g19
+00:56:46  68  ,aud_g20
+00:56:46  69  ,aud_g21
+00:56:46  70  ,aud_g22
+00:56:46  71  ,aud_g23
+00:56:46  72  ,aud_g24
+00:56:46  73  ,aud_g25
+00:56:46  74  ,aud_g26
+00:56:46  75  ,aud_g27
+00:56:46  76  ,aud_g28
+00:56:46  77  ,aud_g29
+00:56:46  78  ,aud_g30
+00:56:46  79  ,aud_g31
+00:56:46  80  ,aud_g32
+00:56:46  81  ,aud_g33
+00:56:46  82  ,aud_g34
+00:56:46  83  ,aud_g35
+00:56:46  84  ,aud_g36
+00:56:46  85  ,aud_g37
+00:56:46  86  ,aud_g38
+00:56:46  87  ,aud_g39
+00:56:46  88  ,aud_g40
+00:56:46  89  ,aud_g41
+00:56:46  90  ,gbp_g00
+00:56:46  91  ,gbp_g01
+00:56:46  92  ,gbp_g02
+00:56:46  93  ,gbp_g03
+00:56:46  94  ,gbp_g04
+00:56:46  95  ,gbp_g05
+00:56:46  96  ,gbp_g06
+00:56:46  97  ,gbp_g07
+00:56:46  98  ,gbp_g08
+00:56:46  99  ,gbp_g09
+00:56:46 100  ,gbp_g10
+00:56:46 101  ,gbp_g11
+00:56:46 102  ,gbp_g12
+00:56:46 103  ,gbp_g13
+00:56:46 104  ,gbp_g14
+00:56:46 105  ,gbp_g15
+00:56:46 106  ,gbp_g16
+00:56:46 107  ,gbp_g17
+00:56:46 108  ,gbp_g18
+00:56:46 109  ,gbp_g19
+00:56:46 110  ,gbp_g20
+00:56:46 111  ,gbp_g21
+00:56:46 112  ,gbp_g22
+00:56:46 113  ,gbp_g23
+00:56:46 114  ,gbp_g24
+00:56:46 115  ,gbp_g25
+00:56:46 116  ,gbp_g26
+00:56:46 117  ,gbp_g27
+00:56:46 118  ,gbp_g28
+00:56:46 119  ,gbp_g29
+00:56:46 120  ,gbp_g30
+00:56:46 121  ,gbp_g31
+00:56:46 122  ,gbp_g32
+00:56:46 123  ,gbp_g33
+00:56:46 124  ,gbp_g34
+00:56:46 125  ,gbp_g35
+00:56:46 126  ,gbp_g36
+00:56:46 127  ,gbp_g37
+00:56:46 128  ,gbp_g38
+00:56:46 129  ,gbp_g39
+00:56:46 130  ,gbp_g40
+00:56:46 131  ,gbp_g41
+00:56:46 132  ,jpy_g00
+00:56:46 133  ,jpy_g01
+00:56:46 134  ,jpy_g02
+00:56:46 135  ,jpy_g03
+00:56:46 136  ,jpy_g04
+00:56:46 137  ,jpy_g05
+00:56:46 138  ,jpy_g06
+00:56:46 139  ,jpy_g07
+00:56:46 140  ,jpy_g08
+00:56:46 141  ,jpy_g09
+00:56:46 142  ,jpy_g10
+00:56:46 143  ,jpy_g11
+00:56:46 144  ,jpy_g12
+00:56:46 145  ,jpy_g13
+00:56:46 146  ,jpy_g14
+00:56:46 147  ,jpy_g15
+00:56:46 148  ,jpy_g16
+00:56:46 149  ,jpy_g17
+00:56:46 150  ,jpy_g18
+00:56:46 151  ,jpy_g19
+00:56:46 152  ,jpy_g20
+00:56:46 153  ,jpy_g21
+00:56:46 154  ,jpy_g22
+00:56:46 155  ,jpy_g23
+00:56:46 156  ,jpy_g24
+00:56:46 157  ,jpy_g25
+00:56:46 158  ,jpy_g26
+00:56:46 159  ,jpy_g27
+00:56:46 160  ,jpy_g28
+00:56:46 161  ,jpy_g29
+00:56:46 162  ,jpy_g30
+00:56:46 163  ,jpy_g31
+00:56:46 164  ,jpy_g32
+00:56:46 165  ,jpy_g33
+00:56:46 166  ,jpy_g34
+00:56:46 167  ,jpy_g35
+00:56:46 168  ,jpy_g36
+00:56:46 169  ,jpy_g37
+00:56:46 170  ,jpy_g38
+00:56:46 171  ,jpy_g39
+00:56:46 172  ,jpy_g40
+00:56:46 173  ,jpy_g41
+00:56:46 174  ,cad_g00
+00:56:46 175  ,cad_g01
+00:56:46 176  ,cad_g02
+00:56:46 177  ,cad_g03
+00:56:46 178  ,cad_g04
+00:56:46 179  ,cad_g05
+00:56:46 180  ,cad_g06
+00:56:46 181  ,cad_g07
+00:56:46 182  ,cad_g08
+00:56:46 183  ,cad_g09
+00:56:46 184  ,cad_g10
+00:56:46 185  ,cad_g11
+00:56:46 186  ,cad_g12
+00:56:46 187  ,cad_g13
+00:56:46 188  ,cad_g14
+00:56:46 189  ,cad_g15
+00:56:46 190  ,cad_g16
+00:56:46 191  ,cad_g17
+00:56:46 192  ,cad_g18
+00:56:46 193  ,cad_g19
+00:56:46 194  ,cad_g20
+00:56:46 195  ,cad_g21
+00:56:46 196  ,cad_g22
+00:56:46 197  ,cad_g23
+00:56:46 198  ,cad_g24
+00:56:46 199  ,cad_g25
+00:56:46 200  ,cad_g26
+00:56:46 201  ,cad_g27
+00:56:46 202  ,cad_g28
+00:56:46 203  ,cad_g29
+00:56:46 204  ,cad_g30
+00:56:46 205  ,cad_g31
+00:56:46 206  ,cad_g32
+00:56:46 207  ,cad_g33
+00:56:46 208  ,cad_g34
+00:56:46 209  ,cad_g35
+00:56:46 210  ,cad_g36
+00:56:46 211  ,cad_g37
+00:56:46 212  ,cad_g38
+00:56:46 213  ,cad_g39
+00:56:46 214  ,cad_g40
+00:56:46 215  ,cad_g41
+00:56:46 216  ,chf_g00
+00:56:46 217  ,chf_g01
+00:56:46 218  ,chf_g02
+00:56:46 219  ,chf_g03
+00:56:46 220  ,chf_g04
+00:56:46 221  ,chf_g05
+00:56:46 222  ,chf_g06
+00:56:46 223  ,chf_g07
+00:56:46 224  ,chf_g08
+00:56:46 225  ,chf_g09
+00:56:46 226  ,chf_g10
+00:56:46 227  ,chf_g11
+00:56:46 228  ,chf_g12
+00:56:46 229  ,chf_g13
+00:56:46 230  ,chf_g14
+00:56:46 231  ,chf_g15
+00:56:46 232  ,chf_g16
+00:56:46 233  ,chf_g17
+00:56:46 234  ,chf_g18
+00:56:46 235  ,chf_g19
+00:56:46 236  ,chf_g20
+00:56:46 237  ,chf_g21
+00:56:46 238  ,chf_g22
+00:56:46 239  ,chf_g23
+00:56:46 240  ,chf_g24
+00:56:46 241  ,chf_g25
+00:56:46 242  ,chf_g26
+00:56:46 243  ,chf_g27
+00:56:46 244  ,chf_g28
+00:56:46 245  ,chf_g29
+00:56:46 246  ,chf_g30
+00:56:46 247  ,chf_g31
+00:56:46 248  ,chf_g32
+00:56:46 249  ,chf_g33
+00:56:46 250  ,chf_g34
+00:56:46 251  ,chf_g35
+00:56:46 252  ,chf_g36
+00:56:46 253  ,chf_g37
+00:56:46 254  ,chf_g38
+00:56:46 255  ,chf_g39
+00:56:46 256  ,chf_g40
+00:56:46 257  ,chf_g41
+00:56:46 258  FROM aud_ms6 m
+00:56:46 259  WHERE gattn IN('nup','up')
+00:56:46 260  AND 1+m.ydate < '&1'||' '||'&2'
+00:56:46 261  /
+old 260: AND 1+m.ydate < '&1'||' '||'&2'
+new 260: AND 1+m.ydate < '2011-01-03'||' '||'00:35:00'
+
+View created.
+
+Elapsed: 00:00:00.13
+00:56:46 SQL> 
+00:56:46 SQL> -- rpt
+00:56:46 SQL> 
+00:56:46 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	    12873
+up	     6300
+
+Elapsed: 00:00:00.04
+00:56:46 SQL> 
+00:56:46 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+aud2010-12-31 18:25:00
+
+Elapsed: 00:00:00.04
+00:56:46 SQL> 
+00:56:46 SQL> -- Now build model from bme and score sme
+00:56:46 SQL> @score1gattn.sql
+00:56:46 SQL> -- score1gattn.sql
+00:56:46 SQL> 
+00:56:46 SQL> -- Does the 1st SVM score
+00:56:46 SQL> 
+00:56:46 SQL> -- Fill up svmc_apply_prep
+00:56:46 SQL> @score_gattn.sql
+00:56:46 SQL> --
+00:56:46 SQL> -- score_gattn.sql
+00:56:46 SQL> --
+00:56:46 SQL> 
+00:56:46 SQL> -- usage: score_gattn.sql
+00:56:46 SQL> 
+00:56:46 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+00:56:46 SQL> 
+00:56:46 SQL> DEFINE target	= 'gattn'
+00:56:46 SQL> DEFINE model_name = 'forex14'
+00:56:46 SQL> DEFINE bldtable	= 'bme'
+00:56:46 SQL> DEFINE scoretable = 'sme'
+00:56:46 SQL> DEFINE case_id	= 'prdate'
+00:56:46 SQL> 
+00:56:46 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+00:56:46 SQL> DEFINE exclude1 = "'&target','&case_id'"
+00:56:46 SQL> 
+00:56:46 SQL> -- Builds an SVM model using pl/sql.
+00:56:46 SQL> 
+00:56:46 SQL> -----------------------------------------------------------------------
+00:56:46 SQL> --			    BUILD THE MODEL
+00:56:46 SQL> -----------------------------------------------------------------------
+00:56:46 SQL> 
+00:56:46 SQL> -- Cleanup old build data preparation objects for repeat runs
+00:56:46 SQL> DELETE svmc_miss_num;
+
+253 rows deleted.
+
+Elapsed: 00:00:00.00
+00:56:46 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+00:56:46 SQL> DELETE svmc_clip;
+
+253 rows deleted.
+
+Elapsed: 00:00:00.00
+00:56:46 SQL> DELETE svmc_norm;
+
+253 rows deleted.
+
+Elapsed: 00:00:00.01
+00:56:46 SQL> 
+00:56:46 SQL> 
+00:56:46 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+00:56:46 SQL> --
+00:56:46 SQL> -- DROP	TABLE svmc_settings ;
+00:56:46 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+00:56:46 SQL> -- DELETE svmc_settings;
+00:56:46 SQL> 
+00:56:46 SQL> -- The default classification algorithm is Naive Bayes. So override
+00:56:46 SQL> -- this choice to SVM using a settings table.
+00:56:46 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+00:56:46 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+00:56:46 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+00:56:46 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+00:56:46 SQL> -- models.
+00:56:46 SQL> --
+00:56:46 SQL> 
+00:56:46 SQL> -- Do this once and then comment it out.
+00:56:46 SQL> -- That makes script go faster.
+00:56:46 SQL> -- BEGIN
+00:56:46 SQL> -- -- Populate settings table
+00:56:46 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+00:56:46 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+00:56:46 SQL> --
+00:56:46 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+00:56:46 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+00:56:46 SQL> --
+00:56:46 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+00:56:46 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+00:56:46 SQL> --   COMMIT;
+00:56:46 SQL> -- END;
+00:56:46 SQL> -- /
+00:56:46 SQL> 
+00:56:46 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       320123123
+
+Elapsed: 00:00:00.00
+00:56:46 SQL> 
+00:56:46 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+00:56:46   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:56:46   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.05
+00:56:46 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+00:56:46   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:56:46   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.07
+00:56:46 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+00:56:46   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:56:46   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.06
+00:56:46 SQL> 
+00:56:46 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+00:56:46   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:56:46   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.08
+00:56:46 SQL> 
+00:56:46 SQL> --------------------------------
+00:56:46 SQL> -- PREPARE BUILD (TRAINING) DATA
+00:56:46 SQL> --
+00:56:46 SQL> 
+00:56:46 SQL> -- 1. Missing Value treatment for all Predictors and
+00:56:46 SQL> -- 2. Outlier Treatment and
+00:56:46 SQL> -- 3. Normalization are performed below.
+00:56:46 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+00:56:46 SQL> --    normalized here.
+00:56:46 SQL> 
+00:56:46 SQL> BEGIN
+00:56:46   2  	-- Perform missing value treatment for all predictors
+00:56:46   3  	-- create miss tables
+00:56:46   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+00:56:46   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+00:56:46   6  
+00:56:46   7  	-- populate miss tables
+00:56:46   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+00:56:46   9  	  miss_table_name => 'svmc_miss_num',
+00:56:46  10  	  data_table_name => '&bldtable',
+00:56:46  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+00:56:46  12  
+00:56:46  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+00:56:46  14  	  miss_table_name => 'svmc_miss_cat',
+00:56:46  15  	  data_table_name => '&bldtable',
+00:56:46  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+00:56:46  17  
+00:56:46  18  	-- xform input data to replace missing values
+00:56:46  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+00:56:46  20  	  miss_table_name => 'svmc_miss_num',
+00:56:46  21  	  data_table_name => '&bldtable',
+00:56:46  22  	  xform_view_name => 'xformed_build_miss_num');
+00:56:46  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+00:56:46  24  	  miss_table_name => 'svmc_miss_cat',
+00:56:46  25  	  data_table_name => '&bldtable',
+00:56:46  26  	  xform_view_name => 'xformed_build_miss_cat');
+00:56:46  27  
+00:56:46  28  	-- Perform outlier treatment.
+00:56:46  29  	-- create clip table
+00:56:46  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+00:56:46  31  
+00:56:46  32  	-- populate clip table
+00:56:46  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+00:56:46  34  	  clip_table_name => 'svmc_clip',
+00:56:46  35  	  data_table_name => '&bldtable',
+00:56:46  36  	  tail_frac	  => 0.025,
+00:56:46  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+00:56:46  38  
+00:56:46  39  	-- xform input data to winsorized data
+00:56:46  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+00:56:46  41  	  clip_table_name => 'svmc_clip',
+00:56:46  42  	  data_table_name => '&bldtable',
+00:56:46  43  	  xform_view_name => 'svmc_winsor');
+00:56:46  44  
+00:56:46  45  	-- create normalization table
+00:56:46  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+00:56:46  47  
+00:56:46  48  	-- populate normalization table based on winsorized data
+00:56:46  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+00:56:46  50  	  norm_table_name => 'svmc_norm',
+00:56:46  51  	  data_table_name => 'svmc_winsor',
+00:56:46  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+00:56:46  53  
+00:56:46  54  	-- normalize the original data
+00:56:46  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+00:56:46  56  	  norm_table_name => 'svmc_norm',
+00:56:46  57  	  data_table_name => '&bldtable',
+00:56:46  58  	  xform_view_name => 'svmc_build_prep');
+00:56:46  59  END;
+00:56:46  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:18.18
+00:57:04 SQL> 
+00:57:04 SQL> ---------------------
+00:57:04 SQL> -- CREATE A NEW MODEL
+00:57:04 SQL> --
+00:57:04 SQL> -- Cleanup old model with the same name for repeat runs
+00:57:04 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+00:57:04   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:57:04   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.92
+00:57:05 SQL> 
+00:57:05 SQL> -- Build a new SVM Model
+00:57:05 SQL> BEGIN
+00:57:05   2  	DBMS_DATA_MINING.CREATE_MODEL(
+00:57:05   3  	  model_name	      => '&model_name',
+00:57:05   4  	  mining_function     => dbms_data_mining.classification,
+00:57:05   5  	  data_table_name     => 'svmc_build_prep',
+00:57:05   6  	  case_id_column_name => '&case_id',
+00:57:05   7  	  target_column_name  => '&target',
+00:57:05   8  	  settings_table_name => 'svmc_settings');
+00:57:05   9  END;
+00:57:05  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:26.34
+00:57:32 SQL> 
+00:57:32 SQL> -----------------------------------------------------------------------
+00:57:32 SQL> --			       APPLY/score THE MODEL
+00:57:32 SQL> -----------------------------------------------------------------------
+00:57:32 SQL> 
+00:57:32 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+00:57:32 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+00:57:32   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:57:32   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.09
+00:57:32 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+00:57:32   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:57:32   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.09
+00:57:32 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+00:57:32   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:57:32   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.07
+00:57:32 SQL> -----------------------
+00:57:32 SQL> -- PREPARE SCORING DATA
+00:57:32 SQL> --
+00:57:32 SQL> -- If the data for model creation has been prepared, then the data
+00:57:32 SQL> -- to be scored using the model must be prepared in the same manner
+00:57:32 SQL> -- in order to obtain meaningful results.
+00:57:32 SQL> --
+00:57:32 SQL> -- 1. Missing Value treatment for all Predictors and
+00:57:32 SQL> -- 2. Normalization
+00:57:32 SQL> -- No outlier treatment will be performed during test and apply. The
+00:57:32 SQL> -- normalization step is sufficient, since the normalization parameters
+00:57:32 SQL> -- already capture the effects of outlier treatment done with build data.
+00:57:32 SQL> --
+00:57:32 SQL> BEGIN
+00:57:32   2  	-- Xform Test data to replace missing values
+00:57:32   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+00:57:32   4  	  miss_table_name => 'svmc_miss_num',
+00:57:32   5  	  data_table_name => '&scoretable',
+00:57:32   6  	  xform_view_name => 'xformed_apply_miss_num');
+00:57:32   7  
+00:57:32   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+00:57:32   9  	  miss_table_name => 'svmc_miss_cat',
+00:57:32  10  	  data_table_name => '&scoretable',
+00:57:32  11  	  xform_view_name => 'xformed_apply_miss_cat');
+00:57:32  12  
+00:57:32  13  	-- Normalize the data to be scored
+00:57:32  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+00:57:32  15  	  norm_table_name => 'svmc_norm',
+00:57:32  16  	  data_table_name => '&scoretable',
+00:57:32  17  	  xform_view_name => 'svmc_apply_prep');
+00:57:32  18  END;
+00:57:32  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.34
+00:57:33 SQL> 
+00:57:33 SQL> -- Use same model_name used in score_gattn.sql
+00:57:33 SQL> DEFINE model_name = 'forex14'
+00:57:33 SQL> 
+00:57:33 SQL> DELETE fxscores6_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.04
+00:57:33 SQL> 
+00:57:33 SQL> INSERT INTO fxscores6_gattn (prdate,score,rundate,pair,ydate)
+00:57:33   2  SELECT
+00:57:33   3  prdate
+00:57:33   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+00:57:33   5  ,sysdate
+00:57:33   6  ,SUBSTR(prdate,1,3)pair
+00:57:33   7  ,SUBSTR(prdate,4,19)ydate
+00:57:33   8  FROM svmc_apply_prep
+00:57:33   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.17
+00:57:33 SQL> @aud_score1day_gattn.sql	2011-01-03 00:40:00
+00:57:33 SQL> --
+00:57:33 SQL> -- aud_score1day_gattn.sql
+00:57:33 SQL> --
+00:57:33 SQL> 
+00:57:33 SQL> CREATE OR REPLACE VIEW sme AS
+00:57:33   2  SELECT
+00:57:33   3  'aud'||m.ydate prdate
+00:57:33   4  ,NULL gattn
+00:57:33   5  ,m.ydate - TO_DATE('2000-01-01','YYYY-MM-DD')daycount
+00:57:33   6  ,eur_g00
+00:57:33   7  ,eur_g01
+00:57:33   8  ,eur_g02
+00:57:33   9  ,eur_g03
+00:57:33  10  ,eur_g04
+00:57:33  11  ,eur_g05
+00:57:33  12  ,eur_g06
+00:57:33  13  ,eur_g07
+00:57:33  14  ,eur_g08
+00:57:33  15  ,eur_g09
+00:57:33  16  ,eur_g10
+00:57:33  17  ,eur_g11
+00:57:33  18  ,eur_g12
+00:57:33  19  ,eur_g13
+00:57:33  20  ,eur_g14
+00:57:33  21  ,eur_g15
+00:57:33  22  ,eur_g16
+00:57:33  23  ,eur_g17
+00:57:33  24  ,eur_g18
+00:57:33  25  ,eur_g19
+00:57:33  26  ,eur_g20
+00:57:33  27  ,eur_g21
+00:57:33  28  ,eur_g22
+00:57:33  29  ,eur_g23
+00:57:33  30  ,eur_g24
+00:57:33  31  ,eur_g25
+00:57:33  32  ,eur_g26
+00:57:33  33  ,eur_g27
+00:57:33  34  ,eur_g28
+00:57:33  35  ,eur_g29
+00:57:33  36  ,eur_g30
+00:57:33  37  ,eur_g31
+00:57:33  38  ,eur_g32
+00:57:33  39  ,eur_g33
+00:57:33  40  ,eur_g34
+00:57:33  41  ,eur_g35
+00:57:33  42  ,eur_g36
+00:57:33  43  ,eur_g37
+00:57:33  44  ,eur_g38
+00:57:33  45  ,eur_g39
+00:57:33  46  ,eur_g40
+00:57:33  47  ,eur_g41
+00:57:33  48  ,aud_g00
+00:57:33  49  ,aud_g01
+00:57:33  50  ,aud_g02
+00:57:33  51  ,aud_g03
+00:57:33  52  ,aud_g04
+00:57:33  53  ,aud_g05
+00:57:33  54  ,aud_g06
+00:57:33  55  ,aud_g07
+00:57:33  56  ,aud_g08
+00:57:33  57  ,aud_g09
+00:57:33  58  ,aud_g10
+00:57:33  59  ,aud_g11
+00:57:33  60  ,aud_g12
+00:57:33  61  ,aud_g13
+00:57:33  62  ,aud_g14
+00:57:33  63  ,aud_g15
+00:57:33  64  ,aud_g16
+00:57:33  65  ,aud_g17
+00:57:33  66  ,aud_g18
+00:57:33  67  ,aud_g19
+00:57:33  68  ,aud_g20
+00:57:33  69  ,aud_g21
+00:57:33  70  ,aud_g22
+00:57:33  71  ,aud_g23
+00:57:33  72  ,aud_g24
+00:57:33  73  ,aud_g25
+00:57:33  74  ,aud_g26
+00:57:33  75  ,aud_g27
+00:57:33  76  ,aud_g28
+00:57:33  77  ,aud_g29
+00:57:33  78  ,aud_g30
+00:57:33  79  ,aud_g31
+00:57:33  80  ,aud_g32
+00:57:33  81  ,aud_g33
+00:57:33  82  ,aud_g34
+00:57:33  83  ,aud_g35
+00:57:33  84  ,aud_g36
+00:57:33  85  ,aud_g37
+00:57:33  86  ,aud_g38
+00:57:33  87  ,aud_g39
+00:57:33  88  ,aud_g40
+00:57:33  89  ,aud_g41
+00:57:33  90  ,gbp_g00
+00:57:33  91  ,gbp_g01
+00:57:33  92  ,gbp_g02
+00:57:33  93  ,gbp_g03
+00:57:33  94  ,gbp_g04
+00:57:33  95  ,gbp_g05
+00:57:33  96  ,gbp_g06
+00:57:33  97  ,gbp_g07
+00:57:33  98  ,gbp_g08
+00:57:33  99  ,gbp_g09
+00:57:33 100  ,gbp_g10
+00:57:33 101  ,gbp_g11
+00:57:33 102  ,gbp_g12
+00:57:33 103  ,gbp_g13
+00:57:33 104  ,gbp_g14
+00:57:33 105  ,gbp_g15
+00:57:33 106  ,gbp_g16
+00:57:33 107  ,gbp_g17
+00:57:33 108  ,gbp_g18
+00:57:33 109  ,gbp_g19
+00:57:33 110  ,gbp_g20
+00:57:33 111  ,gbp_g21
+00:57:33 112  ,gbp_g22
+00:57:33 113  ,gbp_g23
+00:57:33 114  ,gbp_g24
+00:57:33 115  ,gbp_g25
+00:57:33 116  ,gbp_g26
+00:57:33 117  ,gbp_g27
+00:57:33 118  ,gbp_g28
+00:57:33 119  ,gbp_g29
+00:57:33 120  ,gbp_g30
+00:57:33 121  ,gbp_g31
+00:57:33 122  ,gbp_g32
+00:57:33 123  ,gbp_g33
+00:57:33 124  ,gbp_g34
+00:57:33 125  ,gbp_g35
+00:57:33 126  ,gbp_g36
+00:57:33 127  ,gbp_g37
+00:57:33 128  ,gbp_g38
+00:57:33 129  ,gbp_g39
+00:57:33 130  ,gbp_g40
+00:57:33 131  ,gbp_g41
+00:57:33 132  ,jpy_g00
+00:57:33 133  ,jpy_g01
+00:57:33 134  ,jpy_g02
+00:57:33 135  ,jpy_g03
+00:57:33 136  ,jpy_g04
+00:57:33 137  ,jpy_g05
+00:57:33 138  ,jpy_g06
+00:57:33 139  ,jpy_g07
+00:57:33 140  ,jpy_g08
+00:57:33 141  ,jpy_g09
+00:57:33 142  ,jpy_g10
+00:57:33 143  ,jpy_g11
+00:57:33 144  ,jpy_g12
+00:57:33 145  ,jpy_g13
+00:57:33 146  ,jpy_g14
+00:57:33 147  ,jpy_g15
+00:57:33 148  ,jpy_g16
+00:57:33 149  ,jpy_g17
+00:57:33 150  ,jpy_g18
+00:57:33 151  ,jpy_g19
+00:57:33 152  ,jpy_g20
+00:57:33 153  ,jpy_g21
+00:57:33 154  ,jpy_g22
+00:57:33 155  ,jpy_g23
+00:57:33 156  ,jpy_g24
+00:57:33 157  ,jpy_g25
+00:57:33 158  ,jpy_g26
+00:57:33 159  ,jpy_g27
+00:57:33 160  ,jpy_g28
+00:57:33 161  ,jpy_g29
+00:57:33 162  ,jpy_g30
+00:57:33 163  ,jpy_g31
+00:57:33 164  ,jpy_g32
+00:57:33 165  ,jpy_g33
+00:57:33 166  ,jpy_g34
+00:57:33 167  ,jpy_g35
+00:57:33 168  ,jpy_g36
+00:57:33 169  ,jpy_g37
+00:57:33 170  ,jpy_g38
+00:57:33 171  ,jpy_g39
+00:57:33 172  ,jpy_g40
+00:57:33 173  ,jpy_g41
+00:57:33 174  ,cad_g00
+00:57:33 175  ,cad_g01
+00:57:33 176  ,cad_g02
+00:57:33 177  ,cad_g03
+00:57:33 178  ,cad_g04
+00:57:33 179  ,cad_g05
+00:57:33 180  ,cad_g06
+00:57:33 181  ,cad_g07
+00:57:33 182  ,cad_g08
+00:57:33 183  ,cad_g09
+00:57:33 184  ,cad_g10
+00:57:33 185  ,cad_g11
+00:57:33 186  ,cad_g12
+00:57:33 187  ,cad_g13
+00:57:33 188  ,cad_g14
+00:57:33 189  ,cad_g15
+00:57:33 190  ,cad_g16
+00:57:33 191  ,cad_g17
+00:57:33 192  ,cad_g18
+00:57:33 193  ,cad_g19
+00:57:33 194  ,cad_g20
+00:57:33 195  ,cad_g21
+00:57:33 196  ,cad_g22
+00:57:33 197  ,cad_g23
+00:57:33 198  ,cad_g24
+00:57:33 199  ,cad_g25
+00:57:33 200  ,cad_g26
+00:57:33 201  ,cad_g27
+00:57:33 202  ,cad_g28
+00:57:33 203  ,cad_g29
+00:57:33 204  ,cad_g30
+00:57:33 205  ,cad_g31
+00:57:33 206  ,cad_g32
+00:57:33 207  ,cad_g33
+00:57:33 208  ,cad_g34
+00:57:33 209  ,cad_g35
+00:57:33 210  ,cad_g36
+00:57:33 211  ,cad_g37
+00:57:33 212  ,cad_g38
+00:57:33 213  ,cad_g39
+00:57:33 214  ,cad_g40
+00:57:33 215  ,cad_g41
+00:57:33 216  ,chf_g00
+00:57:33 217  ,chf_g01
+00:57:33 218  ,chf_g02
+00:57:33 219  ,chf_g03
+00:57:33 220  ,chf_g04
+00:57:33 221  ,chf_g05
+00:57:33 222  ,chf_g06
+00:57:33 223  ,chf_g07
+00:57:33 224  ,chf_g08
+00:57:33 225  ,chf_g09
+00:57:33 226  ,chf_g10
+00:57:33 227  ,chf_g11
+00:57:33 228  ,chf_g12
+00:57:33 229  ,chf_g13
+00:57:33 230  ,chf_g14
+00:57:33 231  ,chf_g15
+00:57:33 232  ,chf_g16
+00:57:33 233  ,chf_g17
+00:57:33 234  ,chf_g18
+00:57:33 235  ,chf_g19
+00:57:33 236  ,chf_g20
+00:57:33 237  ,chf_g21
+00:57:33 238  ,chf_g22
+00:57:33 239  ,chf_g23
+00:57:33 240  ,chf_g24
+00:57:33 241  ,chf_g25
+00:57:33 242  ,chf_g26
+00:57:33 243  ,chf_g27
+00:57:33 244  ,chf_g28
+00:57:33 245  ,chf_g29
+00:57:33 246  ,chf_g30
+00:57:33 247  ,chf_g31
+00:57:33 248  ,chf_g32
+00:57:33 249  ,chf_g33
+00:57:33 250  ,chf_g34
+00:57:33 251  ,chf_g35
+00:57:33 252  ,chf_g36
+00:57:33 253  ,chf_g37
+00:57:33 254  ,chf_g38
+00:57:33 255  ,chf_g39
+00:57:33 256  ,chf_g40
+00:57:33 257  ,chf_g41
+00:57:33 258  FROM aud_ms6 m
+00:57:33 259  WHERE m.ydate = '&1'||' '||'&2'
+00:57:33 260  /
+old 259: WHERE m.ydate = '&1'||' '||'&2'
+new 259: WHERE m.ydate = '2011-01-03'||' '||'00:40:00'
+
+View created.
+
+Elapsed: 00:00:00.18
+00:57:34 SQL> 
+00:57:34 SQL> -- rpt
+00:57:34 SQL> -- We should see just 1 row:
+00:57:34 SQL> 
+00:57:34 SQL> SELECT COUNT(prdate) FROM sme;
+
+COUNT(PRDATE)
+-------------
+	    1
+
+Elapsed: 00:00:00.02
+00:57:34 SQL> 
+00:57:34 SQL> -- Build the model:
+00:57:34 SQL> CREATE OR REPLACE VIEW bme AS
+00:57:34   2  SELECT
+00:57:34   3  'aud'||m.ydate prdate
+00:57:34   4  ,gattn
+00:57:34   5  ,m.ydate - TO_DATE('2000-01-01','YYYY-MM-DD')daycount
+00:57:34   6  ,eur_g00
+00:57:34   7  ,eur_g01
+00:57:34   8  ,eur_g02
+00:57:34   9  ,eur_g03
+00:57:34  10  ,eur_g04
+00:57:34  11  ,eur_g05
+00:57:34  12  ,eur_g06
+00:57:34  13  ,eur_g07
+00:57:34  14  ,eur_g08
+00:57:34  15  ,eur_g09
+00:57:34  16  ,eur_g10
+00:57:34  17  ,eur_g11
+00:57:34  18  ,eur_g12
+00:57:34  19  ,eur_g13
+00:57:34  20  ,eur_g14
+00:57:34  21  ,eur_g15
+00:57:34  22  ,eur_g16
+00:57:34  23  ,eur_g17
+00:57:34  24  ,eur_g18
+00:57:34  25  ,eur_g19
+00:57:34  26  ,eur_g20
+00:57:34  27  ,eur_g21
+00:57:34  28  ,eur_g22
+00:57:34  29  ,eur_g23
+00:57:34  30  ,eur_g24
+00:57:34  31  ,eur_g25
+00:57:34  32  ,eur_g26
+00:57:34  33  ,eur_g27
+00:57:34  34  ,eur_g28
+00:57:34  35  ,eur_g29
+00:57:34  36  ,eur_g30
+00:57:34  37  ,eur_g31
+00:57:34  38  ,eur_g32
+00:57:34  39  ,eur_g33
+00:57:34  40  ,eur_g34
+00:57:34  41  ,eur_g35
+00:57:34  42  ,eur_g36
+00:57:34  43  ,eur_g37
+00:57:34  44  ,eur_g38
+00:57:34  45  ,eur_g39
+00:57:34  46  ,eur_g40
+00:57:34  47  ,eur_g41
+00:57:34  48  ,aud_g00
+00:57:34  49  ,aud_g01
+00:57:34  50  ,aud_g02
+00:57:34  51  ,aud_g03
+00:57:34  52  ,aud_g04
+00:57:34  53  ,aud_g05
+00:57:34  54  ,aud_g06
+00:57:34  55  ,aud_g07
+00:57:34  56  ,aud_g08
+00:57:34  57  ,aud_g09
+00:57:34  58  ,aud_g10
+00:57:34  59  ,aud_g11
+00:57:34  60  ,aud_g12
+00:57:34  61  ,aud_g13
+00:57:34  62  ,aud_g14
+00:57:34  63  ,aud_g15
+00:57:34  64  ,aud_g16
+00:57:34  65  ,aud_g17
+00:57:34  66  ,aud_g18
+00:57:34  67  ,aud_g19
+00:57:34  68  ,aud_g20
+00:57:34  69  ,aud_g21
+00:57:34  70  ,aud_g22
+00:57:34  71  ,aud_g23
+00:57:34  72  ,aud_g24
+00:57:34  73  ,aud_g25
+00:57:34  74  ,aud_g26
+00:57:34  75  ,aud_g27
+00:57:34  76  ,aud_g28
+00:57:34  77  ,aud_g29
+00:57:34  78  ,aud_g30
+00:57:34  79  ,aud_g31
+00:57:34  80  ,aud_g32
+00:57:34  81  ,aud_g33
+00:57:34  82  ,aud_g34
+00:57:34  83  ,aud_g35
+00:57:34  84  ,aud_g36
+00:57:34  85  ,aud_g37
+00:57:34  86  ,aud_g38
+00:57:34  87  ,aud_g39
+00:57:34  88  ,aud_g40
+00:57:34  89  ,aud_g41
+00:57:34  90  ,gbp_g00
+00:57:34  91  ,gbp_g01
+00:57:34  92  ,gbp_g02
+00:57:34  93  ,gbp_g03
+00:57:34  94  ,gbp_g04
+00:57:34  95  ,gbp_g05
+00:57:34  96  ,gbp_g06
+00:57:34  97  ,gbp_g07
+00:57:34  98  ,gbp_g08
+00:57:34  99  ,gbp_g09
+00:57:34 100  ,gbp_g10
+00:57:34 101  ,gbp_g11
+00:57:34 102  ,gbp_g12
+00:57:34 103  ,gbp_g13
+00:57:34 104  ,gbp_g14
+00:57:34 105  ,gbp_g15
+00:57:34 106  ,gbp_g16
+00:57:34 107  ,gbp_g17
+00:57:34 108  ,gbp_g18
+00:57:34 109  ,gbp_g19
+00:57:34 110  ,gbp_g20
+00:57:34 111  ,gbp_g21
+00:57:34 112  ,gbp_g22
+00:57:34 113  ,gbp_g23
+00:57:34 114  ,gbp_g24
+00:57:34 115  ,gbp_g25
+00:57:34 116  ,gbp_g26
+00:57:34 117  ,gbp_g27
+00:57:34 118  ,gbp_g28
+00:57:34 119  ,gbp_g29
+00:57:34 120  ,gbp_g30
+00:57:34 121  ,gbp_g31
+00:57:34 122  ,gbp_g32
+00:57:34 123  ,gbp_g33
+00:57:34 124  ,gbp_g34
+00:57:34 125  ,gbp_g35
+00:57:34 126  ,gbp_g36
+00:57:34 127  ,gbp_g37
+00:57:34 128  ,gbp_g38
+00:57:34 129  ,gbp_g39
+00:57:34 130  ,gbp_g40
+00:57:34 131  ,gbp_g41
+00:57:34 132  ,jpy_g00
+00:57:34 133  ,jpy_g01
+00:57:34 134  ,jpy_g02
+00:57:34 135  ,jpy_g03
+00:57:34 136  ,jpy_g04
+00:57:34 137  ,jpy_g05
+00:57:34 138  ,jpy_g06
+00:57:34 139  ,jpy_g07
+00:57:34 140  ,jpy_g08
+00:57:34 141  ,jpy_g09
+00:57:34 142  ,jpy_g10
+00:57:34 143  ,jpy_g11
+00:57:34 144  ,jpy_g12
+00:57:34 145  ,jpy_g13
+00:57:34 146  ,jpy_g14
+00:57:34 147  ,jpy_g15
+00:57:34 148  ,jpy_g16
+00:57:34 149  ,jpy_g17
+00:57:34 150  ,jpy_g18
+00:57:34 151  ,jpy_g19
+00:57:34 152  ,jpy_g20
+00:57:34 153  ,jpy_g21
+00:57:34 154  ,jpy_g22
+00:57:34 155  ,jpy_g23
+00:57:34 156  ,jpy_g24
+00:57:34 157  ,jpy_g25
+00:57:34 158  ,jpy_g26
+00:57:34 159  ,jpy_g27
+00:57:34 160  ,jpy_g28
+00:57:34 161  ,jpy_g29
+00:57:34 162  ,jpy_g30
+00:57:34 163  ,jpy_g31
+00:57:34 164  ,jpy_g32
+00:57:34 165  ,jpy_g33
+00:57:34 166  ,jpy_g34
+00:57:34 167  ,jpy_g35
+00:57:34 168  ,jpy_g36
+00:57:34 169  ,jpy_g37
+00:57:34 170  ,jpy_g38
+00:57:34 171  ,jpy_g39
+00:57:34 172  ,jpy_g40
+00:57:34 173  ,jpy_g41
+00:57:34 174  ,cad_g00
+00:57:34 175  ,cad_g01
+00:57:34 176  ,cad_g02
+00:57:34 177  ,cad_g03
+00:57:34 178  ,cad_g04
+00:57:34 179  ,cad_g05
+00:57:34 180  ,cad_g06
+00:57:34 181  ,cad_g07
+00:57:34 182  ,cad_g08
+00:57:34 183  ,cad_g09
+00:57:34 184  ,cad_g10
+00:57:34 185  ,cad_g11
+00:57:34 186  ,cad_g12
+00:57:34 187  ,cad_g13
+00:57:34 188  ,cad_g14
+00:57:34 189  ,cad_g15
+00:57:34 190  ,cad_g16
+00:57:34 191  ,cad_g17
+00:57:34 192  ,cad_g18
+00:57:34 193  ,cad_g19
+00:57:34 194  ,cad_g20
+00:57:34 195  ,cad_g21
+00:57:34 196  ,cad_g22
+00:57:34 197  ,cad_g23
+00:57:34 198  ,cad_g24
+00:57:34 199  ,cad_g25
+00:57:34 200  ,cad_g26
+00:57:34 201  ,cad_g27
+00:57:34 202  ,cad_g28
+00:57:34 203  ,cad_g29
+00:57:34 204  ,cad_g30
+00:57:34 205  ,cad_g31
+00:57:34 206  ,cad_g32
+00:57:34 207  ,cad_g33
+00:57:34 208  ,cad_g34
+00:57:34 209  ,cad_g35
+00:57:34 210  ,cad_g36
+00:57:34 211  ,cad_g37
+00:57:34 212  ,cad_g38
+00:57:34 213  ,cad_g39
+00:57:34 214  ,cad_g40
+00:57:34 215  ,cad_g41
+00:57:34 216  ,chf_g00
+00:57:34 217  ,chf_g01
+00:57:34 218  ,chf_g02
+00:57:34 219  ,chf_g03
+00:57:34 220  ,chf_g04
+00:57:34 221  ,chf_g05
+00:57:34 222  ,chf_g06
+00:57:34 223  ,chf_g07
+00:57:34 224  ,chf_g08
+00:57:34 225  ,chf_g09
+00:57:34 226  ,chf_g10
+00:57:34 227  ,chf_g11
+00:57:34 228  ,chf_g12
+00:57:34 229  ,chf_g13
+00:57:34 230  ,chf_g14
+00:57:34 231  ,chf_g15
+00:57:34 232  ,chf_g16
+00:57:34 233  ,chf_g17
+00:57:34 234  ,chf_g18
+00:57:34 235  ,chf_g19
+00:57:34 236  ,chf_g20
+00:57:34 237  ,chf_g21
+00:57:34 238  ,chf_g22
+00:57:34 239  ,chf_g23
+00:57:34 240  ,chf_g24
+00:57:34 241  ,chf_g25
+00:57:34 242  ,chf_g26
+00:57:34 243  ,chf_g27
+00:57:34 244  ,chf_g28
+00:57:34 245  ,chf_g29
+00:57:34 246  ,chf_g30
+00:57:34 247  ,chf_g31
+00:57:34 248  ,chf_g32
+00:57:34 249  ,chf_g33
+00:57:34 250  ,chf_g34
+00:57:34 251  ,chf_g35
+00:57:34 252  ,chf_g36
+00:57:34 253  ,chf_g37
+00:57:34 254  ,chf_g38
+00:57:34 255  ,chf_g39
+00:57:34 256  ,chf_g40
+00:57:34 257  ,chf_g41
+00:57:34 258  FROM aud_ms6 m
+00:57:34 259  WHERE gattn IN('nup','up')
+00:57:34 260  AND 1+m.ydate < '&1'||' '||'&2'
+00:57:34 261  /
+old 260: AND 1+m.ydate < '&1'||' '||'&2'
+new 260: AND 1+m.ydate < '2011-01-03'||' '||'00:40:00'
+
+View created.
+
+Elapsed: 00:00:00.16
+00:57:34 SQL> 
+00:57:34 SQL> -- rpt
+00:57:34 SQL> 
+00:57:34 SQL> SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn;
+
+GAT COUNT(PRDATE)
+--- -------------
+nup	    12873
+up	     6300
+
+Elapsed: 00:00:00.04
+00:57:34 SQL> 
+00:57:34 SQL> SELECT MAX(prdate) FROM bme;
+
+MAX(PRDATE)
+----------------------
+aud2010-12-31 18:25:00
+
+Elapsed: 00:00:00.03
+00:57:34 SQL> 
+00:57:34 SQL> -- Now build model from bme and score sme
+00:57:34 SQL> @score1gattn.sql
+00:57:34 SQL> -- score1gattn.sql
+00:57:34 SQL> 
+00:57:34 SQL> -- Does the 1st SVM score
+00:57:34 SQL> 
+00:57:34 SQL> -- Fill up svmc_apply_prep
+00:57:34 SQL> @score_gattn.sql
+00:57:34 SQL> --
+00:57:34 SQL> -- score_gattn.sql
+00:57:34 SQL> --
+00:57:34 SQL> 
+00:57:34 SQL> -- usage: score_gattn.sql
+00:57:34 SQL> 
+00:57:34 SQL> -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
+00:57:34 SQL> 
+00:57:34 SQL> DEFINE target	= 'gattn'
+00:57:34 SQL> DEFINE model_name = 'forex14'
+00:57:34 SQL> DEFINE bldtable	= 'bme'
+00:57:34 SQL> DEFINE scoretable = 'sme'
+00:57:34 SQL> DEFINE case_id	= 'prdate'
+00:57:34 SQL> 
+00:57:34 SQL> -- Define a variable to help me exclude some columns from some data mining calls
+00:57:34 SQL> DEFINE exclude1 = "'&target','&case_id'"
+00:57:34 SQL> 
+00:57:34 SQL> -- Builds an SVM model using pl/sql.
+00:57:34 SQL> 
+00:57:34 SQL> -----------------------------------------------------------------------
+00:57:34 SQL> --			    BUILD THE MODEL
+00:57:34 SQL> -----------------------------------------------------------------------
+00:57:34 SQL> 
+00:57:34 SQL> -- Cleanup old build data preparation objects for repeat runs
+00:57:34 SQL> DELETE svmc_miss_num;
+
+253 rows deleted.
+
+Elapsed: 00:00:00.00
+00:57:34 SQL> DELETE svmc_miss_cat;
+
+0 rows deleted.
+
+Elapsed: 00:00:00.00
+00:57:34 SQL> DELETE svmc_clip;
+
+253 rows deleted.
+
+Elapsed: 00:00:00.00
+00:57:34 SQL> DELETE svmc_norm;
+
+253 rows deleted.
+
+Elapsed: 00:00:00.02
+00:57:34 SQL> 
+00:57:34 SQL> 
+00:57:34 SQL> -- CREATE AND POPULATE A SETTINGS TABLE
+00:57:34 SQL> --
+00:57:34 SQL> -- DROP	TABLE svmc_settings ;
+00:57:34 SQL> -- CREATE TABLE svmc_settings ( setting_name  VARCHAR2(30), setting_value VARCHAR2(30));
+00:57:34 SQL> -- DELETE svmc_settings;
+00:57:34 SQL> 
+00:57:34 SQL> -- The default classification algorithm is Naive Bayes. So override
+00:57:34 SQL> -- this choice to SVM using a settings table.
+00:57:34 SQL> -- SVM chooses a kernel type automatically. This choice can be overriden
+00:57:34 SQL> -- by the user. Linear kernel is preferred high dimensional data, and
+00:57:34 SQL> -- Gaussian kernel for low dimensional data. Here we use linear kernel
+00:57:34 SQL> -- to demonstrate the get_model_details_svm() API, which applies only for
+00:57:34 SQL> -- models.
+00:57:34 SQL> --
+00:57:34 SQL> 
+00:57:34 SQL> -- Do this once and then comment it out.
+00:57:34 SQL> -- That makes script go faster.
+00:57:34 SQL> -- BEGIN
+00:57:34 SQL> -- -- Populate settings table
+00:57:34 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+00:57:34 SQL> --   (dbms_data_mining.algo_name, dbms_data_mining.algo_support_vector_machines);
+00:57:34 SQL> --
+00:57:34 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+00:57:34 SQL> --   (dbms_data_mining.svms_kernel_function, dbms_data_mining.svms_gaussian);
+00:57:34 SQL> --
+00:57:34 SQL> --   INSERT INTO svmc_settings (setting_name, setting_value) VALUES
+00:57:34 SQL> --   (dbms_data_mining.svms_kernel_cache_size,190123123);
+00:57:34 SQL> --   COMMIT;
+00:57:34 SQL> -- END;
+00:57:34 SQL> -- /
+00:57:34 SQL> 
+00:57:34 SQL> SELECT * FROM svmc_settings;
+
+SETTING_NAME		       SETTING_VALUE
+------------------------------ ------------------------------
+ALGO_NAME		       ALGO_SUPPORT_VECTOR_MACHINES
+SVMS_KERNEL_FUNCTION	       SVMS_GAUSSIAN
+SVMS_KERNEL_CACHE_SIZE	       320123123
+
+Elapsed: 00:00:00.00
+00:57:34 SQL> 
+00:57:34 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_winsor';
+00:57:34   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:57:34   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.07
+00:57:34 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_build_prep';
+00:57:34   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:57:34   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.08
+00:57:34 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_num';
+00:57:34   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:57:34   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.06
+00:57:34 SQL> 
+00:57:34 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_build_miss_cat';
+00:57:34   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:57:34   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.06
+00:57:34 SQL> 
+00:57:34 SQL> --------------------------------
+00:57:34 SQL> -- PREPARE BUILD (TRAINING) DATA
+00:57:34 SQL> --
+00:57:34 SQL> 
+00:57:34 SQL> -- 1. Missing Value treatment for all Predictors and
+00:57:34 SQL> -- 2. Outlier Treatment and
+00:57:34 SQL> -- 3. Normalization are performed below.
+00:57:34 SQL> --    NOTE: that unlike SVM regression, the classification target is NOT
+00:57:34 SQL> --    normalized here.
+00:57:34 SQL> 
+00:57:34 SQL> BEGIN
+00:57:34   2  	-- Perform missing value treatment for all predictors
+00:57:34   3  	-- create miss tables
+00:57:34   4  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_NUM (miss_table_name => 'svmc_miss_num');
+00:57:34   5  	--  DBMS_DATA_MINING_TRANSFORM.CREATE_MISS_CAT (miss_table_name => 'svmc_miss_cat');
+00:57:34   6  
+00:57:34   7  	-- populate miss tables
+00:57:34   8  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_NUM_MEAN (
+00:57:34   9  	  miss_table_name => 'svmc_miss_num',
+00:57:34  10  	  data_table_name => '&bldtable',
+00:57:34  11  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+00:57:34  12  
+00:57:34  13  	DBMS_DATA_MINING_TRANSFORM.INSERT_MISS_CAT_MODE (
+00:57:34  14  	  miss_table_name => 'svmc_miss_cat',
+00:57:34  15  	  data_table_name => '&bldtable',
+00:57:34  16  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+00:57:34  17  
+00:57:34  18  	-- xform input data to replace missing values
+00:57:34  19  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+00:57:34  20  	  miss_table_name => 'svmc_miss_num',
+00:57:34  21  	  data_table_name => '&bldtable',
+00:57:34  22  	  xform_view_name => 'xformed_build_miss_num');
+00:57:34  23  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+00:57:34  24  	  miss_table_name => 'svmc_miss_cat',
+00:57:34  25  	  data_table_name => '&bldtable',
+00:57:34  26  	  xform_view_name => 'xformed_build_miss_cat');
+00:57:34  27  
+00:57:34  28  	-- Perform outlier treatment.
+00:57:34  29  	-- create clip table
+00:57:34  30  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_CLIP (clip_table_name => 'svmc_clip');
+00:57:34  31  
+00:57:34  32  	-- populate clip table
+00:57:34  33  	DBMS_DATA_MINING_TRANSFORM.INSERT_CLIP_WINSOR_TAIL (
+00:57:34  34  	  clip_table_name => 'svmc_clip',
+00:57:34  35  	  data_table_name => '&bldtable',
+00:57:34  36  	  tail_frac	  => 0.025,
+00:57:34  37  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+00:57:34  38  
+00:57:34  39  	-- xform input data to winsorized data
+00:57:34  40  	DBMS_DATA_MINING_TRANSFORM.XFORM_CLIP(
+00:57:34  41  	  clip_table_name => 'svmc_clip',
+00:57:34  42  	  data_table_name => '&bldtable',
+00:57:34  43  	  xform_view_name => 'svmc_winsor');
+00:57:34  44  
+00:57:34  45  	-- create normalization table
+00:57:34  46  	-- DBMS_DATA_MINING_TRANSFORM.CREATE_NORM_LIN (norm_table_name => 'svmc_norm');
+00:57:34  47  
+00:57:34  48  	-- populate normalization table based on winsorized data
+00:57:34  49  	DBMS_DATA_MINING_TRANSFORM.INSERT_NORM_LIN_MINMAX (
+00:57:34  50  	  norm_table_name => 'svmc_norm',
+00:57:34  51  	  data_table_name => 'svmc_winsor',
+00:57:34  52  	  exclude_list	  => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+00:57:34  53  
+00:57:34  54  	-- normalize the original data
+00:57:34  55  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+00:57:34  56  	  norm_table_name => 'svmc_norm',
+00:57:34  57  	  data_table_name => '&bldtable',
+00:57:34  58  	  xform_view_name => 'svmc_build_prep');
+00:57:34  59  END;
+00:57:34  60  /
+old  10:     data_table_name => '&bldtable',
+new  10:     data_table_name => 'bme',
+old  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  11:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  15:     data_table_name => '&bldtable',
+new  15:     data_table_name => 'bme',
+old  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  16:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  21:     data_table_name => '&bldtable',
+new  21:     data_table_name => 'bme',
+old  25:     data_table_name => '&bldtable',
+new  25:     data_table_name => 'bme',
+old  35:     data_table_name => '&bldtable',
+new  35:     data_table_name => 'bme',
+old  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  37:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  42:     data_table_name => '&bldtable',
+new  42:     data_table_name => 'bme',
+old  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST (&exclude1));
+new  52:     exclude_list    => DBMS_DATA_MINING_TRANSFORM.COLUMN_LIST ('gattn','prdate'));
+old  57:     data_table_name => '&bldtable',
+new  57:     data_table_name => 'bme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:17.84
+00:57:52 SQL> 
+00:57:52 SQL> ---------------------
+00:57:52 SQL> -- CREATE A NEW MODEL
+00:57:52 SQL> --
+00:57:52 SQL> -- Cleanup old model with the same name for repeat runs
+00:57:52 SQL> BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+00:57:52   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:57:52   3  /
+old   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('&model_name');
+new   1: BEGIN DBMS_DATA_MINING.DROP_MODEL('forex14');
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.02
+00:57:53 SQL> 
+00:57:53 SQL> -- Build a new SVM Model
+00:57:53 SQL> BEGIN
+00:57:53   2  	DBMS_DATA_MINING.CREATE_MODEL(
+00:57:53   3  	  model_name	      => '&model_name',
+00:57:53   4  	  mining_function     => dbms_data_mining.classification,
+00:57:53   5  	  data_table_name     => 'svmc_build_prep',
+00:57:53   6  	  case_id_column_name => '&case_id',
+00:57:53   7  	  target_column_name  => '&target',
+00:57:53   8  	  settings_table_name => 'svmc_settings');
+00:57:53   9  END;
+00:57:53  10  /
+old   3:     model_name 	 => '&model_name',
+new   3:     model_name 	 => 'forex14',
+old   6:     case_id_column_name => '&case_id',
+new   6:     case_id_column_name => 'prdate',
+old   7:     target_column_name  => '&target',
+new   7:     target_column_name  => 'gattn',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:31.07
+00:58:24 SQL> 
+00:58:24 SQL> -----------------------------------------------------------------------
+00:58:24 SQL> --			       APPLY/score THE MODEL
+00:58:24 SQL> -----------------------------------------------------------------------
+00:58:24 SQL> 
+00:58:24 SQL> -- Cleanup old scoring data preparation objects for repeat runs
+00:58:24 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_num';
+00:58:24   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:58:24   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.09
+00:58:24 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW xformed_apply_miss_cat';
+00:58:24   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:58:24   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.09
+00:58:24 SQL> BEGIN EXECUTE IMMEDIATE 'DROP VIEW svmc_apply_prep';
+00:58:24   2  EXCEPTION WHEN OTHERS THEN NULL; END;
+00:58:24   3  /
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:00.09
+00:58:24 SQL> -----------------------
+00:58:24 SQL> -- PREPARE SCORING DATA
+00:58:24 SQL> --
+00:58:24 SQL> -- If the data for model creation has been prepared, then the data
+00:58:24 SQL> -- to be scored using the model must be prepared in the same manner
+00:58:24 SQL> -- in order to obtain meaningful results.
+00:58:24 SQL> --
+00:58:24 SQL> -- 1. Missing Value treatment for all Predictors and
+00:58:24 SQL> -- 2. Normalization
+00:58:24 SQL> -- No outlier treatment will be performed during test and apply. The
+00:58:24 SQL> -- normalization step is sufficient, since the normalization parameters
+00:58:24 SQL> -- already capture the effects of outlier treatment done with build data.
+00:58:24 SQL> --
+00:58:24 SQL> BEGIN
+00:58:24   2  	-- Xform Test data to replace missing values
+00:58:24   3  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_NUM(
+00:58:24   4  	  miss_table_name => 'svmc_miss_num',
+00:58:24   5  	  data_table_name => '&scoretable',
+00:58:24   6  	  xform_view_name => 'xformed_apply_miss_num');
+00:58:24   7  
+00:58:24   8  	DBMS_DATA_MINING_TRANSFORM.XFORM_MISS_CAT(
+00:58:24   9  	  miss_table_name => 'svmc_miss_cat',
+00:58:24  10  	  data_table_name => '&scoretable',
+00:58:24  11  	  xform_view_name => 'xformed_apply_miss_cat');
+00:58:24  12  
+00:58:24  13  	-- Normalize the data to be scored
+00:58:24  14  	DBMS_DATA_MINING_TRANSFORM.XFORM_NORM_LIN (
+00:58:24  15  	  norm_table_name => 'svmc_norm',
+00:58:24  16  	  data_table_name => '&scoretable',
+00:58:24  17  	  xform_view_name => 'svmc_apply_prep');
+00:58:24  18  END;
+00:58:24  19  /
+old   5:     data_table_name => '&scoretable',
+new   5:     data_table_name => 'sme',
+old  10:     data_table_name => '&scoretable',
+new  10:     data_table_name => 'sme',
+old  16:     data_table_name => '&scoretable',
+new  16:     data_table_name => 'sme',
+
+PL/SQL procedure successfully completed.
+
+Elapsed: 00:00:01.35
+00:58:26 SQL> 
+00:58:26 SQL> -- Use same model_name used in score_gattn.sql
+00:58:26 SQL> DEFINE model_name = 'forex14'
+00:58:26 SQL> 
+00:58:26 SQL> DELETE fxscores6_gattn WHERE score > 0 AND prdate IN(SELECT prdate FROM svmc_apply_prep);
+
+0 rows deleted.
+
+Elapsed: 00:00:00.04
+00:58:26 SQL> 
+00:58:26 SQL> INSERT INTO fxscores6_gattn (prdate,score,rundate,pair,ydate)
+00:58:26   2  SELECT
+00:58:26   3  prdate
+00:58:26   4  ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+00:58:26   5  ,sysdate
+00:58:26   6  ,SUBSTR(prdate,1,3)pair
+00:58:26   7  ,SUBSTR(prdate,4,19)ydate
+00:58:26   8  FROM svmc_apply_prep
+00:58:26   9  /
+old   4: ,PREDICTION_PROBABILITY(&model_name,'up' USING *)score
+new   4: ,PREDICTION_PROBABILITY(forex14,'up' USING *)score
+
+1 row created.
+
+Elapsed: 00:00:00.17
+00:58:26 SQL> Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
