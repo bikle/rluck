@@ -12,7 +12,7 @@
 
 #  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash buy 30000 USD CHF 20110104_11:05:00_GMT
 
-#  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash buy 30000 USD JPY 20110104_10:25:00_GMT
+#  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash sell 30000 USD JPY 20110104_16:10:00_GMT
 
 ## other pairs:
 

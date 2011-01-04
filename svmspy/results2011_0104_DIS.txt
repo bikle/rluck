@@ -1,0 +1,365 @@
+/pt/s/rluck/svmspy/results2011_0104_DIS.txt
+
+DIS does not look very good.
+I should avoid trading DIS.
+
+
+
+oracle@hp2:/pt/s/rluck/svmspy$ sqt @tkr_rpt DIS
+
+SQL*Plus: Release 11.2.0.1.0 Production on Tue Jan 4 11:37:42 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+11:37:42 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.01
+11:37:42 SQL> --
+11:37:42 SQL> -- tkr_rpt.sql
+11:37:42 SQL> --
+11:37:42 SQL> 
+11:37:42 SQL> -- I use this script to report on correlation between SVM scores and Forex gains.
+11:37:42 SQL> 
+11:37:42 SQL> CREATE OR REPLACE VIEW tkr_rpt10 AS
+11:37:42   2  SELECT
+11:37:42   3  l.score  score_long
+11:37:42   4  ,s.score score_short
+11:37:42   5  ,m.g4
+11:37:42   6  ,m.ydate
+11:37:42   7  ,ROUND(l.score,1)rscore_long
+11:37:42   8  ,ROUND(s.score,1)rscore_short
+11:37:42   9  FROM stkscores l, stkscores s,stk_ms m
+11:37:42  10  WHERE l.ydate = s.ydate
+11:37:42  11  AND   l.ydate = m.ydate
+11:37:42  12  AND l.tkr = '&1'
+11:37:42  13  AND l.tkr = s.tkr
+11:37:42  14  AND l.targ = 'gatt'
+11:37:42  15  AND s.targ = 'gattn'
+11:37:42  16  /
+old  12: AND l.tkr = '&1'
+new  12: AND l.tkr = 'DIS'
+
+View created.
+
+Elapsed: 00:00:00.09
+11:37:42 SQL> 
+11:37:42 SQL> -- rpt
+11:37:42 SQL> 
+11:37:42 SQL> SELECT COUNT(*)FROM stkscores;
+
+  COUNT(*)
+----------
+     26013
+
+Elapsed: 00:00:00.03
+11:37:42 SQL> 
+11:37:42 SQL> SELECT COUNT(*)FROM tkr_rpt10;
+
+  COUNT(*)
+----------
+       135
+
+Elapsed: 00:00:00.17
+11:37:42 SQL> 
+11:37:42 SQL> -- Look for CORR():
+11:37:42 SQL> SELECT
+11:37:42   2  MIN(ydate)
+11:37:42   3  ,COUNT(ydate)
+11:37:42   4  ,MAX(ydate)
+11:37:42   5  ,CORR(score_long, g4)
+11:37:42   6  ,CORR(score_short, g4)
+11:37:42   7  FROM tkr_rpt10
+11:37:42   8  /
+
+MIN(YDATE)          COUNT(YDATE) MAX(YDATE)          CORR(SCORE_LONG,G4) CORR(SCORE_SHORT,G4)
+------------------- ------------ ------------------- ------------------- --------------------
+2010-10-01 14:55:01          135 2011-01-03 20:50:00          .007512203           .007005795
+
+Elapsed: 00:00:00.16
+11:37:43 SQL> 
+11:37:43 SQL> -- Look at distribution of scores and resulting gains.
+11:37:43 SQL> -- A hich score means SVM has high confidence that the long position will be lucrative:
+11:37:43 SQL> 
+11:37:43 SQL> SELECT
+11:37:43   2  MIN(ydate)
+11:37:43   3  ,COUNT(ydate)
+11:37:43   4  ,MAX(ydate)
+11:37:43   5  ,rscore_long
+11:37:43   6  ,ROUND(MIN(g4),3)min_g4
+11:37:43   7  ,ROUND(AVG(g4),3)avg_g4
+11:37:43   8  ,ROUND(STDDEV(g4),3)stddv_g4
+11:37:43   9  ,ROUND(MAX(g4),3)max_g4
+11:37:43  10  FROM tkr_rpt10
+11:37:43  11  GROUP BY rscore_long
+11:37:43  12  ORDER BY rscore_long
+11:37:43  13  /
+
+MIN(YDATE)          COUNT(YDATE) MAX(YDATE)          RSCORE_LONG     MIN_G4     AVG_G4   STDDV_G4     MAX_G4
+------------------- ------------ ------------------- ----------- ---------- ---------- ---------- ----------
+2010-10-07 18:10:01           10 2011-01-03 20:40:00          .1        -.4       .036       .449        .77
+2010-10-05 13:30:01           13 2011-01-03 20:45:00          .2      -.325       .122       .247        .58
+2010-10-15 19:50:01           13 2011-01-03 20:50:00          .3       -.26       .031       .294       .775
+2010-10-20 13:40:01           19 2011-01-03 19:25:00          .4       -.54      -.003       .275       .315
+2010-10-01 14:55:01           24 2011-01-03 20:15:00          .5      -.653        .11       .515      1.765
+2010-10-20 17:05:01           16 2011-01-03 20:20:00          .6       -.42      -.004       .277        .54
+2010-10-06 14:45:01           16 2011-01-03 18:35:00          .7       -.23       .113       .229        .41
+2010-10-04 17:35:01           18 2011-01-03 20:25:00          .8       -.41       .063       .281        .64
+2010-10-08 16:50:01            6 2010-12-23 19:25:01          .9       -.15       .046       .137        .21
+
+9 rows selected.
+
+Elapsed: 00:00:00.17
+11:37:43 SQL> 
+11:37:43 SQL> -- Look at distribution of scores and resulting gains,
+11:37:43 SQL> -- Where SVM has low confidence the position will be a lucrative short:
+11:37:43 SQL> 
+11:37:43 SQL> SELECT
+11:37:43   2  MIN(ydate)
+11:37:43   3  ,COUNT(ydate)
+11:37:43   4  ,MAX(ydate)
+11:37:43   5  ,rscore_long
+11:37:43   6  ,ROUND(MIN(g4),3)min_g4
+11:37:43   7  ,ROUND(AVG(g4),3)avg_g4
+11:37:43   8  ,ROUND(STDDEV(g4),3)stddv_g4
+11:37:43   9  ,ROUND(MAX(g4),3)max_g4
+11:37:43  10  FROM tkr_rpt10
+11:37:43  11  WHERE rscore_short < 0.3
+11:37:43  12  GROUP BY rscore_long
+11:37:43  13  ORDER BY rscore_long
+11:37:43  14  /
+
+MIN(YDATE)          COUNT(YDATE) MAX(YDATE)          RSCORE_LONG     MIN_G4     AVG_G4   STDDV_G4     MAX_G4
+------------------- ------------ ------------------- ----------- ---------- ---------- ---------- ----------
+2010-12-10 20:45:01            1 2010-12-10 20:45:01          .1        .77        .77          0        .77
+2010-12-28 22:50:00            2 2011-01-03 17:25:00          .2        .58        .58          0        .58
+2010-11-05 16:30:01            2 2010-12-28 20:45:00          .3      -.043      -.006       .051        .03
+2010-12-14 18:35:01            2 2011-01-03 17:15:00          .4      -.225      -.225          0      -.225
+2010-11-30 19:05:01            3 2010-12-29 23:45:00          .5      -.653        -.1       .518       .375
+2010-10-13 17:50:01            7 2010-12-17 17:00:01          .7       -.23       .145       .255        .41
+2010-10-18 15:00:01            8 2010-12-24 16:00:01          .8       -.41      -.094       .191        .18
+2010-10-08 16:50:01            3 2010-12-23 19:25:01          .9       -.02       .085       .091       .145
+
+8 rows selected.
+
+Elapsed: 00:00:00.16
+11:37:43 SQL> 
+11:37:43 SQL> -- Now go looking for high scores for shorts:
+11:37:43 SQL> 
+11:37:43 SQL> SELECT
+11:37:43   2  MIN(ydate)
+11:37:43   3  ,COUNT(ydate)
+11:37:43   4  ,MAX(ydate)
+11:37:43   5  ,rscore_short
+11:37:43   6  ,ROUND(MIN(g4),3)min_g4
+11:37:43   7  ,ROUND(AVG(g4),3)avg_g4
+11:37:43   8  ,ROUND(STDDEV(g4),3)stddv_g4
+11:37:43   9  ,ROUND(MAX(g4),3)max_g4
+11:37:43  10  FROM tkr_rpt10
+11:37:43  11  GROUP BY rscore_short
+11:37:43  12  ORDER BY rscore_short
+11:37:43  13  /
+
+MIN(YDATE)          COUNT(YDATE) MAX(YDATE)          RSCORE_SHORT     MIN_G4     AVG_G4   STDDV_G4     MAX_G4
+------------------- ------------ ------------------- ------------ ---------- ---------- ---------- ----------
+2010-11-30 19:05:01            1 2010-11-30 19:05:01            0       .375       .375          0       .375
+2010-10-13 17:50:01           10 2011-01-03 17:15:00           .1       -.23        .11       .232        .58
+2010-10-08 16:50:01           17 2011-01-03 17:25:00           .2      -.653      -.002       .344        .77
+2010-10-27 17:05:01           18 2011-01-03 20:45:00           .3       -.54       .169       .596      1.765
+2010-10-01 14:55:01           15 2011-01-03 20:50:00           .4       -.54      -.066       .243        .21
+2010-10-05 13:30:01           18 2011-01-03 19:55:00           .5       -.25      -.035       .145        .25
+2010-10-11 15:25:01           18 2011-01-03 19:05:00           .6       -.21       .095       .275       .775
+2010-10-04 17:35:01           14 2011-01-03 18:40:00           .7        -.4       .114       .293        .58
+2010-10-07 18:10:01           16 2011-01-03 19:30:00           .8      -.405       .118       .265        .62
+2010-10-20 17:05:01            7 2011-01-03 15:15:00           .9       -.37       -.06       .247        .31
+2010-11-17 18:00:01            1 2010-11-17 18:00:01            1        .35        .35          0        .35
+
+11 rows selected.
+
+Elapsed: 00:00:00.15
+11:37:43 SQL> 
+11:37:43 SQL> -- Now I combine high rscore_short and low rscore_long:
+11:37:43 SQL> 
+11:37:43 SQL> SELECT
+11:37:43   2  MIN(ydate)
+11:37:43   3  ,COUNT(ydate)
+11:37:43   4  ,MAX(ydate)
+11:37:43   5  ,rscore_short
+11:37:43   6  ,ROUND(MIN(g4),3)min_g4
+11:37:43   7  ,ROUND(AVG(g4),3)avg_g4
+11:37:43   8  ,ROUND(STDDEV(g4),3)stddv_g4
+11:37:43   9  ,ROUND(MAX(g4),3)max_g4
+11:37:43  10  FROM tkr_rpt10
+11:37:43  11  WHERE rscore_long < 0.3
+11:37:43  12  GROUP BY rscore_short
+11:37:43  13  ORDER BY rscore_short
+11:37:43  14  /
+
+MIN(YDATE)          COUNT(YDATE) MAX(YDATE)          RSCORE_SHORT     MIN_G4     AVG_G4   STDDV_G4     MAX_G4
+------------------- ------------ ------------------- ------------ ---------- ---------- ---------- ----------
+2010-12-28 22:50:00            1 2010-12-28 22:50:00           .1        .58        .58          0        .58
+2010-12-10 20:45:01            2 2011-01-03 17:25:00           .2        .77        .77          0        .77
+2010-12-14 19:05:01            4 2011-01-03 20:45:00           .3      -.325      -.325          0      -.325
+2010-11-15 14:30:01            1 2010-11-15 14:30:01           .4       -.03       -.03          0       -.03
+2010-10-05 13:30:01            3 2011-01-03 19:55:00           .5       .055       .153       .138        .25
+2010-10-11 15:25:01            3 2010-12-09 20:00:01           .6      -.175       .022       .208        .24
+2010-10-11 18:20:01            3 2010-11-29 20:45:01           .7        -.4      -.118       .362        .29
+2010-10-07 18:10:01            4 2011-01-03 15:20:00           .8       .013       .256       .277        .62
+2010-11-22 14:25:01            2 2010-12-27 17:30:00           .9      -.285       -.26       .035      -.235
+
+9 rows selected.
+
+Elapsed: 00:00:00.17
+11:37:43 SQL> 
+11:37:43 SQL> -- This works better on sparse results:
+11:37:43 SQL> 
+11:37:43 SQL> 
+11:37:43 SQL> CREATE OR REPLACE VIEW tkr_rpt_long AS
+11:37:43   2  SELECT
+11:37:43   3  l.score  score_long
+11:37:43   4  ,m.g4
+11:37:43   5  ,m.ydate
+11:37:43   6  ,ROUND(l.score,1)rscore_long
+11:37:43   7  FROM stkscores l,stk_ms m
+11:37:43   8  WHERE l.ydate = m.ydate
+11:37:43   9  AND l.tkr = '&1'
+11:37:43  10  AND l.targ = 'gatt'
+11:37:43  11  /
+old   9: AND l.tkr = '&1'
+new   9: AND l.tkr = 'DIS'
+
+View created.
+
+Elapsed: 00:00:00.05
+11:37:43 SQL> 
+11:37:43 SQL> 
+11:37:43 SQL> -- Look for CORR():
+11:37:43 SQL> SELECT
+11:37:43   2  MIN(ydate)
+11:37:43   3  ,COUNT(ydate)
+11:37:43   4  ,MAX(ydate)
+11:37:43   5  ,CORR(score_long, g4)
+11:37:43   6  FROM tkr_rpt_long
+11:37:43   7  /
+
+MIN(YDATE)          COUNT(YDATE) MAX(YDATE)          CORR(SCORE_LONG,G4)
+------------------- ------------ ------------------- -------------------
+2010-10-01 14:55:01          823 2011-01-03 20:50:00          .073503223
+
+Elapsed: 00:00:00.11
+11:37:43 SQL> 
+11:37:43 SQL> 
+11:37:43 SQL> -- Look at distribution of scores and resulting gains.
+11:37:43 SQL> -- A hich score means SVM has high confidence that the long position will be lucrative:
+11:37:43 SQL> 
+11:37:43 SQL> SELECT
+11:37:43   2  MIN(ydate)
+11:37:43   3  ,COUNT(ydate)
+11:37:43   4  ,MAX(ydate)
+11:37:43   5  ,rscore_long
+11:37:43   6  ,ROUND(MIN(g4),3)min_g4
+11:37:43   7  ,ROUND(AVG(g4),3)avg_g4
+11:37:43   8  ,ROUND(STDDEV(g4),3)stddv_g4
+11:37:43   9  ,ROUND(MAX(g4),3)max_g4
+11:37:43  10  FROM tkr_rpt_long
+11:37:43  11  GROUP BY rscore_long
+11:37:43  12  ORDER BY rscore_long
+11:37:43  13  /
+
+MIN(YDATE)          COUNT(YDATE) MAX(YDATE)          RSCORE_LONG     MIN_G4     AVG_G4   STDDV_G4     MAX_G4
+------------------- ------------ ------------------- ----------- ---------- ---------- ---------- ----------
+2010-11-01 14:20:01            7 2010-12-30 14:00:00           0       -.31      -.137       .177         .2
+2010-10-01 19:15:01           63 2011-01-03 20:40:00          .1       -.77       -.01       .323        .77
+2010-10-04 14:10:01           69 2011-01-03 20:45:00          .2      -.613      -.081       .295        .67
+2010-10-04 14:05:01           83 2011-01-03 20:50:00          .3      -.628      -.004       .325       .775
+2010-10-01 18:05:01           82 2011-01-03 19:25:00          .4        -.6       .081        .28        .69
+2010-10-01 14:55:01          125 2011-01-03 20:15:00          .5       -.66       .091       .314      1.765
+2010-10-06 17:50:01          104 2011-01-03 20:20:00          .6      -.705       .042       .285        .75
+2010-10-01 16:10:01          115 2011-01-03 18:35:00          .7      -.585       .058       .273        .77
+2010-10-01 17:15:01          108 2011-01-03 20:25:00          .8       -.64       .025       .279        .76
+2010-10-01 16:20:01           63 2010-12-31 14:55:00          .9      -.723       .027       .332         .7
+2010-10-05 16:40:01            4 2010-10-26 17:05:01           1      -.245       .069       .335        .53
+
+11 rows selected.
+
+Elapsed: 00:00:00.11
+11:37:43 SQL> 
+11:37:43 SQL> -- Look at shorts:
+11:37:43 SQL> 
+11:37:43 SQL> CREATE OR REPLACE VIEW tkr_rpt_short AS
+11:37:43   2  SELECT
+11:37:43   3  s.score  score_short
+11:37:43   4  ,m.g4
+11:37:43   5  ,m.ydate
+11:37:43   6  ,ROUND(s.score,1)rscore_short
+11:37:43   7  FROM stkscores s,stk_ms m
+11:37:43   8  WHERE s.ydate = m.ydate
+11:37:43   9  AND s.tkr = '&1'
+11:37:43  10  AND s.targ = 'gattn'
+11:37:43  11  /
+old   9: AND s.tkr = '&1'
+new   9: AND s.tkr = 'DIS'
+
+View created.
+
+Elapsed: 00:00:00.06
+11:37:44 SQL> 
+11:37:44 SQL> 
+11:37:44 SQL> -- Look for CORR():
+11:37:44 SQL> SELECT
+11:37:44   2  MIN(ydate)
+11:37:44   3  ,COUNT(ydate)
+11:37:44   4  ,MAX(ydate)
+11:37:44   5  ,CORR(score_short, g4)
+11:37:44   6  FROM tkr_rpt_short
+11:37:44   7  /
+
+MIN(YDATE)          COUNT(YDATE) MAX(YDATE)          CORR(SCORE_SHORT,G4)
+------------------- ------------ ------------------- --------------------
+2010-10-01 14:35:01          863 2011-01-03 20:50:00           -.06172303
+
+Elapsed: 00:00:00.12
+11:37:44 SQL> 
+11:37:44 SQL> 
+11:37:44 SQL> -- Look at distribution of scores and resulting gains.
+11:37:44 SQL> -- A hich score means SVM has high confidence that the short position will be lucrative:
+11:37:44 SQL> 
+11:37:44 SQL> SELECT
+11:37:44   2  MIN(ydate)
+11:37:44   3  ,COUNT(ydate)
+11:37:44   4  ,MAX(ydate)
+11:37:44   5  ,rscore_short
+11:37:44   6  ,ROUND(MIN(g4),3)min_g4
+11:37:44   7  ,ROUND(AVG(g4),3)avg_g4
+11:37:44   8  ,ROUND(STDDEV(g4),3)stddv_g4
+11:37:44   9  ,ROUND(MAX(g4),3)max_g4
+11:37:44  10  FROM tkr_rpt_short
+11:37:44  11  GROUP BY rscore_short
+11:37:44  12  ORDER BY rscore_short
+11:37:44  13  /
+
+MIN(YDATE)          COUNT(YDATE) MAX(YDATE)          RSCORE_SHORT     MIN_G4     AVG_G4   STDDV_G4     MAX_G4
+------------------- ------------ ------------------- ------------ ---------- ---------- ---------- ----------
+2010-10-12 19:20:01           15 2010-12-29 10:25:00            0       -.43       .054       .289         .5
+2010-10-06 14:00:01           86 2011-01-03 17:15:00           .1      -.535       .053       .267       .685
+2010-10-01 15:15:01          119 2011-01-03 20:35:00           .2        -.7       .048       .302        .77
+2010-10-01 18:40:01          104 2011-01-03 20:45:00           .3       -.73       .034        .37      1.765
+2010-10-01 14:55:01          101 2011-01-03 20:50:00           .4      -1.06       .096       .367       1.74
+2010-10-01 15:00:01          113 2011-01-03 19:55:00           .5       -.56       .012       .274       .805
+2010-10-04 15:55:01           93 2011-01-03 19:10:00           .6      -1.04       .092       .343       1.73
+2010-10-01 14:35:01           90 2011-01-03 18:40:00           .7       -.61       .052        .31        .75
+2010-10-07 18:10:01           84 2011-01-03 19:40:00           .8      -.645      -.022       .258       .705
+2010-10-07 18:15:01           54 2011-01-03 15:15:00           .9       -.65      -.015       .327       .615
+2010-11-17 18:00:01            4 2010-12-08 18:10:01            1       -.89       -.32        .52        .35
+
+11 rows selected.
+
+Elapsed: 00:00:00.11
+11:37:44 SQL> 
+11:37:44 SQL> 
