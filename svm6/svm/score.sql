@@ -7,7 +7,7 @@
 -- A script which feeds data to SVM and captures the results in table svmc_apply_prep
 
 DEFINE target     = 'gatt'
-DEFINE model_name = 'forex14'
+DEFINE model_name = 'forex15'
 DEFINE bldtable   = 'bme'
 DEFINE scoretable = 'sme'
 DEFINE case_id    = 'prdate'

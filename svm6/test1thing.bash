@@ -2,6 +2,7 @@
 
 # test1thing.bash
 
+exit
 
 . /pt/s/rluck/svm6/.orcl
 . /pt/s/rluck/svm6/.jruby
