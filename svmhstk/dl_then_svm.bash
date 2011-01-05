@@ -27,8 +27,6 @@ cd $SVMHSTK/ibapi
 ## ./5min_data.bash $1
 ./1hr_data.bash $1
 
-exit
-
 # Merge IB data with Dukas data:
 sqt>update_di1hr_stk.txt<<EOF
 @update_di1hr_stk.sql

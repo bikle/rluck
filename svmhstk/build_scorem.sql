@@ -12,14 +12,14 @@ SELECT cmd,ydate,'&1' tkr FROM
 (
 SELECT '@score1_1hr.sql 'cmd,ydate FROM stk_ms
 WHERE ydate NOT IN
-  (SELECT ydate FROM stkscores WHERE targ='gatt'AND tkr='&1')
-AND ydate > sysdate - 2/24
+  (SELECT ydate FROM stkscores_1hr WHERE targ='gatt'AND tkr='&1')
+AND ydate > sysdate - 95
 AND tkr = '&1'
 UNION
 SELECT '@score1_1hr_gattn.sql 'cmd,ydate FROM stk_ms
 WHERE ydate NOT IN
-  (SELECT ydate FROM stkscores WHERE targ='gattn'AND tkr='&1')
-AND ydate > sysdate - 2/24
+  (SELECT ydate FROM stkscores_1hr WHERE targ='gattn'AND tkr='&1')
+AND ydate > sysdate - 95
 AND tkr = '&1'
 )
 ORDER BY DBMS_RANDOM.VALUE

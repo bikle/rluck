@@ -60,8 +60,8 @@ class ReqHdata
     # m_backfillEndTime= jl_str "20100816 23:59:59 GMT"
     m_backfillEndTime= jl_str gm_time
 
-    # I want 3 Weeks of data:
-    m_backfillDuration= jl_str "3 W"
+    # I want 4 Weeks of data:
+    m_backfillDuration= jl_str "4 W"
 
     # I want 1 Week of data:
     m_backfillDuration= jl_str "1 W"
@@ -92,7 +92,7 @@ class ReqHdata
 
     p 'done getting hdata'
     p 'wait a few seconds before disconnect'
-    sleep 11
+    sleep 15
     ut.disconnect
     p 'Disconnected now. Bye'
   end # def get_hdata
