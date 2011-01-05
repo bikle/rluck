@@ -8,7 +8,7 @@
 #
 #  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash sell 30000 EUR USD 20110105_06:30:00_GMT
 # 
-#  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash sell 30000 EUR USD 20110105_06:40:00_GMT
+# 
 #
 #  /pt/s/rluck/svm6/ibapi/place_mkt_ordr_at.bash sell 30000 GBP USD 20110105_08:00:00_GMT
 
