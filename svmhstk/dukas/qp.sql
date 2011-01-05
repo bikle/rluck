@@ -1,0 +1,1 @@
+qry_latest_price.sql

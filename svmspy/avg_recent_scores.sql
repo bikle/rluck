@@ -33,7 +33,7 @@ tkrdate
 ,rundate
 ,ROUND(clse,4)clse 
 ,ydate + 4/24 clse_date
-,ydate + 24.5/24 clse_date2
+,ydate + 20.5/24 clse_date2
 FROM ocj_stk
 WHERE ydate > sysdate - 1/24
 ORDER BY tkr,ydate

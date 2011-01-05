@@ -3,6 +3,8 @@
 # 1hr_data.bash
 
 # I use this script to download prices spread 1hr apart for TKR.
+# This script is called from here: 
+# - /pt/s/rluck/svmhstk/dl_then_svm.bash
 
 # Demo:
 # 1hr_data.bash SPY
@@ -25,7 +27,6 @@ cd $SVMHSTK/ibapi
 ## debug
 ## debug jruby req_hdata_1D.rb $1
 ## debug
-
 
 export myts=`date +%Y_%m_%d_%H_%M`
 # Now I load the data into table, ibs1hr:
@@ -52,6 +53,6 @@ cp -p qry_ibs1hr.txt /pt/s/cron/out/qry_ibs1hr.${myts}.txt
 ./expdp1hr.bash  > /pt/s/cron/out/expdp1hr.${myts}.txt 2>&1
 
 # rm old csv files
-./rm_old_csv.bash  > /pt/s/cron/out/rm_old_csv.${myts}.txt 2>&1
+## ./rm_old_csv.bash  > /pt/s/cron/out/rm_old_csv.${myts}.txt 2>&1
 
 exit

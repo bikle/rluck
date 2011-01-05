@@ -47,8 +47,8 @@ class ReqHdata
     ut= SampleRfq.new(m_clientId, m_rfqId, mode)
 
     contract= Contract.new
-    # contract.m_symbol= jl_str "SPY"
     contract.m_currency= jl_str "USD"
+    # contract.m_symbol= jl_str "SPY"
     contract.m_symbol= jl_str $*.first
     contract.m_secType= jl_str "STK"
     contract.m_exchange= jl_str "SMART"
@@ -59,8 +59,12 @@ class ReqHdata
     gm_time=t60.gmtime.strftime("%Y%m%d %H:%M:%S")+" GMT"
     # m_backfillEndTime= jl_str "20100816 23:59:59 GMT"
     m_backfillEndTime= jl_str gm_time
+
     # I want 3 Weeks of data:
     m_backfillDuration= jl_str "3 W"
+
+    # I want 1 Week of data:
+    m_backfillDuration= jl_str "1 W"
 
     m_barSizeSetting= jl_str "1 hour"
     # this does not work: m_whatToShow= jl_str "TRADES"
