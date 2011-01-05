@@ -4,6 +4,10 @@
 
 -- I use this script to report on correlation between SVM scores_1hr and Forex gains.
 
+-- Notice that this script depends on stk_ms which depends on stk10.sql
+-- So, I need to run stk10.sql before I run this script or else I get bad results.
+-- Be aware that if I run stk10.sql during a backtest, it breaks the backtest.
+
 CREATE OR REPLACE VIEW tkr_rpt10 AS
 SELECT
 l.score  score_long
