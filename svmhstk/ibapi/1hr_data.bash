@@ -25,7 +25,7 @@ set -x
 cd $SVMHSTK/ibapi
 
 ## debug
-## debug jruby req_hdata_1D.rb $1
+jruby req_hdata_1D.rb $1
 ## debug
 
 export myts=`date +%Y_%m_%d_%H_%M`

@@ -14,11 +14,10 @@ date
 
 cd $SVMHSTK
 
-./dl_then_svm.bash GOOG
+./dl_then_svm.bash SPY
 
 exit
-
-./dl_then_svm.bash SPY
+./dl_then_svm.bash GOOG
 ./dl_then_svm.bash QQQQ
 ./dl_then_svm.bash DIA
 ./dl_then_svm.bash DIS
