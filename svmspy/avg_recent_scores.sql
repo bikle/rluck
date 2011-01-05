@@ -28,12 +28,16 @@ COLUMN clse  FORMAT 999.9999
 
 SELECT
 tkrdate
-,score long_score
-,gscore short_score
+,ROUND(score,2) long_score
+,ROUND(gscore,2)short_score
 ,rundate
 ,ROUND(clse,4)clse 
-,ydate + 4/24 clse_date
-,ydate + 20.5/24 clse_date2
+-- ,ydate + 4/24 clse_date
+-- ,ydate + 20.5/24 clse_date2
+,CASE WHEN(ydate + 4/24)>TRUNC(ydate)+21/24 THEN'Tomorrow'
+ ELSE TO_CHAR((ydate+4/24),'MM-DD HH24:MI')END clse_date
+,CASE WHEN(ydate + 4/24)>TRUNC(ydate)+21/24 THEN TO_CHAR((ydate+20.5/24),'MM-DD HH24:MI')
+ ELSE'Today'       END clse_date2
 FROM ocj_stk
 WHERE ydate > sysdate - 1/24
 ORDER BY tkr,ydate
