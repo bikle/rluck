@@ -12,9 +12,6 @@ set -x
 cd $SVMHSTK/dukas/
 
 ./load_tkr_1hr.bash DIA
-
-exit
-
 ./load_tkr_1hr.bash DIS 
 ./load_tkr_1hr.bash EBAY
 ./load_tkr_1hr.bash GOOG
