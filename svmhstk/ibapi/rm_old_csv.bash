@@ -6,5 +6,8 @@
 
 set -x
 
-find csv_files -name 'USD*gmt.csv' -mtime +2 -print | xargs ls -ltr
-find csv_files -name 'USD*gmt.csv' -mtime +2 -print | xargs rm -f
+find csv_files -name 'DIA*.csv' -mtime +5 -print | xargs ls -ltr
+find csv_files -name 'DIA*.csv' -mtime +5 -print | xargs ls -ltr
+
+exit 0
+

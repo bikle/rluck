@@ -16,7 +16,7 @@ s.tkrdate
 ,p.clse
 FROM stkscores_1hr s
 ,stkscores_1hr g
-,di5min_stk p
+,di1hr_stk p
 WHERE s.tkrdate = g.tkrdate
 AND p.tkr = s.tkr
 AND s.ydate = p.ydate
