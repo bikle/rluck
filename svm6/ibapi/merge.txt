@@ -1,5 +1,5 @@
 
-SQL*Plus: Release 11.2.0.1.0 Production on Thu Jan 6 20:32:25 2011
+SQL*Plus: Release 11.2.0.1.0 Production on Thu Jan 6 20:48:02 2011
 
 Copyright (c) 1982, 2009, Oracle.  All rights reserved.
 
@@ -8,108 +8,108 @@ Connected to:
 Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 
-20:32:25 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+20:48:02 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
 
 Session altered.
 
 Elapsed: 00:00:00.00
-20:32:25 SQL> 20:32:25 SQL> --
-20:32:25 SQL> -- merge.sql
-20:32:25 SQL> --
-20:32:25 SQL> 
-20:32:25 SQL> -- I use this script to merge data from ibf_stage into ibf5min.
-20:32:25 SQL> 
-20:32:25 SQL> 
-20:32:25 SQL> -- CREATE TABLE ibf_old	  (pair VARCHAR2(8),ydate DATE,clse NUMBER);
-20:32:25 SQL> -- CREATE TABLE ibf_dups_old(pair VARCHAR2(8),ydate DATE,clse NUMBER);
-20:32:25 SQL> 
-20:32:25 SQL> DROP TABLE ibf_old;
+20:48:02 SQL> 20:48:02 SQL> --
+20:48:02 SQL> -- merge.sql
+20:48:02 SQL> --
+20:48:02 SQL> 
+20:48:02 SQL> -- I use this script to merge data from ibf_stage into ibf5min.
+20:48:02 SQL> 
+20:48:02 SQL> 
+20:48:02 SQL> -- CREATE TABLE ibf_old	  (pair VARCHAR2(8),ydate DATE,clse NUMBER);
+20:48:02 SQL> -- CREATE TABLE ibf_dups_old(pair VARCHAR2(8),ydate DATE,clse NUMBER);
+20:48:02 SQL> 
+20:48:02 SQL> DROP TABLE ibf_old;
 
 Table dropped.
 
-Elapsed: 00:00:00.04
-20:32:25 SQL> RENAME ibf5min TO ibf_old;
+Elapsed: 00:00:00.29
+20:48:02 SQL> RENAME ibf5min TO ibf_old;
 
 Table renamed.
 
-Elapsed: 00:00:00.03
-20:32:25 SQL> 
-20:32:25 SQL> DROP TABLE ibf_dups_old;
+Elapsed: 00:00:00.30
+20:48:03 SQL> 
+20:48:03 SQL> DROP TABLE ibf_dups_old;
 
 Table dropped.
 
-Elapsed: 00:00:00.06
-20:32:25 SQL> RENAME ibf_dups TO ibf_dups_old;
+Elapsed: 00:00:00.21
+20:48:03 SQL> RENAME ibf_dups TO ibf_dups_old;
 
 Table renamed.
 
-Elapsed: 00:00:00.04
-20:32:25 SQL> 
-20:32:25 SQL> CREATE TABLE ibf_dups COMPRESS AS
-20:32:25   2  SELECT
-20:32:25   3  pair
-20:32:25   4  ,(TO_DATE('1970-01-01','YYYY-MM-DD')+(epochsec/24/3600))ydate
-20:32:25   5  ,clse
-20:32:25   6  FROM ibf_stage
-20:32:25   7  UNION
-20:32:25   8  SELECT pair,ydate,clse
-20:32:25   9  FROM ibf_old
-20:32:25  10  /
+Elapsed: 00:00:00.08
+20:48:03 SQL> 
+20:48:03 SQL> CREATE TABLE ibf_dups COMPRESS AS
+20:48:03   2  SELECT
+20:48:03   3  pair
+20:48:03   4  ,(TO_DATE('1970-01-01','YYYY-MM-DD')+(epochsec/24/3600))ydate
+20:48:03   5  ,clse
+20:48:03   6  FROM ibf_stage
+20:48:03   7  UNION
+20:48:03   8  SELECT pair,ydate,clse
+20:48:03   9  FROM ibf_old
+20:48:03  10  /
 
 Table created.
 
-Elapsed: 00:00:00.42
-20:32:25 SQL> 
-20:32:25 SQL> CREATE TABLE ibf5min COMPRESS AS
-20:32:25   2  SELECT
-20:32:25   3  pair
-20:32:25   4  ,ydate
-20:32:25   5  ,AVG(clse)clse
-20:32:25   6  FROM ibf_dups
-20:32:25   7  GROUP BY pair,ydate
-20:32:25   8  /
+Elapsed: 00:00:00.48
+20:48:03 SQL> 
+20:48:03 SQL> CREATE TABLE ibf5min COMPRESS AS
+20:48:03   2  SELECT
+20:48:03   3  pair
+20:48:03   4  ,ydate
+20:48:03   5  ,AVG(clse)clse
+20:48:03   6  FROM ibf_dups
+20:48:03   7  GROUP BY pair,ydate
+20:48:03   8  /
 
 Table created.
 
-Elapsed: 00:00:00.28
-20:32:26 SQL> 
-20:32:26 SQL> -- I distrust the data before 2010-11-30
-20:32:26 SQL> DELETE ibf5min WHERE ydate < '2010-11-30';
+Elapsed: 00:00:00.19
+20:48:04 SQL> 
+20:48:04 SQL> -- I distrust the data before 2010-11-30
+20:48:04 SQL> DELETE ibf5min WHERE ydate < '2010-11-30';
 
 1 row deleted.
 
-Elapsed: 00:00:00.01
-20:32:26 SQL> 
-20:32:26 SQL> ANALYZE TABLE ibf5min COMPUTE STATISTICS;
+Elapsed: 00:00:00.05
+20:48:04 SQL> 
+20:48:04 SQL> ANALYZE TABLE ibf5min COMPUTE STATISTICS;
 
 Table analyzed.
 
-Elapsed: 00:00:00.33
-20:32:26 SQL> 
-20:32:26 SQL> -- I should see less than 60 min:
-20:32:26 SQL> SELECT
-20:32:26   2  pair
-20:32:26   3  ,(sysdate - MAX(ydate))*24*60 minutes_age
-20:32:26   4  ,MIN(ydate)
-20:32:26   5  ,COUNT(ydate)
-20:32:26   6  ,MAX(ydate)FROM
-20:32:26   7  ibf5min
-20:32:26   8  GROUP BY pair
-20:32:26   9  /
+Elapsed: 00:00:00.38
+20:48:04 SQL> 
+20:48:04 SQL> -- I should see less than 60 min:
+20:48:04 SQL> SELECT
+20:48:04   2  pair
+20:48:04   3  ,(sysdate - MAX(ydate))*24*60 minutes_age
+20:48:04   4  ,MIN(ydate)
+20:48:04   5  ,COUNT(ydate)
+20:48:04   6  ,MAX(ydate)FROM
+20:48:04   7  ibf5min
+20:48:04   8  GROUP BY pair
+20:48:04   9  /
 
 PAIR	 MINUTES_AGE MIN(YDATE) 	 COUNT(YDATE) MAX(YDATE)
 -------- ----------- ------------------- ------------ -------------------
-eur_usd   2.43333333 2010-11-30 00:00:00	 7879 2011-01-06 20:30:00
-gbp_usd   2.43333333 2010-11-30 00:00:00	 7878 2011-01-06 20:30:00
-usd_jpy   2.43333333 2010-11-30 00:00:00	 7877 2011-01-06 20:30:00
-aud_usd   2.43333333 2010-11-30 00:00:00	 7876 2011-01-06 20:30:00
-usd_cad   2.43333333 2010-11-30 00:00:00	 7877 2011-01-06 20:30:00
-usd_chf   2.43333333 2010-11-30 00:00:00	 7880 2011-01-06 20:30:00
+eur_usd   3.06666667 2010-11-30 00:00:00	 7882 2011-01-06 20:45:00
+gbp_usd   3.06666667 2010-11-30 00:00:00	 7881 2011-01-06 20:45:00
+usd_jpy   3.06666667 2010-11-30 00:00:00	 7880 2011-01-06 20:45:00
+aud_usd   3.06666667 2010-11-30 00:00:00	 7879 2011-01-06 20:45:00
+usd_cad   3.06666667 2010-11-30 00:00:00	 7880 2011-01-06 20:45:00
+usd_chf   3.06666667 2010-11-30 00:00:00	 7883 2011-01-06 20:45:00
 
 6 rows selected.
 
-Elapsed: 00:00:00.03
-20:32:26 SQL> 
-20:32:26 SQL> exit
+Elapsed: 00:00:00.02
+20:48:04 SQL> 
+20:48:04 SQL> exit
 Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
