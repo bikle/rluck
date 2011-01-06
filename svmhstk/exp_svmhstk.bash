@@ -13,3 +13,5 @@ echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/svmhstk.${myts}.dpdmp h:/oracl
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/svmhstk.${myts}.dpdmp l:/oracle/app/oracle/admin/orcl/dpdump/"
 
 echo "impdp trade/t table_exists_action=append dumpfile=svmhstk.${myts}.dpdmp"
+
+echo "impdp trade/t table_exists_action=replace dumpfile=svmhstk.${myts}.dpdmp tables=dukas1hr_stk"
