@@ -1,0 +1,98 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Jan 3 23:25:12 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+23:25:12 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+23:25:12 SQL> 23:25:12 SQL> --
+23:25:12 SQL> -- de_dup_stkscores.sql
+23:25:12 SQL> --
+23:25:12 SQL> 
+23:25:12 SQL> -- I use this script after I load stkscores from host-A into host-B.
+23:25:12 SQL> 
+23:25:12 SQL> SET LINES 66
+23:25:12 SQL> DESC stktmp
+ERROR:
+ORA-04043: object stktmp does not exist
+
+
+23:25:12 SQL> DESC stkscores
+ Name				  Null?    Type
+ -------------------------------- -------- -----------------------
+ TKRDATE				   VARCHAR2(30)
+ TARG					   VARCHAR2(5)
+ SCORE					   NUMBER
+ RUNDATE				   DATE
+ TKR					   VARCHAR2(8)
+ YDATE					   DATE
+
+23:25:12 SQL> SET LINES 166
+23:25:12 SQL> 
+23:25:12 SQL> DROP TABLE stktmp;
+DROP TABLE stktmp
+           *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
+
+Elapsed: 00:00:00.04
+23:25:12 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.23
+23:25:12 SQL> 
+23:25:12 SQL> 
+23:25:12 SQL> CREATE TABLE stktmp COMPRESS AS
+23:25:12   2  SELECT
+23:25:12   3  tkrdate
+23:25:12   4  ,targ
+23:25:12   5  ,AVG(score)score
+23:25:12   6  ,MAX(rundate)rundate
+23:25:12   7  ,MAX(tkr)tkr
+23:25:12   8  ,MAX(ydate)ydate
+23:25:12   9  FROM stkscores
+23:25:12  10  GROUP BY tkrdate,targ
+23:25:12  11  /
+
+Table created.
+
+Elapsed: 00:00:00.36
+23:25:12 SQL> 
+23:25:12 SQL> SELECT COUNT(*)FROM stkscores;
+
+  COUNT(*)
+----------
+     24388
+
+Elapsed: 00:00:00.00
+23:25:12 SQL> SELECT COUNT(*)FROM stktmp;
+
+  COUNT(*)
+----------
+     24387
+
+Elapsed: 00:00:00.02
+23:25:12 SQL> 
+23:25:12 SQL> DROP TABLE stkscores;
+
+Table dropped.
+
+Elapsed: 00:00:00.20
+23:25:13 SQL> RENAME stktmp TO stkscores;
+
+Table renamed.
+
+Elapsed: 00:00:00.03
+23:25:13 SQL> 
+23:25:13 SQL> Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
