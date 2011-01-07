@@ -66,6 +66,9 @@ class ReqHdata
     # I want 1 Week of data:
     m_backfillDuration= jl_str "1 W"
 
+    # I want 2 Days of data:
+    m_backfillDuration= jl_str "2 D"
+
     m_barSizeSetting= jl_str "1 hour"
     # this does not work: m_whatToShow= jl_str "TRADES"
     m_whatToShow= jl_str "MIDPOINT"
