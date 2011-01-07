@@ -5,7 +5,7 @@
 # This is a simple loop which keeps running until the calendar hits Saturday.
 
 the_day=`date +"%A"`
-while [ $the_day != 'Saturday' ]
+while [ -e "run_loop.txt" -a $the_day != 'Saturday' ]
 do
   echo hello
   echo Now, it is:
