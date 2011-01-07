@@ -14,8 +14,6 @@ date
 
 cd $SVMHSTK
 
-exit
-
 ./dl_then_svm.bash DIS
 ./dl_then_svm.bash EBAY
 ./dl_then_svm.bash GOOG
