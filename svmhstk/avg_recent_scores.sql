@@ -45,7 +45,7 @@ tkrdate
 ,rundate
 ,ROUND(clse,4)clse
 -- This works on Fri between 15:30 and 20:00 :
-,TRUNC(ydate + 4) + (14.5 + 5.5)/24 - ( 21/24 - (sysdate - TRUNC(sysdate))) close_date
+,TRUNC(ydate + 4) + (14.5 + 5.5)/24 - ( 21/24 - (ydate - TRUNC(ydate))) close_date
 FROM ocj_stk_1hr
 WHERE ydate > sysdate - 4/24
 ORDER BY tkr,ydate
