@@ -47,6 +47,8 @@ INSERT INTO di1hr_stk0(tkrdate,tkr,ydate,clse)
 SELECT         tkr||ydate,tkr,ydate,clse
 FROM dukas1hr_stk
 WHERE ydate < '2010-12-13 09:00:00'
+-- Filter out bad dukas data here
+AND TRUNC(ydate)!='2010-11-18'
 /
 
 -- rpt
