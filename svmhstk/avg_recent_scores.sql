@@ -46,6 +46,8 @@ tkrdate
 ,ROUND(clse,4)clse
 -- This works on Fri between 15:30 and 20:00 :
 ,TRUNC(ydate + 4) + (14.5 + 5.5)/24 - ( 21/24 - (ydate - TRUNC(ydate))) close_date
+-- The above expression is complicated but it simplifies down to:
+-- 1 hr + 2 trading days
 FROM ocj_stk_1hr
 WHERE ydate > sysdate - 4/24
 ORDER BY tkr,ydate
