@@ -58,6 +58,6 @@ WHERE UPPER(tkr) = UPPER('&1') AND ydate IN
 /
 
 -- Here is where I remove obviously bad data:
-DELETE dukas1hr_stk WHERE ydate = '2010-11-18';
+DELETE dukas1hr_stk WHERE TRUNC(ydate) = '2010-11-18';
 
 exit
