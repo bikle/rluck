@@ -1,11 +1,6 @@
 #!/bin/bash
 
-# load5min.bash
-
-# I use this script to load price data into ibf5min.
-
-# Demo:
-# 5min_data.bash SPY
+# load15min.bash
 
 if [ $# -ne 1 ]
 then
@@ -15,12 +10,12 @@ then
   exit 1
 else
 
-. /pt/s/rluck/svmspy/.jruby
-. /pt/s/rluck/svmspy/.orcl
+. /pt/s/rluck/dl15/.jruby
+. /pt/s/rluck/dl15/.orcl
 
 set -x
 
-cd $SVMSPY/ibapi
+cd /pt/s/rluck/dl15/ibapi/
 
 cd csv_files/
 
@@ -47,8 +42,8 @@ EOF
 
 export myts=`date +%Y_%m_%d_%H_%M`
 cp -p ibs_stage.log ibs_stage_sqlldr.${myts}.log
-cp -p merge.txt merge5min.${myts}.txt
-mv merge5min.${myts}.txt ibs_stage_sqlldr.${myts}.log /pt/s/cron/out/
+cp -p merge.txt merge15min.${myts}.txt
+mv merge15min.${myts}.txt ibs_stage_sqlldr.${myts}.log /pt/s/cron/out/
 
 exit 0
 

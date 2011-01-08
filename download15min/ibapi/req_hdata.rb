@@ -1,6 +1,6 @@
 #! /usr/bin/env jruby
 
-# req_hdata_1D.rb
+# req_hdata.rb
 
 # Gets historical data from IB TWS
 
@@ -60,19 +60,13 @@ class ReqHdata
     # m_backfillEndTime= jl_str "20100816 23:59:59 GMT"
     m_backfillEndTime= jl_str gm_time
     # I want 3 Weeks of data:
-    # m_backfillDuration= jl_str "1 W"
-
-    # I want 5 days of data:
-    m_backfillDuration= jl_str "5 D"
-
-    # I want 1 day of data:
-    m_backfillDuration= jl_str "5 D"
+    m_backfillDuration= jl_str "3 W"
 
     # I want prices for every hour
     # m_barSizeSetting= jl_str "1 hour"
 
-    # I want prices for every 5 minutes
-    m_barSizeSetting= jl_str "5 mins"
+    # I want prices for every 15 minutes
+    m_barSizeSetting= jl_str "15 mins"
     # this does not work?: 
     m_whatToShow= jl_str "MIDPOINT"
     m_whatToShow= jl_str "TRADES"

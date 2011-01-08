@@ -11,6 +11,6 @@ set -x
 
 export myts=`date +%Y_%m_%d_%H_%M`
 
-cd /pt/s/rluck/svm6/ibapi/
+cd /pt/s/rluck/svmspy/ibapi/
 
 ./5min_data.bash > /pt/s/cron/out/5min_data.${myts}.txt 2>&1
