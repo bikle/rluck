@@ -4,7 +4,6 @@
 
 -- Creates views and tables needed by SVM.
 
-PURGE RECYCLEBIN;
 
 CREATE OR REPLACE VIEW svm6102 AS
 SELECT
@@ -274,6 +273,9 @@ ORDER BY pair,trend,gatt
 /
 
 DROP TABLE modsrc;
+
+PURGE RECYCLEBIN;
+
 CREATE TABLE modsrc COMPRESS AS
 SELECT
 pair       
