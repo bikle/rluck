@@ -1,10 +1,6 @@
--- debug
-exit
--- debug
-
-
-
+--
 -- score1.sql
+--
 
 -- I use this script to send 5 params to score.sql
 -- which does the heavy lifting of creating an SVM model.
