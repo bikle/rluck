@@ -34,7 +34,7 @@ HAVING COUNT(tkr)>1
 CREATE OR REPLACE VIEW ibs15min10 AS
 SELECT
 tkr
--- ydate is granular down to 5 min:
+-- ydate is granular down to 15 min:
 ,ydate
 ,clse
 -- Use analytic function to get LAG()
