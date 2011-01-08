@@ -3,7 +3,7 @@
 --
 
 -- Demo:
--- @build_scorem.sql SPY
+-- @build_scorem.sql aud_usd
 
 -- I use this script to build another script full of calls to a set of
 -- scoring scripts.
