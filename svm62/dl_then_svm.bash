@@ -33,7 +33,7 @@ EOF
 
 cd $SVM62
 
-./svmtkr.bash $1
+./svmpair.bash $1
 
 # end of if [ $# -ne 1 ] #######
 fi
