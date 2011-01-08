@@ -6,8 +6,11 @@
 
 set -x
 
-find csv_files -name 'DIA*.csv' -mtime +5 -print | xargs ls -ltr
-find csv_files -name 'DIA*.csv' -mtime +5 -print | xargs ls -ltr
+cd /pt/s/rluck/svmhstk/ibapi/
+
+find csv_files -name '*gmt.csv' -mtime +5 -print | xargs ls -ltr
+
+find csv_files -name '*gmt.csv' -mtime +5 -print | xargs rm -f
 
 exit 0
 
