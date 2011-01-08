@@ -1,0 +1,1 @@
+../svm/qry_recent_fxscores.sql

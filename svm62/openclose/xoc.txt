@@ -1,0 +1,68 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Fri Dec 31 05:08:25 2010
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+05:08:25 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+05:08:25 SQL> 05:08:25 SQL> --
+05:08:25 SQL> -- xoc.sql
+05:08:25 SQL> --
+05:08:25 SQL> 
+05:08:25 SQL> -- I use this script to help me execute open/close orders.
+05:08:25 SQL> 
+05:08:25 SQL> SELECT
+05:08:25   2  './place_order.bash '||buysell shell_cmd
+05:08:25   3  ,30000 ssize
+05:08:25   4  ,REPLACE(UPPER(pair),'_',' ') pair
+05:08:25   5  -- Set opdate to recent-past to avoid clock skew.
+05:08:25   6  -- IB equates recent-past to right-now:
+05:08:25   7  ,TO_CHAR(opdate-1/24,'YYYYMMDD_hh24:mi:ss')||'_GMT' xopdate
+05:08:25   8  ,TO_CHAR(clsdate,'YYYYMMDD_hh24:mi:ss')||'_GMT'xclsdate
+05:08:25   9  FROM oc
+05:08:25  10  WHERE opdate > sysdate - 9/60/24
+05:08:25  11  -- Try to avoid entering duplicate orders:
+05:08:25  12  AND prdate NOT IN(SELECT prdate FROM xoc)
+05:08:25  13  /
+
+no rows selected
+
+Elapsed: 00:00:00.00
+05:08:25 SQL> 
+05:08:25 SQL> -- Try to avoid entering duplicate orders:
+05:08:25 SQL> INSERT INTO xoc(prdate,xocdate)
+05:08:25   2  SELECT prdate,sysdate FROM oc
+05:08:25   3  WHERE opdate > sysdate - 9/60/24
+05:08:25   4  /
+
+0 rows created.
+
+Elapsed: 00:00:00.00
+05:08:25 SQL> 
+05:08:25 SQL> -- How many orders have I entered?:
+05:08:25 SQL> SELECT COUNT(*)FROM xoc;
+
+  COUNT(*)
+----------
+       362
+
+Elapsed: 00:00:00.00
+05:08:25 SQL> 
+05:08:25 SQL> -- recently?:
+05:08:25 SQL> SELECT * FROM xoc WHERE xocdate > sysdate - 1 ORDER BY xocdate;
+
+no rows selected
+
+Elapsed: 00:00:00.00
+05:08:25 SQL> 
+05:08:25 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
