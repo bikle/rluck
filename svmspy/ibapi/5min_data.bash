@@ -24,6 +24,9 @@ export myts=`date +%Y_%m_%d_%H_%M`
 
 ./load5min.bash $1 > /pt/s/cron/out/load5min.${myts}.ibs.txt 2>&1
 
+# Get a backup.
+./expdp_ibs5min.bash > /pt/s/cron/out/expdp_ibs5min.${myts}.ibs.txt 2>&1
+
 else
   echo You need to give a tkr.
   echo Demo:

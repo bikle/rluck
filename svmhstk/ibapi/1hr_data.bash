@@ -33,6 +33,9 @@ export myts=`date +%Y_%m_%d_%H_%M`
 
 ./load1hr.bash $1 > /pt/s/cron/out/load1hr.${myts}.ibs.txt 2>&1
 
+# Get a backup
+./expdp1hr.bash  > /pt/s/cron/out/expdp1hr.${myts}.txt 2>&1
+
 # end of if ########
 fi
 # end of if ########
@@ -48,9 +51,6 @@ sqt>qry_ibs1hr.txt<<EOF
 @qry_ibs1hr.sql
 EOF
 cp -p qry_ibs1hr.txt /pt/s/cron/out/qry_ibs1hr.${myts}.txt
-
-# Get a backup
-./expdp1hr.bash  > /pt/s/cron/out/expdp1hr.${myts}.txt 2>&1
 
 # rm old csv files
 ## ./rm_old_csv.bash  > /pt/s/cron/out/rm_old_csv.${myts}.txt 2>&1
