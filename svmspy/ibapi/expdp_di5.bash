@@ -21,9 +21,9 @@ expdp trade/t dumpfile=svmspy_di5.${myts}.dpdmp tables=di5min_stk0,di5min_stk,ib
 
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/svmspy_di5.${myts}.dpdmp l:/oracle/app/oracle/admin/orcl/dpdump/"
 
-echo "impdp trade/t table_exists_action=append dumpfile=svmspy_di5.${myts}.dpdmp
+echo "impdp trade/t table_exists_action=append dumpfile=svmspy_di5.${myts}.dpdmp"
 echo OR
-echo "impdp trade/t table_exists_action=replace dumpfile=svmspy_di5.${myts}.dpdmp
+echo "impdp trade/t table_exists_action=replace dumpfile=svmspy_di5.${myts}.dpdmp"
 
 exit
 
