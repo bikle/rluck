@@ -1,0 +1,65 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sat Jan 8 07:45:14 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+07:45:14 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+07:45:14 SQL> 07:45:14 SQL> --
+07:45:14 SQL> -- build_scorem.sql
+07:45:14 SQL> --
+07:45:14 SQL> 
+07:45:14 SQL> -- Demo:
+07:45:14 SQL> -- @build_scorem.sql SPY
+07:45:14 SQL> 
+07:45:14 SQL> -- I use this script to build another script full of calls to a set of
+07:45:14 SQL> -- scoring scripts.
+07:45:14 SQL> 
+07:45:14 SQL> SELECT cmd,ydate,'&1' tkr FROM
+07:45:14   2  (
+07:45:14   3  SELECT '@score1_5min.sql 'cmd,ydate FROM modsrc
+07:45:14   4  WHERE ydate NOT IN
+07:45:14   5  	(SELECT ydate FROM svm62scores WHERE targ='gatt'AND tkr='&1')
+07:45:14   6  AND ydate > sysdate - 95
+07:45:14   7  -- AND ydate > sysdate - 0.5/24
+07:45:14   8  AND tkr = '&1'
+07:45:14   9  UNION
+07:45:14  10  SELECT '@score1_5min_gattn.sql 'cmd,ydate FROM modsrc
+07:45:14  11  WHERE ydate NOT IN
+07:45:14  12  	(SELECT ydate FROM svm62scores WHERE targ='gattn'AND tkr='&1')
+07:45:14  13  AND ydate > sysdate - 95
+07:45:14  14  -- AND ydate > sysdate - 0.5/24
+07:45:14  15  AND tkr = '&1'
+07:45:14  16  )
+07:45:14  17  ORDER BY DBMS_RANDOM.VALUE
+07:45:14  18  -- ORDER BY ydate,cmd
+07:45:14  19  /
+old   1: SELECT cmd,ydate,'&1' tkr FROM
+new   1: SELECT cmd,ydate,'aud_usd' tkr FROM
+old   5:   (SELECT ydate FROM svm62scores WHERE targ='gatt'AND tkr='&1')
+new   5:   (SELECT ydate FROM svm62scores WHERE targ='gatt'AND tkr='aud_usd')
+old   8: AND tkr = '&1'
+new   8: AND tkr = 'aud_usd'
+old  12:   (SELECT ydate FROM svm62scores WHERE targ='gattn'AND tkr='&1')
+new  12:   (SELECT ydate FROM svm62scores WHERE targ='gattn'AND tkr='aud_usd')
+old  15: AND tkr = '&1'
+new  15: AND tkr = 'aud_usd'
+AND tkr = 'aud_usd'
+    *
+ERROR at line 8:
+ORA-00904: "TKR": invalid identifier
+
+
+Elapsed: 00:00:00.10
+07:45:14 SQL> 
+07:45:14 SQL> 
+07:45:14 SQL> Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options

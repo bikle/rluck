@@ -331,3 +331,18 @@ FROM svm6162
 /
 
 ANALYZE TABLE modsrc COMPUTE STATISTICS;
+
+-- rpt
+
+SELECT
+pair
+,trend
+,gatt
+,COUNT(pair)
+,AVG(g6)
+FROM modsrc
+GROUP BY pair,trend,gatt
+ORDER BY pair,trend,gatt
+/
+
+exit
