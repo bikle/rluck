@@ -17,6 +17,7 @@ FROM stkscores_1hr l, stkscores_1hr s,stk_ms m
 WHERE l.ydate = s.ydate
 AND   l.ydate = m.ydate
 AND l.tkr = s.tkr
+AND l.tkr = m.tkr
 AND l.targ = 'gatt'
 AND s.targ = 'gattn'
 /
@@ -124,6 +125,7 @@ m.tkr
 FROM stkscores_1hr l,stk_ms m
 WHERE l.ydate = m.ydate
 AND l.targ = 'gatt'
+AND l.tkr = m.tkr
 /
 
 
@@ -167,6 +169,7 @@ m.tkr
 ,ROUND(s.score,1)rscore_short
 FROM stkscores_1hr s,stk_ms m
 WHERE s.ydate = m.ydate
+AND s.tkr = m.tkr
 AND s.targ = 'gattn'
 /
 
