@@ -44,8 +44,8 @@ tkrdate
 ,sysdate
 -- ,SUBSTR(tkrdate,1,3)tkr
 -- rluck/oracle_sql_demos/substr.sql :
-,SUBSTR(tkrdate,-LENGTH(tkrdate),LENGTH(tkrdate)-19)tkr
-,SUBSTR(tkrdate,-19)ydate
+,SUBSTR(tkrdate,-LENGTH(tkrdate),LENGTH(tkrdate)-10)tkr
+,SUBSTR(tkrdate,-10)ydate
 ,'&1'
 FROM svmc_apply_prep
 /
