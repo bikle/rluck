@@ -69,10 +69,15 @@ AND   s.targ = 'gattn'
 
 SELECT
 pair
-,MIN(ydate)
-,COUNT(ydate)
-,MAX(ydate)
-,ROUND(AVG(g6),4)
+,TO_CHAR(MIN(ydate),'YYYY-MM-DD')mndate
+,COUNT(ydate)                    cnt
+,TO_CHAR(MAX(ydate),'YYYY-MM-DD')mxdate
+,ROUND(MIN(g6),4)mn_g6
+,ROUND(AVG(g6),4)avg_g6
+,ROUND(STDDEV(g6),4)stddv
+,ROUND(MAX(g6),4)mx_g6
+,ROUND(CORR(score_short,g6),2)crr_s
+,ROUND(CORR(score_long,g6),2)crr_l
 FROM pr12
 WHERE score_long > 0.7 AND score_short < 0.3
 GROUP BY pair
@@ -80,11 +85,18 @@ GROUP BY pair
 
 SELECT
 pair
-,MIN(ydate)
-,COUNT(ydate)
-,MAX(ydate)
-,ROUND(AVG(g6),4)
+,TO_CHAR(MIN(ydate),'YYYY-MM-DD')mndate
+,COUNT(ydate)                    cnt
+,TO_CHAR(MAX(ydate),'YYYY-MM-DD')mxdate
+,ROUND(MIN(g6),4)mn_g6
+,ROUND(AVG(g6),4)avg_g6
+,ROUND(STDDEV(g6),4)stddv
+,ROUND(MAX(g6),4)mx_g6
+,ROUND(CORR(score_short,g6),2)crr_s
+,ROUND(CORR(score_long,g6),2)crr_l
 FROM pr12
 WHERE score_short > 0.7 AND score_long < 0.3
 GROUP BY pair
 /
+
+EXIT
