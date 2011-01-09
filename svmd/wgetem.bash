@@ -7,6 +7,7 @@ set -x
 
 # cd to the right place
 cd /pt/s/rluck/svmd/cf/
+
 # avoid bumping into old data
 
 rm -f *csv
