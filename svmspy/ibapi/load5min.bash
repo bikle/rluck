@@ -26,7 +26,7 @@ cd csv_files/
 
 # Loop through the CSV files belonging to $1:
 
-sort ${1}* |uniq|grep 1|grep -v finished|awk -v awk_var=$1 -F, '{print awk_var","$2","$3}'> ibs_stage.csv
+sort ${1}* |uniq|grep 1|grep -v finished|grep W|awk -v awk_var=$1 -F, '{print awk_var","$2","$3}'> ibs_stage.csv
 
 cd ..
 rm -f ibs_stage.csv
