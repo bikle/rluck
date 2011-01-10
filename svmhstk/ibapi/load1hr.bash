@@ -26,7 +26,7 @@ cd $SVMHSTK/ibapi/csv_files/
 
 # Loop through the CSV files belonging to $1:
 touch ${1}.csv
-sort ${1}*csv |uniq|grep 1|grep -v finished|awk -v awk_var=$1 -F, '{print awk_var","$2","$3}'> ibs_stage.csv
+sort ${1}*csv |uniq|grep 1|grep -v finished|grep W|awk -v awk_var=$1 -F, '{print awk_var","$2","$3}'> ibs_stage.csv
 
 cd ..
 rm -f ibs_stage.csv
