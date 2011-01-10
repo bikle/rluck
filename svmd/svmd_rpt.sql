@@ -78,5 +78,18 @@ ORDER BY tkr,targ
 /
 
 
+SELECT
+tkr
+,targ
+,ROUND(CORR(score,g1),2)crr
+,COUNT(tkrdate)ccount
+,ROUND(MIN(score),2)
+,ROUND(AVG(score),2)
+,ROUND(MAX(score),2)
+FROM svmd12
+GROUP BY tkr,targ
+HAVING ABS(CORR(score,g1)) > 0.1
+ORDER BY tkr,targ
+/
 
-
+exit

@@ -4,6 +4,231 @@
 JPY looks okay.
 
 
+oracle@hp2:/pt/s/rluck/svm62$ sqt @pair_rpt
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Jan 10 00:44:11 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+00:44:13 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+00:44:13 SQL> --
+00:44:13 SQL> -- pair_rpt.sql
+00:44:13 SQL> --
+00:44:13 SQL> 
+00:44:13 SQL> -- I use this script to report on a pair after a backtest.
+00:44:13 SQL> 
+00:44:13 SQL> CREATE OR REPLACE VIEW pr10 AS
+00:44:13   2  SELECT
+00:44:13   3  s.pair
+00:44:13   4  ,m.ydate
+00:44:13   5  ,targ
+00:44:13   6  ,g6
+00:44:13   7  ,score
+00:44:13   8  ,ROUND(score,1)rscore
+00:44:13   9  FROM svm62scores s, modsrc m
+00:44:13  10  WHERE s.prdate = m.prdate
+00:44:13  11  /
+
+View created.
+
+Elapsed: 00:00:00.18
+00:44:13 SQL> 
+00:44:13 SQL> SELECT
+00:44:13   2  pair
+00:44:13   3  ,MIN(ydate)
+00:44:13   4  ,COUNT(ydate)
+00:44:13   5  ,MAX(ydate)
+00:44:13   6  FROM pr10
+00:44:13   7  GROUP BY pair
+00:44:13   8  /
+
+PAIR    MIN(YDATE)          COUNT(YDATE) MAX(YDATE)
+------- ------------------- ------------ -------------------
+usd_jpy 2010-10-07 11:55:01         4391 2011-01-07 21:25:00
+
+Elapsed: 00:00:00.23
+00:44:13 SQL> 
+00:44:13 SQL> SELECT
+00:44:13   2  pair
+00:44:13   3  ,MIN(ydate)
+00:44:13   4  ,COUNT(ydate)
+00:44:13   5  ,MAX(ydate)
+00:44:13   6  FROM modsrc
+00:44:13   7  GROUP BY pair
+00:44:13   8  /
+
+PAIR    MIN(YDATE)          COUNT(YDATE) MAX(YDATE)
+------- ------------------- ------------ -------------------
+usd_jpy 2010-10-06 03:05:01        19460 2011-01-07 21:55:00
+
+Elapsed: 00:00:00.10
+00:44:13 SQL> 
+00:44:13 SQL> SELECT
+00:44:13   2  pair
+00:44:13   3  ,targ
+00:44:13   4  ,rscore
+00:44:13   5  ,ROUND(AVG(g6),4)avg_g6
+00:44:13   6  ,ROUND(MIN(g6),4)min_g6
+00:44:13   7  ,ROUND(STDDEV(g6),4)std_g6
+00:44:13   8  ,ROUND(MAX(g6),4)max_g6
+00:44:13   9  ,TO_CHAR(MIN(ydate),'YYYY-MM-DD')min_date
+00:44:13  10  ,COUNT(ydate)                    ccount
+00:44:13  11  ,TO_CHAR(MIN(ydate),'YYYY-MM-DD')max_date
+00:44:13  12  ,ROUND(CORR(score,g6),2)corr_score_g6
+00:44:13  13  FROM pr10
+00:44:13  14  GROUP BY pair,targ,rscore
+00:44:13  15  ORDER BY pair,targ,rscore
+00:44:13  16  /
+
+PAIR    TARG      RSCORE     AVG_G6     MIN_G6     STD_G6     MAX_G6 MIN_DATE       CCOUNT MAX_DATE   CORR_SCORE_G6
+------- ----- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- -------------
+usd_jpy gatt           0     -.0359       -.45      .1791        .17 2010-10-19         16 2010-10-19           .13
+usd_jpy gatt          .1     -.0751       -.54      .1849       .485 2010-10-12        102 2010-10-12           -.1
+usd_jpy gatt          .2     -.0832       -.89      .2106       .485 2010-10-07        200 2010-10-07           .12
+usd_jpy gatt          .3     -.0322      -.705      .1803       .695 2010-10-07        292 2010-10-07          -.02
+usd_jpy gatt          .4     -.0311        -.9      .1822      .4775 2010-10-07        320 2010-10-07             0
+usd_jpy gatt          .5     -.0086       -.87      .2232       .875 2010-10-08        324 2010-10-08          -.06
+usd_jpy gatt          .6      .0454        -.8      .2315     1.0013 2010-10-08        348 2010-10-08           .12
+usd_jpy gatt          .7       .031       -.64       .235       1.24 2010-10-08        295 2010-10-08            .1
+usd_jpy gatt          .8      .0655     -.6075      .2445       1.08 2010-10-08        215 2010-10-08           .02
+usd_jpy gatt          .9       .158       -.54      .2779       1.34 2010-10-14        103 2010-10-14             0
+usd_jpy gatt           1       .139       -.18      .2004        .47 2010-10-22         10 2010-10-22          -.03
+usd_jpy gattn          0      .1379       -.04      .2207        .56 2010-10-14          7 2010-10-14           .06
+usd_jpy gattn         .1      .1197       -.82      .3057       1.05 2010-10-12         96 2010-10-12          -.24
+usd_jpy gattn         .2      .0835     -.7225      .2614       1.24 2010-10-12        233 2010-10-12          -.13
+usd_jpy gattn         .3      .0298      -.725      .2204       1.09 2010-10-08        338 2010-10-08          -.06
+usd_jpy gattn         .4      .0166       -.95      .2361     1.2088 2010-10-08        332 2010-10-08           .04
+usd_jpy gattn         .5     -.0142        -.6      .2105     1.0925 2010-10-08        288 2010-10-08          -.13
+usd_jpy gattn         .6     -.0212       -.78      .2039        .91 2010-10-07        277 2010-10-07          -.02
+usd_jpy gattn         .7     -.0431      -.875      .1923       .505 2010-10-07        251 2010-10-07          -.14
+usd_jpy gattn         .8     -.0682      -.535      .1923       .425 2010-10-07        201 2010-10-07          -.02
+usd_jpy gattn         .9     -.0951       -.48      .1758        .33 2010-10-11        129 2010-10-11          -.02
+usd_jpy gattn          1     -.0646      -.195      .1416       .225 2010-11-05         14 2010-11-05          -.04
+
+22 rows selected.
+
+Elapsed: 00:00:00.28
+00:44:13 SQL> 
+00:44:13 SQL> SELECT
+00:44:13   2  pair
+00:44:13   3  ,targ
+00:44:13   4  ,ROUND(CORR(score,g6),2)corr_score_g6
+00:44:13   5  FROM pr10
+00:44:13   6  WHERE score > 0.7
+00:44:13   7  GROUP BY pair,targ
+00:44:13   8  ORDER BY pair,targ
+00:44:13   9  /
+
+PAIR    TARG  CORR_SCORE_G6
+------- ----- -------------
+usd_jpy gatt            .14
+usd_jpy gattn          -.07
+
+Elapsed: 00:00:00.22
+00:44:14 SQL> 
+00:44:14 SQL> SELECT
+00:44:14   2  pair
+00:44:14   3  ,targ
+00:44:14   4  ,ROUND(CORR(score,g6),2)corr_score_g6
+00:44:14   5  FROM pr10
+00:44:14   6  WHERE score < 0.3
+00:44:14   7  GROUP BY pair,targ
+00:44:14   8  ORDER BY pair,targ
+00:44:14   9  /
+
+PAIR    TARG  CORR_SCORE_G6
+------- ----- -------------
+usd_jpy gatt            .09
+usd_jpy gattn          -.14
+
+Elapsed: 00:00:00.20
+00:44:14 SQL> 
+00:44:14 SQL> -- Mix scores:
+00:44:14 SQL> 
+00:44:14 SQL> CREATE OR REPLACE VIEW pr12 AS
+00:44:14   2  SELECT
+00:44:14   3  l.pair
+00:44:14   4  ,m.ydate
+00:44:14   5  ,g6
+00:44:14   6  ,l.score score_long
+00:44:14   7  ,s.score score_short
+00:44:14   8  FROM svm62scores l, svm62scores s, modsrc m
+00:44:14   9  WHERE l.prdate = m.prdate
+00:44:14  10  AND   s.prdate = m.prdate
+00:44:14  11  AND   l.targ = 'gatt'
+00:44:14  12  AND   s.targ = 'gattn'
+00:44:14  13  /
+
+View created.
+
+Elapsed: 00:00:00.18
+00:44:14 SQL> 
+00:44:14 SQL> SELECT
+00:44:14   2  pair
+00:44:14   3  ,TO_CHAR(MIN(ydate),'YYYY-MM-DD')mndate
+00:44:14   4  ,COUNT(ydate)                    cnt
+00:44:14   5  ,TO_CHAR(MAX(ydate),'YYYY-MM-DD')mxdate
+00:44:14   6  ,ROUND(MIN(g6),4)mn_g6
+00:44:14   7  ,ROUND(AVG(g6),4)avg_g6
+00:44:14   8  ,ROUND(STDDEV(g6),4)stddv
+00:44:14   9  ,ROUND(MAX(g6),4)mx_g6
+00:44:14  10  ,ROUND(CORR(score_short,g6),2)crr_s
+00:44:14  11  ,ROUND(CORR(score_long,g6),2)crr_l
+00:44:14  12  FROM pr12
+00:44:14  13  WHERE score_long > 0.7 AND score_short < 0.3
+00:44:14  14  GROUP BY pair
+00:44:14  15  /
+
+PAIR    MNDATE            CNT MXDATE          MN_G6     AVG_G6      STDDV      MX_G6      CRR_S      CRR_L
+------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+usd_jpy 2010-10-13         33 2010-12-29     -.4425      .0709      .2379       .465       -.18        .24
+
+Elapsed: 00:00:00.19
+00:44:14 SQL> 
+00:44:14 SQL> SELECT
+00:44:14   2  pair
+00:44:14   3  ,TO_CHAR(MIN(ydate),'YYYY-MM-DD')mndate
+00:44:14   4  ,COUNT(ydate)                    cnt
+00:44:14   5  ,TO_CHAR(MAX(ydate),'YYYY-MM-DD')mxdate
+00:44:14   6  ,ROUND(MIN(g6),4)mn_g6
+00:44:14   7  ,ROUND(AVG(g6),4)avg_g6
+00:44:14   8  ,ROUND(STDDEV(g6),4)stddv
+00:44:14   9  ,ROUND(MAX(g6),4)mx_g6
+00:44:14  10  ,ROUND(CORR(score_short,g6),2)crr_s
+00:44:14  11  ,ROUND(CORR(score_long,g6),2)crr_l
+00:44:14  12  FROM pr12
+00:44:14  13  WHERE score_short > 0.7 AND score_long < 0.3
+00:44:14  14  GROUP BY pair
+00:44:14  15  /
+
+PAIR    MNDATE            CNT MXDATE          MN_G6     AVG_G6      STDDV      MX_G6      CRR_S      CRR_L
+------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+usd_jpy 2010-10-08         26 2011-01-03     -.2975      .0733      .1941        .42        .14       -.14
+
+Elapsed: 00:00:00.19
+00:44:14 SQL> 
+00:44:14 SQL> EXIT
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@hp2:/pt/s/rluck/svm62$ 
+oracle@hp2:/pt/s/rluck/svm62$ 
+oracle@hp2:/pt/s/rluck/svm62$ 
+
+
+ooooooooooooooooooo ooooooooooooooooooo ooooooooooooooooooo ooooooooooooooooooo ooooooooooooooooooo 
+
+older:
+
+
 20:44:56 SQL> @pair_rpt
 20:45:03 SQL> --
 20:45:03 SQL> -- pair_rpt.sql
