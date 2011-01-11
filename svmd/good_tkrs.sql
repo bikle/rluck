@@ -15,6 +15,33 @@ tkr VARCHAR2(9)
 TRUNCATE TABLE good_tkrs_svmd;
 
 
+CREATE OR REPLACE VIEW svmd10 AS
+SELECT
+tkr
+,ydate
+,tkr||ydate tkrdate
+,LEAD(clse,1,NULL)OVER(PARTITION BY tkr ORDER BY ydate) - clse g1
+FROM ystk 
+WHERE ydate > '1990-01-01'
+ORDER BY tkr,ydate
+/
+
+-- I join it with ystkscores:
+
+
+CREATE OR REPLACE VIEW svmd12 AS
+SELECT
+v.tkr
+,v.ydate
+,v.tkrdate
+,g1
+,targ
+,score
+FROM svmd10 v, ystkscores s
+WHERE v.tkrdate = s.tkrdate
+ORDER BY v.tkrdate
+/
+
 INSERT INTO good_tkrs_svmd(tkr,crr_l)
 SELECT tkr,crr FROM
 (
@@ -56,6 +83,7 @@ SELECT * FROM good_tkrs_svmd
 ORDER BY tkr,crr_l
 /
 
+CREATE OR REPLACE VIEW good_tkrs_svmd_v AS
 SELECT tkr,crr_l,crr_s FROM
 (
 SELECT
@@ -68,6 +96,8 @@ HAVING COUNT(tkr)>1
 )
 ORDER BY crr_s - crr_l
 /
+
+SELECT * FROM good_tkrs_svmd_v;
 
 exit
 
