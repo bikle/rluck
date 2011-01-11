@@ -43,3 +43,5 @@ FROM ocj_stk
 WHERE ydate > sysdate - 1/24
 ORDER BY tkr,ydate
 /
+
+exit
