@@ -22,7 +22,7 @@ AND p.tkr = s.tkr
 AND s.ydate = p.ydate
 AND s.targ = 'gatt'
 AND g.targ = 'gattn'
-AND tkr IN('DIA','SPY','GOOG','XOM','IBM','WMT','QQQQ')
+AND s.tkr IN('DIA','SPY','GOOG','XOM','IBM','WMT','QQQQ')
 /
 
 COLUMN clse  FORMAT 999.9999
