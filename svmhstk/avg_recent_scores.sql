@@ -22,6 +22,7 @@ AND p.tkr = s.tkr
 AND s.ydate = p.ydate
 AND s.targ = 'gatt'
 AND g.targ = 'gattn'
+AND p.tkr IN('GOOG','IBM','QQQQ','WMT')
 /
 
 -- Logic discussion:
@@ -52,3 +53,4 @@ FROM ocj_stk_1hr
 WHERE ydate > sysdate - 4/24
 ORDER BY tkr,ydate
 /
+exit
