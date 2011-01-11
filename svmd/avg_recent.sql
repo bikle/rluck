@@ -3,17 +3,18 @@
 --
 
 SELECT
-g.tkr
+l.tkr
 ,AVG(l.score)score_long
 ,AVG(s.score)score_short
-FROM ystkscores l, ystkscores s, good_tkrs_svmd g
-WHERE s.tkr = g.tkr
-AND s.tkrdate = l.tkrdate
+,COUNT(l.tkr)ccount
+,MAX(l.ydate)mx_ydate
+FROM ystkscores l, ystkscores s
+WHERE s.tkrdate = l.tkrdate
 AND s.targ = 'gattn'
 AND l.targ = 'gatt'
-AND l.rundate > sysdate - 1
-GROUP BY g.tkr
-ORDER BY g.tkr
+AND l.ydate > sysdate - 2
+GROUP BY l.tkr
+ORDER BY l.tkr
 /
 
 exit

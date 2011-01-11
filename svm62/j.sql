@@ -1,122 +1,23 @@
 --
--- pair_rpt.sql
+-- qry_recent_svm62scores.sql
 --
 
--- I use this script to report on a pair after a backtest.
+SELECT * FROM svm62scores WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
 
-CREATE OR REPLACE VIEW pr10 AS
-SELECT
-s.pair
-,m.ydate
-,targ
-,g6
-,score
-,ROUND(score,1)rscore
-FROM svm62scores s, modsrc m
-WHERE s.prdate = m.prdate
-/
+COLUMN clse  FORMAT 999.9999
 
 SELECT
-pair
-,MIN(ydate)
-,COUNT(ydate)
-,MAX(ydate)
-FROM pr10
-GROUP BY pair
+prdate
+,score_long
+,score_short
+,rundate
+,ROUND(clse,4)clse 
+,ydate + 6/24 clse_date
+FROM ocj
+WHERE ydate > sysdate - 4/24
+ORDER BY prdate
 /
 
-SELECT
-pair
-,MIN(ydate)
-,COUNT(ydate)
-,MAX(ydate)
-FROM modsrc
-GROUP BY pair
-/
+exit
 
-SELECT
-pair
-,targ
-,rscore
-,ROUND(AVG(g6),4)avg_g6
-,ROUND(MIN(g6),4)min_g6
-,ROUND(STDDEV(g6),4)std_g6
-,ROUND(MAX(g6),4)max_g6
-,TO_CHAR(MIN(ydate),'YYYY-MM-DD')min_date
-,COUNT(ydate)                    ccount
-,TO_CHAR(MIN(ydate),'YYYY-MM-DD')max_date
-,ROUND(CORR(score,g6),2)corr_score_g6
-FROM pr10
-GROUP BY pair,targ,rscore
-ORDER BY pair,targ,rscore
-/
 
-SELECT
-pair
-,targ
-,ROUND(CORR(score,g6),2)corr_score_g6
-FROM pr10
-WHERE score > 0.7
-GROUP BY pair,targ
-ORDER BY pair,targ
-/
-
-SELECT
-pair
-,targ
-,ROUND(CORR(score,g6),2)corr_score_g6
-FROM pr10
-WHERE score < 0.3
-GROUP BY pair,targ
-ORDER BY pair,targ
-/
-
--- Mix scores:
-
-CREATE OR REPLACE VIEW pr12 AS
-SELECT
-l.pair
-,m.ydate
-,g6
-,l.score score_long
-,s.score score_short
-FROM svm62scores l, svm62scores s, modsrc m
-WHERE l.prdate = m.prdate
-AND   s.prdate = m.prdate
-AND   l.targ = 'gatt'
-AND   s.targ = 'gattn'
-/
-
-SELECT
-pair
-,TO_CHAR(MIN(ydate),'YYYY-MM-DD')mndate
-,COUNT(ydate)                    cnt
-,TO_CHAR(MAX(ydate),'YYYY-MM-DD')mxdate
-,ROUND(MIN(g6),4)mn_g6
-,ROUND(AVG(g6),4)avg_g6
-,ROUND(STDDEV(g6),4)stddv
-,ROUND(MAX(g6),4)mx_g6
-,ROUND(CORR(score_short,g6),2)crr_s
-,ROUND(CORR(score_long,g6),2)crr_l
-FROM pr12
-WHERE score_long > 0.7 AND score_short < 0.3
-GROUP BY pair
-/
-
-SELECT
-pair
-,TO_CHAR(MIN(ydate),'YYYY-MM-DD')mndate
-,COUNT(ydate)                    cnt
-,TO_CHAR(MAX(ydate),'YYYY-MM-DD')mxdate
-,ROUND(MIN(g6),4)mn_g6
-,ROUND(AVG(g6),4)avg_g6
-,ROUND(STDDEV(g6),4)stddv
-,ROUND(MAX(g6),4)mx_g6
-,ROUND(CORR(score_short,g6),2)crr_s
-,ROUND(CORR(score_long,g6),2)crr_l
-FROM pr12
-WHERE score_short > 0.7 AND score_long < 0.3
-GROUP BY pair
-/
-
-EXIT
