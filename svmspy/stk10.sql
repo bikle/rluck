@@ -4,12 +4,107 @@
 
 -- Creates views and tables for demonstrating SVM.
 
-CREATE OR REPLACE VIEW stk10 AS
+-- Get Mon-Thurs
+DROP TABLE stk10p14;
+
+PURGE RECYCLEBIN;
+
+CREATE TABLE stk10p14 COMPRESS AS
+SELECT
+tkr
+,ydate
+,clse
+FROM di5min_stk
+WHERE UPPER(tkr)='&1'
+AND 0+TO_CHAR(ydate,'D')BETWEEN 1 AND 4
+AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
+ORDER BY ydate
+/
+
+-- Get Fri
+DROP TABLE stk10p5;
+
+CREATE TABLE stk10p5 COMPRESS AS
+SELECT
+tkr
+,ydate
+,clse
+FROM di5min_stk
+WHERE UPPER(tkr)='&1'
+AND 0+TO_CHAR(ydate,'D')=5
+AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
+ORDER BY ydate
+/
+
+-- Get Mon
+DROP TABLE stk10f1;
+
+CREATE TABLE stk10f1 COMPRESS AS
+SELECT
+tkr
+,ydate
+,clse
+FROM di5min_stk
+WHERE UPPER(tkr)='&1'
+AND 0+TO_CHAR(ydate,'D')=1
+AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
+ORDER BY ydate
+/
+
+-- Get Tues - Fri
+DROP TABLE stk10f25;
+
+CREATE TABLE stk10f25 COMPRESS AS
+SELECT
+tkr
+,ydate
+,clse
+FROM di5min_stk
+WHERE UPPER(tkr)='&1'
+AND 0+TO_CHAR(ydate,'D')BETWEEN 2 AND 5
+AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
+ORDER BY ydate
+/
+
+-- Join em
+DROP TABLE stk10pf;
+
+-- Deal with m-thr 1st
+CREATE TABLE stk10pf AS
+SELECT
+p.tkr
+,p.ydate
+,p.clse
+,f.clse clse2
+FROM stk10p14 p, stk10f25 f
+WHERE p.ydate + 1 = f.ydate
+/
+
+-- Deal with Fri (day 5 joined with day 1)
+INSERT INTO stk10pf(tkr,ydate,clse,clse2)
+SELECT
+p.tkr
+,p.ydate
+,p.clse
+,f.clse clse2
+FROM stk10p5 p, stk10f1 f
+WHERE p.ydate + 3 = f.ydate
+/
+
+-- rpt
+select count(*)from stk10pf;
+
+DROP VIEW stk10;
+
+DROP TABLE stk10;
+
+CREATE TABLE stk10 COMPRESS AS
 SELECT
 tkr
 ,ydate
 ,tkr||ydate tkrdate
 ,clse
+,clse2
 ,rownum rnum -- acts as t in my time-series
 -- Derive some attributes from clse.
 ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*2 PRECEDING AND CURRENT ROW)min2
@@ -33,11 +128,14 @@ tkr
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*6 PRECEDING AND CURRENT ROW)max6
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*7 PRECEDING AND CURRENT ROW)max7
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*8 PRECEDING AND CURRENT ROW)max8
-,LEAD(clse,12*4,NULL)OVER(PARTITION BY tkr ORDER BY ydate)ld4
--- FROM dukas5min_stk WHERE UPPER(tkr)='&1'
-FROM di5min_stk WHERE UPPER(tkr)='&1'
+FROM stk10pf
+WHERE UPPER(tkr)='&1'
+AND 0+TO_CHAR(ydate,'D')BETWEEN 1 AND 5
+AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
 ORDER BY ydate
 /
+
+ANALYZE TABLE stk10 COMPUTE STATISTICS;
 
 -- rpt
 
@@ -51,6 +149,8 @@ FROM stk10
 GROUP BY tkr
 /
 
+exit
+
 -- Derive trend, clse-relations, moving correlation of clse, and date related params:
 DROP TABLE stk12;
 CREATE TABLE stk12 COMPRESS AS
@@ -61,7 +161,7 @@ tkr
 ,clse
 ,rnum
 -- g4 is important. I want to predict g4:
-,ld4 - clse g4
+,clse2 - clse g4
 ,SIGN(avg4 - LAG(avg4,2,NULL)OVER(PARTITION BY tkr ORDER BY ydate))trend
 -- I want more attributes from the ones I derived above:
 -- clse relation to moving-min
@@ -96,9 +196,16 @@ tkr
 ,ROUND( (ydate - trunc(ydate))*24*60 )mpm
 -- mph stands for minutes-past-hour:
 ,0+TO_CHAR(ydate,'MI')mph
-FROM stk10
+-- Price in the future:
+,clse2
+FROM stk10, stk10f
+-- Specify the future here.
+-- 1 day in the future to be exact
+WHERE ydate2-ydate = 1
 ORDER BY ydate
 /
+
+exit
 
 -- rpt
 

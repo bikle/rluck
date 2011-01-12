@@ -80,6 +80,18 @@ tkrdate
 ,ydate
 /
 
+-- I need to shave a second off of some of the dates:
+
+UPDATE di5min_stk SET ydate = ydate - 1/24/3600
+WHERE TO_CHAR(ydate,'SS')='01'
+/
+
+SELECT COUNT(*)FROM di5min_stk;
+SELECT COUNT(*)FROM di5min_stk WHERE TO_CHAR(ydate,'SS')='00';
+SELECT COUNT(*)FROM di5min_stk WHERE TO_CHAR(ydate,'SS')='01';
+
+UPDATE di5min_stk SET tkrdate = tkr||ydate;
+
 -- rpt
 SELECT
 tkr
