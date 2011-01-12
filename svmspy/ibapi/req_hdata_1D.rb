@@ -59,25 +59,18 @@ class ReqHdata
     gm_time=t60.gmtime.strftime("%Y%m%d %H:%M:%S")+" GMT"
     # m_backfillEndTime= jl_str "20100816 23:59:59 GMT"
     m_backfillEndTime= jl_str gm_time
-    # I want 3 Weeks of data:
-    # m_backfillDuration= jl_str "1 W"
+    # invalid: m_backfillDuration= jl_str "1 W"
 
-    # I want 5 days of data:
-    m_backfillDuration= jl_str "5 D"
-
-    # I want 1 day of data:
-    m_backfillDuration= jl_str "5 D"
-
-    # I want prices for every hour
-    # m_barSizeSetting= jl_str "1 hour"
+    # The max I can get is 6 D of data for 5 min bars:
+    m_backfillDuration= jl_str "6 D"
 
     # I want prices for every 5 minutes
     m_barSizeSetting= jl_str "5 mins"
     # this does not work?: 
     m_whatToShow= jl_str "MIDPOINT"
     m_whatToShow= jl_str "TRADES"
-    m_useRTH= 1 # Only get data corresponding to RTH.
     m_useRTH= 0 # Get data which may be outside of Reg. Trading Hours
+    m_useRTH= 1 # Only get data corresponding to RTH.
     m_formatDate= 1
     m_formatDate= 2 # seconds since epoch
 

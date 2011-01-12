@@ -33,7 +33,7 @@ EOF
 
 cd $SVMSPY
 
-./svmtkr.bash $1
+## I need to enhance this ./svmtkr.bash $1
 
 # end of if [ $# -ne 1 ] #######
 fi
