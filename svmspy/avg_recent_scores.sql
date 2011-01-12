@@ -1,3 +1,8 @@
+exit
+
+-- This no longer works.
+-- I broke it after I enhanced stk10.sql
+ 
 --
 -- avg_recent_scores.sql
 --
