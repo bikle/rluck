@@ -16,7 +16,12 @@ cd $SVMD
 ./sqlloadem.bash
 
 # Run SVM against the good tkrs only.
-./good_svmtkr.bash 
+#./good_svmtkr.bash 
+
+
+# Run SVM against all the tkrs.
+./many_svmtkr.bash 
+
 
 exit 0
 
