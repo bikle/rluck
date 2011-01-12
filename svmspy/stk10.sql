@@ -149,8 +149,6 @@ FROM stk10
 GROUP BY tkr
 /
 
-exit
-
 -- Derive trend, clse-relations, moving correlation of clse, and date related params:
 DROP TABLE stk12;
 CREATE TABLE stk12 COMPRESS AS
@@ -196,16 +194,9 @@ tkr
 ,ROUND( (ydate - trunc(ydate))*24*60 )mpm
 -- mph stands for minutes-past-hour:
 ,0+TO_CHAR(ydate,'MI')mph
--- Price in the future:
-,clse2
-FROM stk10, stk10f
--- Specify the future here.
--- 1 day in the future to be exact
-WHERE ydate2-ydate = 1
+FROM stk10
 ORDER BY ydate
 /
-
-exit
 
 -- rpt
 
@@ -229,8 +220,8 @@ tkr
 ,tkrdate
 ,clse
 ,g4
-,CASE WHEN g4 IS NULL THEN NULL WHEN g4/clse >  0.30/120 THEN 'up' ELSE 'nup' END gatt
-,CASE WHEN g4 IS NULL THEN NULL WHEN g4/clse < -0.30/120 THEN 'up' ELSE 'nup' END gattn
+,CASE WHEN g4 IS NULL THEN NULL WHEN g4/clse >  0.5/100 THEN 'up' ELSE 'nup' END gatt
+,CASE WHEN g4 IS NULL THEN NULL WHEN g4/clse < -0.5/100 THEN 'up' ELSE 'nup' END gattn
 ,CASE WHEN trend IS NULL THEN 1
       WHEN trend =0      THEN 1
       ELSE trend END trend
