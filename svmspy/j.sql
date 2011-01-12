@@ -1,33 +1,11 @@
+--
+-- qry_recent_stkscores.sql
+--
 
-SELECT 
-MIN(ydate)
-,COUNT(ydate)
-,MAX(ydate)
-FROM stkscores
-WHERE targ='gatt'AND tkr='XLB'
-/
+-- I use this script to see which tkrdates have been scored recently.
 
-SELECT 
-MIN(s.ydate)
-,COUNT(s.ydate)
-,MAX(s.ydate)
-FROM stkscores s, stk_ms m
-WHERE targ='gatt'AND m.tkr='XLB'
-AND s.tkr = m.tkr
-AND s.ydate = m.ydate
-/
+SELECT * FROM stkscores WHERE rundate> 
+(select max(rundate)-0.2/24 from stkscores)
+ORDER BY rundate;
 
-SELECT 
-MIN(s.ydate)
-,COUNT(s.ydate)
-,MAX(s.ydate)
-FROM stkscores s, stk_ms m
-WHERE targ='gattn'AND m.tkr='XLB'
-AND s.tkr = m.tkr
-AND s.ydate = m.ydate
-/
-
-
-
-
-
+exit

@@ -14,12 +14,19 @@ date
 
 cd $SVMSPY
 
-./dl_then_svm.bash XLB
-exit
-
-./dl_then_svm.bash XLE
-./dl_then_svm.bash XLU
-./dl_then_svm.bash XOM
+./dl_then_svm.bash SINA
+./dl_then_svm.bash SJM
+./dl_then_svm.bash SKX
+./dl_then_svm.bash SLB
+./dl_then_svm.bash SLV
+./dl_then_svm.bash SNDK
+./dl_then_svm.bash SPY
+./dl_then_svm.bash STT
+./dl_then_svm.bash SUN
+./dl_then_svm.bash TEVA
+./dl_then_svm.bash TGT
+./dl_then_svm.bash TKR
+./dl_then_svm.bash TLT
 
 
 exit 0

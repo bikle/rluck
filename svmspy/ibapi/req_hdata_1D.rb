@@ -63,7 +63,6 @@ class ReqHdata
 
     # The max I can get is 6 D of data for 5 min bars:
     m_backfillDuration= jl_str "6 D"
-    m_backfillDuration= jl_str "1 D"
 
     # I want prices for every 5 minutes
     m_barSizeSetting= jl_str "5 mins"
@@ -93,7 +92,7 @@ class ReqHdata
 
     p 'done getting hdata'
     p 'wait a few seconds before disconnect'
-    sleep 9
+    sleep 11
     ut.disconnect
     p 'Disconnected now. Bye'
   end # def get_hdata
