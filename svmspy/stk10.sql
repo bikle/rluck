@@ -5,56 +5,11 @@
 -- Creates views and tables for demonstrating SVM.
 
 -- Get Mon-Thurs
-DROP TABLE stk10p14;
+DROP TABLE stk10p25;
 
 PURGE RECYCLEBIN;
 
-CREATE TABLE stk10p14 COMPRESS AS
-SELECT
-tkr
-,ydate
-,clse
-FROM di5min_stk
-WHERE UPPER(tkr)='&1'
-AND 0+TO_CHAR(ydate,'D')BETWEEN 1 AND 4
-AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
-ORDER BY ydate
-/
-
--- Get Fri
-DROP TABLE stk10p5;
-
-CREATE TABLE stk10p5 COMPRESS AS
-SELECT
-tkr
-,ydate
-,clse
-FROM di5min_stk
-WHERE UPPER(tkr)='&1'
-AND 0+TO_CHAR(ydate,'D')=5
-AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
-ORDER BY ydate
-/
-
--- Get Mon
-DROP TABLE stk10f1;
-
-CREATE TABLE stk10f1 COMPRESS AS
-SELECT
-tkr
-,ydate
-,clse
-FROM di5min_stk
-WHERE UPPER(tkr)='&1'
-AND 0+TO_CHAR(ydate,'D')=1
-AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
-ORDER BY ydate
-/
-
--- Get Tues - Fri
-DROP TABLE stk10f25;
-
-CREATE TABLE stk10f25 COMPRESS AS
+CREATE TABLE stk10p25 COMPRESS AS
 SELECT
 tkr
 ,ydate
@@ -62,6 +17,51 @@ tkr
 FROM di5min_stk
 WHERE UPPER(tkr)='&1'
 AND 0+TO_CHAR(ydate,'D')BETWEEN 2 AND 5
+AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
+ORDER BY ydate
+/
+
+-- Get Fri
+DROP TABLE stk10p6;
+
+CREATE TABLE stk10p6 COMPRESS AS
+SELECT
+tkr
+,ydate
+,clse
+FROM di5min_stk
+WHERE UPPER(tkr)='&1'
+AND 0+TO_CHAR(ydate,'D')=6
+AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
+ORDER BY ydate
+/
+
+-- Get Mon
+DROP TABLE stk10f2;
+
+CREATE TABLE stk10f2 COMPRESS AS
+SELECT
+tkr
+,ydate
+,clse
+FROM di5min_stk
+WHERE UPPER(tkr)='&1'
+AND 0+TO_CHAR(ydate,'D')=2
+AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
+ORDER BY ydate
+/
+
+-- Get Tues - Fri
+DROP TABLE stk10f36;
+
+CREATE TABLE stk10f36 COMPRESS AS
+SELECT
+tkr
+,ydate
+,clse
+FROM di5min_stk
+WHERE UPPER(tkr)='&1'
+AND 0+TO_CHAR(ydate,'D')BETWEEN 3 AND 6
 AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
 ORDER BY ydate
 /
@@ -76,7 +76,7 @@ p.tkr
 ,p.ydate
 ,p.clse
 ,f.clse clse2
-FROM stk10p14 p, stk10f25 f
+FROM stk10p25 p, stk10f36 f
 WHERE p.ydate + 1 = f.ydate
 /
 
@@ -87,7 +87,7 @@ p.tkr
 ,p.ydate
 ,p.clse
 ,f.clse clse2
-FROM stk10p5 p, stk10f1 f
+FROM stk10p6 p, stk10f2 f
 WHERE p.ydate + 3 = f.ydate
 /
 
