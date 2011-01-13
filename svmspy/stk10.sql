@@ -92,7 +92,13 @@ WHERE p.ydate + 3 = f.ydate
 /
 
 -- rpt
-select count(*)from stk10pf;
+select
+0+TO_CHAR(ydate,'D')daynum
+,count(*)
+from stk10pf
+GROUP BY 0+TO_CHAR(ydate,'D')
+ORDER BY 0+TO_CHAR(ydate,'D')
+/
 
 DROP VIEW stk10;
 
@@ -128,9 +134,9 @@ tkr
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*6 PRECEDING AND CURRENT ROW)max6
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*7 PRECEDING AND CURRENT ROW)max7
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*8 PRECEDING AND CURRENT ROW)max8
-FROM 			 stk10pf
+FROM stk10pf
 WHERE UPPER(tkr)='&1'
-AND 0+TO_CHAR(ydate,'D')BETWEEN 1 AND 5
+AND 0+TO_CHAR(ydate,'D')BETWEEN 2 AND 6
 AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
 ORDER BY ydate
 /
@@ -393,6 +399,7 @@ tkr
 ,MIN(ydate),MAX(ydate)
 FROM stk_ms
 GROUP BY tkr,0+TO_CHAR(ydate,'D')
+ORDER BY tkr,0+TO_CHAR(ydate,'D')
 /
 
 exit
