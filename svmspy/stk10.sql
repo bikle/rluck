@@ -388,10 +388,11 @@ ORDER BY tkr,trend,gatt
 
 SELECT
 tkr
+,0+TO_CHAR(ydate,'D')daynum
 ,COUNT(tkr)
 ,MIN(ydate),MAX(ydate)
 FROM stk_ms
-GROUP BY tkr
+GROUP BY tkr,0+TO_CHAR(ydate,'D')
 /
 
 exit
