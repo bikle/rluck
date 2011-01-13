@@ -4,7 +4,7 @@
 
 -- Creates views and tables for demonstrating SVM.
 
-CREATE OR REPLACE VIEW stk10 AS
+CREATE OR REPLACE VIEW stk_svmd10 AS
 SELECT
 tkr
 ,ydate
@@ -46,13 +46,13 @@ tkr
 ,MIN(clse),MAX(clse)
 ,MIN(avg4),MAX(avg4)
 ,MIN(ydate),MAX(ydate)
-FROM stk10
+FROM stk_svmd10
 GROUP BY tkr
 /
 
 -- Derive trend, clse-relations, moving correlation of clse, and date related params:
-DROP TABLE stk12;
-CREATE TABLE stk12 COMPRESS AS
+DROP TABLE stk_svmd12;
+CREATE TABLE stk_svmd12 COMPRESS AS
 SELECT
 tkr
 ,ydate
@@ -95,7 +95,7 @@ tkr
 ,ROUND( (ydate - trunc(ydate))*24*60 )mpm
 -- mph stands for minutes-past-hour:
 ,0+TO_CHAR(ydate,'MI')mph
-FROM stk10
+FROM stk_svmd10
 ORDER BY ydate
 /
 
@@ -106,15 +106,15 @@ tkr
 ,COUNT(tkr)
 ,MIN(clse),MAX(clse)
 ,MIN(ydate),MAX(ydate)
-FROM stk12
+FROM stk_svmd12
 GROUP BY tkr
 /
 
 -- Prepare for derivation of NTILE based parameters.
 -- Also derive the "trend" parameter:
 
-DROP TABLE stk14;
-CREATE TABLE stk14 COMPRESS AS
+DROP TABLE stk_svmd14;
+CREATE TABLE stk_svmd14 COMPRESS AS
 SELECT
 tkr
 ,ydate
@@ -152,7 +152,7 @@ tkr
 ,w
 ,mpm
 ,mph
-FROM stk12
+FROM stk_svmd12
 -- Guard against divide by 0:
 WHERE clse > 0
 ORDER BY ydate
@@ -166,15 +166,15 @@ tkr
 ,gatt
 ,COUNT(tkr)
 ,AVG(g1)
-FROM stk14
+FROM stk_svmd14
 GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
 /
 
 -- Derive NTILE based params:
 
-DROP TABLE stk16;
-CREATE TABLE stk16 COMPRESS AS
+DROP TABLE stk_svmd16;
+CREATE TABLE stk_svmd16 COMPRESS AS
 SELECT
 tkr
 ,ydate
@@ -211,7 +211,7 @@ tkr
 ,mpm att24
 ,mph att25
 ,trend att26
-FROM stk14
+FROM stk_svmd14
 ORDER BY ydate
 /
 
@@ -223,7 +223,7 @@ tkr
 ,gatt
 ,COUNT(tkr)
 ,AVG(g1)
-FROM stk16
+FROM stk_svmd16
 GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
 /
@@ -271,7 +271,7 @@ tkr
 ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 60 PRECEDING AND CURRENT ROW)g27
 ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 30 PRECEDING AND CURRENT ROW)g28
 ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 10 PRECEDING AND CURRENT ROW)g29
-FROM stk16
+FROM stk_svmd16
 /
 
 -- rpt
