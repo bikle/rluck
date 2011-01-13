@@ -15,6 +15,8 @@ date
 cd $SVMSPY
 
 ./dl_then_svm.bash AAPL
+exit
+
 ./dl_then_svm.bash ABT
 ./dl_then_svm.bash ABX
 ./dl_then_svm.bash ADBE
