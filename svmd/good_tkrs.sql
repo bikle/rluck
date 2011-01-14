@@ -10,7 +10,7 @@ tkr VARCHAR2(9)
 ,crr_l NUMBER
 ,crr_s NUMBER
 )
--- /
+/
 
 TRUNCATE TABLE good_tkrs_svmd;
 

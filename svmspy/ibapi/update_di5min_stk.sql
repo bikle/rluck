@@ -14,6 +14,17 @@ TRUNCATE TABLE di5min_stk0;
 DROP TABLE di5min_stk;
 PURGE RECYCLEBIN;
 
+
+-- I need to shave a second off of some of the dates:
+
+UPDATE ibs5min SET ydate = ydate - 1/24/3600
+WHERE TO_CHAR(ydate,'SS')='01'
+/
+
+SELECT COUNT(*)FROM ibs5min;
+SELECT COUNT(*)FROM ibs5min WHERE TO_CHAR(ydate,'SS')='00';
+SELECT COUNT(*)FROM ibs5min WHERE TO_CHAR(ydate,'SS')='01';
+
 -- Copy in data from ibs5min:
 
 INSERT INTO di5min_stk0(tkrdate,tkr,ydate,clse)
@@ -21,6 +32,8 @@ SELECT         tkr||ydate,tkr,ydate,clse
 FROM ibs5min
 WHERE ydate >= '2010-12-27 09:00:00'
 /
+
+
 
 -- rpt
 SELECT
@@ -37,6 +50,17 @@ ORDER BY tkr
 -- dukas5min_stk depends on:
 -- - dukas10min_stk
 -- - svmspy/dukas/fake5.sql
+
+
+-- I need to shave a second off of some of the dates:
+
+UPDATE dukas5min_stk SET ydate = ydate - 1/24/3600
+WHERE TO_CHAR(ydate,'SS')='01'
+/
+
+SELECT COUNT(*)FROM dukas5min_stk;
+SELECT COUNT(*)FROM dukas5min_stk WHERE TO_CHAR(ydate,'SS')='00';
+SELECT COUNT(*)FROM dukas5min_stk WHERE TO_CHAR(ydate,'SS')='01';
 
 INSERT INTO di5min_stk0(tkrdate,tkr,ydate,clse)
 SELECT         tkr||ydate,tkr,ydate,clse
@@ -75,7 +99,7 @@ tkrdate
 ,AVG(clse)clse
 FROM di5min_stk0
 -- I want weekdays:
-WHERE 0+TO_CHAR(ydate,'D')IN(2,3,4,5,6)
+WHERE 0+TO_CHAR(ydate,'D')IN(1,2,3,4,5)
 GROUP BY 
 tkrdate
 ,tkr
@@ -83,16 +107,16 @@ tkrdate
 /
 
 -- I need to shave a second off of some of the dates:
-
-UPDATE di5min_stk SET ydate = ydate - 1/24/3600
-WHERE TO_CHAR(ydate,'SS')='01'
-/
-
-SELECT COUNT(*)FROM di5min_stk;
-SELECT COUNT(*)FROM di5min_stk WHERE TO_CHAR(ydate,'SS')='00';
-SELECT COUNT(*)FROM di5min_stk WHERE TO_CHAR(ydate,'SS')='01';
-
-UPDATE di5min_stk SET tkrdate = tkr||ydate;
+-- 
+-- UPDATE di5min_stk SET ydate = ydate - 1/24/3600
+-- WHERE TO_CHAR(ydate,'SS')='01'
+-- /
+-- 
+-- SELECT COUNT(*)FROM di5min_stk;
+-- SELECT COUNT(*)FROM di5min_stk WHERE TO_CHAR(ydate,'SS')='00';
+-- SELECT COUNT(*)FROM di5min_stk WHERE TO_CHAR(ydate,'SS')='01';
+-- 
+-- UPDATE di5min_stk SET tkrdate = tkr||ydate;
 
 -- Add a column to help join with future dates
 -- and then calculate 1 day gain:
