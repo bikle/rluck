@@ -16,4 +16,6 @@ echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/stkscores.${myts}.dpdmp h:/ora
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/stkscores.${myts}.dpdmp z2:/oracle/app/oracle/admin/orcl/dpdump/"
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/stkscores.${myts}.dpdmp z3:/oracle/app/oracle/admin/orcl/dpdump/"
 
+echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/stkscores.${myts}.dpdmp usr10@xp:dpdump/"
+
 echo "impdp trade/t table_exists_action=append dumpfile=stkscores.${myts}.dpdmp"
