@@ -4,102 +4,6 @@
 
 -- Creates views and tables for demonstrating SVM.
 
--- Get Mon-Thurs
-DROP TABLE stk10p25;
-
-PURGE RECYCLEBIN;
-
-CREATE TABLE stk10p25 COMPRESS AS
-SELECT
-tkr
-,ydate
-,clse
-FROM di5min_stk
-WHERE UPPER(tkr)='&1'
-AND 0+TO_CHAR(ydate,'D')BETWEEN 2 AND 5
-AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
-ORDER BY ydate
-/
-
--- Get Fri
-DROP TABLE stk10p6;
-
-CREATE TABLE stk10p6 COMPRESS AS
-SELECT
-tkr
-,ydate
-,clse
-FROM di5min_stk
-WHERE UPPER(tkr)='&1'
-AND 0+TO_CHAR(ydate,'D')=6
-AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
-ORDER BY ydate
-/
-
--- Get Mon
-DROP TABLE stk10f2;
-
-CREATE TABLE stk10f2 COMPRESS AS
-SELECT
-tkr
-,ydate
-,clse
-FROM di5min_stk
-WHERE UPPER(tkr)='&1'
-AND 0+TO_CHAR(ydate,'D')=2
-AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
-ORDER BY ydate
-/
-
--- Get Tues - Fri
-DROP TABLE stk10f36;
-
-CREATE TABLE stk10f36 COMPRESS AS
-SELECT
-tkr
-,ydate
-,clse
-FROM di5min_stk
-WHERE UPPER(tkr)='&1'
-AND 0+TO_CHAR(ydate,'D')BETWEEN 3 AND 6
-AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
-ORDER BY ydate
-/
-
--- Join em
-DROP TABLE stk10pf;
-
--- Deal with m-thr 1st
-CREATE TABLE stk10pf AS
-SELECT
-p.tkr
-,p.ydate
-,p.clse
-,f.clse clse2
-FROM stk10p25 p, stk10f36 f
-WHERE p.ydate + 1 = f.ydate
-/
-
--- Deal with Fri (day 5 joined with day 1)
-INSERT INTO stk10pf(tkr,ydate,clse,clse2)
-SELECT
-p.tkr
-,p.ydate
-,p.clse
-,f.clse clse2
-FROM stk10p6 p, stk10f2 f
-WHERE p.ydate + 3 = f.ydate
-/
-
--- rpt
-select
-0+TO_CHAR(ydate,'D')daynum
-,count(*)
-from stk10pf
-GROUP BY 0+TO_CHAR(ydate,'D')
-ORDER BY 0+TO_CHAR(ydate,'D')
-/
-
 DROP VIEW stk10;
 
 DROP TABLE stk10;
@@ -111,6 +15,7 @@ tkr
 ,tkr||ydate tkrdate
 ,clse
 ,clse2
+,gain1day
 ,rownum rnum -- acts as t in my time-series
 -- Derive some attributes from clse.
 ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*2 PRECEDING AND CURRENT ROW)min2
@@ -134,7 +39,7 @@ tkr
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*6 PRECEDING AND CURRENT ROW)max6
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*7 PRECEDING AND CURRENT ROW)max7
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*8 PRECEDING AND CURRENT ROW)max8
-FROM stk10pf
+FROM di5min_stk_c2
 WHERE UPPER(tkr)='&1'
 AND 0+TO_CHAR(ydate,'D')BETWEEN 2 AND 6
 AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
@@ -165,7 +70,7 @@ tkr
 ,clse
 ,rnum
 -- g4 is important. I want to predict g4:
-,clse2 - clse g4
+,gain1day g4
 ,SIGN(avg4 - LAG(avg4,2,NULL)OVER(PARTITION BY tkr ORDER BY ydate))trend
 -- I want more attributes from the ones I derived above:
 -- clse relation to moving-min
