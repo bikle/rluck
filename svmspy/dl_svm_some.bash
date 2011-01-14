@@ -21,5 +21,4 @@ cd $SVMSPY
 ./dl_then_svm.bash X	
 ./dl_then_svm.bash XOM	
 
-
 exit 0

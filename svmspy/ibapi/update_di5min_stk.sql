@@ -33,8 +33,6 @@ FROM ibs5min
 WHERE ydate >= '2010-12-27 09:00:00'
 /
 
-
-
 -- rpt
 SELECT
 tkr
@@ -99,11 +97,19 @@ tkrdate
 ,AVG(clse)clse
 FROM di5min_stk0
 -- I want weekdays:
-WHERE 0+TO_CHAR(ydate,'D')IN(1,2,3,4,5)
+WHERE TO_CHAR(ydate,'dy')IN('mon','tue','wed','thu','fri')
 GROUP BY 
 tkrdate
 ,tkr
 ,ydate
+/
+
+-- rpt
+SELECT
+TO_CHAR(ydate,'dy')
+,COUNT(ydate)
+FROM di5min_stk
+GROUP BY TO_CHAR(ydate,'dy')
 /
 
 -- I need to shave a second off of some of the dates:

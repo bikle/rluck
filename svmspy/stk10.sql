@@ -41,7 +41,7 @@ tkr
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 12*8 PRECEDING AND CURRENT ROW)max8
 FROM di5min_stk_c2
 WHERE UPPER(tkr)='&1'
-AND 0+TO_CHAR(ydate,'D')BETWEEN 1 AND 5
+AND 0+TO_CHAR(ydate,'dy')IN('mon','tue','wed','thu','fri')
 AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
 ORDER BY ydate
 /
