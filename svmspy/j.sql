@@ -1,11 +1,6 @@
---
--- qry_recent_stkscores.sql
---
 
--- I use this script to see which tkrdates have been scored recently.
+select count(*)from stkscores WHERE tkr='DIA';
 
-SELECT * FROM stkscores WHERE rundate> 
-(select max(rundate)-0.2/24 from stkscores)
-ORDER BY rundate;
-
-exit
+select count(*)from stk_ms where ydate not in 
+  (SELECT ydate FROM stkscores WHERE targ='gatt'AND tkr='DIA')
+/
