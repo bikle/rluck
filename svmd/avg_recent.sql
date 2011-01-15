@@ -2,6 +2,7 @@
 -- avg_recent.sql
 --
 
+CREATE OR REPLACE VIEW svmd_ar AS
 SELECT
 l.tkr
 ,AVG(l.score)score_long
@@ -14,7 +15,14 @@ AND s.targ = 'gattn'
 AND l.targ = 'gatt'
 AND l.ydate > sysdate - 2
 GROUP BY l.tkr
-ORDER BY l.tkr
+/
+
+SELECT * FROM svmd_ar ORDER BY tkr;
+
+SELECT * FROM svmd_ar
+WHERE score_long > 0.7
+OR    score_short > 0.7
+ORDER BY score_long
 /
 
 exit

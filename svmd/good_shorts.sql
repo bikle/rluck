@@ -49,11 +49,12 @@ l.tkr
 FROM ystk y,ystkscores l,svmd_gl_crr_s s
 WHERE l.targ='gattn'
 AND y.tkrdate = l.tkrdate
-AND l.ydate > sysdate - 6
-AND l.score > 0.8
+AND l.ydate > sysdate - 2
+AND l.score > 0.7
 -- I want good past CORR():
 AND s.crr_s < 0.0
 AND l.tkr = s.tkr
+ORDER BY l.score
 /
 
 exit
