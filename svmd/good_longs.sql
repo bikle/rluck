@@ -23,6 +23,7 @@ WHERE l.targ='gatt'
 AND y.tkrdate = l.tkrdate
 /
 
+CREATE OR REPLACE VIEW svmd_gl_crr_l AS
 SELECT * FROM
 (
 SELECT
@@ -36,6 +37,27 @@ GROUP BY tkr
 )
 ORDER BY crr_l
 /
+
+SELECT * FROM svmd_gl_crr_l
+
+-- Now join with recent scores:
+SELECT
+l.tkr
+,l.ydate
+,l.score score_long
+,s.crr_l
+FROM ystk y,ystkscores l,svmd_gl_crr_l s
+WHERE l.targ='gatt'
+AND y.tkrdate = l.tkrdate
+AND l.ydate > sysdate - 6
+AND l.score > 0.8
+-- I want good past CORR():
+AND s.crr_l > 0.01
+AND l.tkr = s.tkr
+/
+
+
+
 
 exit
 
