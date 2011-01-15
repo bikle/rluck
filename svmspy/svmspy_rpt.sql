@@ -23,13 +23,43 @@ AND l.tkrdate=g.tkrdate
 
 -- rpt
 SELECT
-CORR(score_long,g1d)crr_l
-,CORR(score_short,g1d)crr_s
-,MIN(ydate)mn_date
-,COUNT(tkr)ccount
-,MAX(ydate)mx_date
-FROM sspy10
+tkr
+,ccount
+,crr_l,crr_s
+FROM
+(
+  SELECT
+  tkr
+  ,CORR(score_long,g1d)crr_l
+  ,CORR(score_short,g1d)crr_s
+  ,MIN(ydate)mn_date
+  ,COUNT(tkr)ccount
+  ,MAX(ydate)mx_date
+  FROM sspy10
+  GROUP BY tkr
+)
 /
+
+SELECT
+tkr
+,rscore_long
+,AVG(g1d)
+,COUNT(g1d)
+FROM sspy10
+GROUP BY tkr,rscore_long
+ORDER BY tkr,rscore_long
+/
+
+SELECT
+tkr
+,rscore_short
+,AVG(g1d)
+,COUNT(g1d)
+FROM sspy10
+GROUP BY tkr,rscore_short
+ORDER BY tkr,rscore_short
+/
+
 
 exit
 
