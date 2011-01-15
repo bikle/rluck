@@ -8,9 +8,13 @@ SET LINES 66
 DESC ibs15min
 SET LINES 166
 
+-- Look at date ranges
+
 SELECT
 tkr
-,COUNT(tkr)
+,MIN(ydate)
+,COUNT(ydate)
+,MAX(ydate)
 FROM ibs15min
 GROUP BY tkr
 ORDER BY tkr
@@ -149,18 +153,6 @@ tkr
 FROM ibs15min
 WHERE ydate > sysdate - 1.5/24
 ORDER BY tkr,ydate
-/
-
--- Look at date ranges
-
-SELECT
-tkr
-,MIN(ydate)
-,COUNT(ydate)
-,MAX(ydate)
-FROM ibs15min
-GROUP BY tkr
-ORDER BY tkr
 /
 
 exit
