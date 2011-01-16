@@ -24,8 +24,10 @@ AND l.tkrdate=g.tkrdate
 -- rpt
 SELECT
 tkr
-,ccount
 ,crr_l,crr_s
+,mn_date
+,ccount
+,mx_date
 FROM
 (
   SELECT

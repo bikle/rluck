@@ -38,7 +38,7 @@ GROUP BY tkr
 ORDER BY crr_l
 /
 
-SELECT * FROM svmd_gl_crr_l
+SELECT * FROM svmd_gl_crr_l;
 
 -- Now join with recent scores:
 SELECT
