@@ -90,8 +90,10 @@ p.tkr
 ,p.ccount
 ,p.mx_date
 ,l.crr_l crr_l_svmd
-FROM sspy12 p, svmd_gl_crr_l l
+,s.crr_s crr_s_svmd
+FROM sspy12 p, svmd_gl_crr_l l, svmd_gl_crr_s s
 WHERE p.tkr = l.tkr
+AND   p.tkr = s.tkr
 /
 
 
