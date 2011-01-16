@@ -1,0 +1,155 @@
+/pt/s/rluck/svmspy/results_svmspy_svmd_compare2011_0116_2.txt
+
+After I enhanced stk10.sql,
+the results (for QQQQ) are much better:
+
+
+oracle@z2:/pt/s/rluck/svmspy$ sqt @svmspy_svmd_compare
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Jan 16 20:17:30 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+20:17:30 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+20:17:30 SQL> 
+20:17:30 SQL> --
+20:17:30 SQL> -- svmspy_svmd_compare.sql
+20:17:30 SQL> --
+20:17:30 SQL> 
+20:17:30 SQL> -- I use this script to help my compare svmspy and svmd.
+20:17:30 SQL> 
+20:17:30 SQL> 
+20:17:30 SQL> CREATE OR REPLACE VIEW sspy10 AS
+20:17:30   2  SELECT
+20:17:30   3  l.tkr
+20:17:30   4  ,l.score score_long
+20:17:30   5  ,s.score score_short
+20:17:30   6  ,gain1day g1d
+20:17:30   7  ,l.ydate
+20:17:30   8  ,ROUND(l.score,1)rscore_long
+20:17:30   9  ,ROUND(s.score,1)rscore_short
+20:17:30  10  FROM stkscores l, stkscores s, di5min_stk_c2 g
+20:17:30  11  WHERE l.targ='gatt'AND s.targ='gattn'
+20:17:30  12  AND l.tkrdate=s.tkrdate
+20:17:30  13  AND l.tkrdate=g.tkrdate
+20:17:30  14  /
+
+View created.
+
+Elapsed: 00:00:00.42
+20:17:30 SQL> 
+20:17:30 SQL> CREATE OR REPLACE VIEW sspy12 AS
+20:17:30   2  SELECT
+20:17:30   3  tkr
+20:17:30   4  ,crr_l,crr_s
+20:17:30   5  ,mn_date
+20:17:30   6  ,ccount
+20:17:30   7  ,mx_date
+20:17:30   8  FROM
+20:17:30   9  (
+20:17:30  10    SELECT
+20:17:30  11    tkr
+20:17:30  12    ,CORR(score_long,g1d)crr_l
+20:17:30  13    ,CORR(score_short,g1d)crr_s
+20:17:30  14    ,MIN(ydate)mn_date
+20:17:30  15    ,COUNT(tkr)ccount
+20:17:30  16    ,MAX(ydate)mx_date
+20:17:30  17    FROM sspy10
+20:17:30  18    GROUP BY tkr
+20:17:30  19  )
+20:17:30  20  /
+
+View created.
+
+Elapsed: 00:00:00.11
+20:17:30 SQL> 
+20:17:30 SQL> -- rpt
+20:17:30 SQL> SELECT * FROM sspy12;
+
+TKR           CRR_L      CRR_S MN_DATE                 CCOUNT MX_DATE
+-------- ---------- ---------- ------------------- ---------- -------------------
+QQQQ     .386198243 -.18888856 2010-12-01 14:25:00       2790 2011-01-14 20:55:00
+
+Elapsed: 00:00:01.16
+20:17:31 SQL> 
+20:17:31 SQL> -- svmd_gl_crr_l is created here:
+20:17:31 SQL> -- rluck/svmd/good_longs.sql
+20:17:31 SQL> 
+20:17:31 SQL> CREATE OR REPLACE VIEW svmd_gl_crr_l AS
+20:17:31   2  SELECT * FROM
+20:17:31   3  (
+20:17:31   4  SELECT
+20:17:31   5  tkr
+20:17:31   6  ,MIN(YDATE)mn_date
+20:17:31   7  ,COUNT(tkr)ccount
+20:17:31   8  ,MAX(YDATE)mx_date
+20:17:31   9  ,CORR(score_long,g1d)crr_l
+20:17:31  10  FROM svmd_gl
+20:17:31  11  WHERE ydate BETWEEN
+20:17:31  12    (SELECT MIN(ydate)FROM sspy10)
+20:17:31  13    AND
+20:17:31  14    (SELECT MAX(ydate)FROM sspy10)
+20:17:31  15  GROUP BY tkr
+20:17:31  16  )
+20:17:31  17  /
+
+View created.
+
+Elapsed: 00:00:00.11
+20:17:32 SQL> 
+20:17:32 SQL> CREATE OR REPLACE VIEW svmd_gl_crr_s AS
+20:17:32   2  SELECT * FROM
+20:17:32   3  (
+20:17:32   4  SELECT
+20:17:32   5  tkr
+20:17:32   6  ,MIN(YDATE)mn_date
+20:17:32   7  ,COUNT(tkr)ccount
+20:17:32   8  ,MAX(YDATE)mx_date
+20:17:32   9  ,CORR(score_short,g1d)crr_s
+20:17:32  10  FROM svmd_gs
+20:17:32  11  WHERE ydate BETWEEN
+20:17:32  12    (SELECT MIN(ydate)FROM sspy10)
+20:17:32  13    AND
+20:17:32  14    (SELECT MAX(ydate)FROM sspy10)
+20:17:32  15  GROUP BY tkr
+20:17:32  16  )
+20:17:32  17  /
+
+View created.
+
+Elapsed: 00:00:00.06
+20:17:32 SQL> 
+20:17:32 SQL> SELECT
+20:17:32   2  p.tkr
+20:17:32   3  ,p.crr_l,p.crr_s
+20:17:32   4  ,p.mn_date
+20:17:32   5  ,p.ccount
+20:17:32   6  ,p.mx_date
+20:17:32   7  ,l.crr_l crr_l_svmd
+20:17:32   8  ,s.crr_s crr_s_svmd
+20:17:32   9  FROM sspy12 p, svmd_gl_crr_l l, svmd_gl_crr_s s
+20:17:32  10  WHERE p.tkr = l.tkr
+20:17:32  11  AND   p.tkr = s.tkr
+20:17:32  12  /
+
+TKR           CRR_L      CRR_S MN_DATE                 CCOUNT MX_DATE             CRR_L_SVMD CRR_S_SVMD
+-------- ---------- ---------- ------------------- ---------- ------------------- ---------- ----------
+QQQQ     .386198243 -.18888856 2010-12-01 14:25:00       2790 2011-01-14 20:55:00 .424437747 -.32461065
+
+Elapsed: 00:00:02.05
+20:17:34 SQL> 
+20:17:34 SQL> 
+20:17:34 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z2:/pt/s/rluck/svmspy$ 
+oracle@z2:/pt/s/rluck/svmspy$ 

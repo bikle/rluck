@@ -316,4 +316,4 @@ GROUP BY tkr,0+TO_CHAR(ydate,'D')
 ORDER BY tkr,0+TO_CHAR(ydate,'D')
 /
 
-exit
+-- exit

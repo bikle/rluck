@@ -19,7 +19,7 @@ cd $SVMSPY
 # Run a SQL script which builds stk_ms.
 # I use stk_ms as a source of data for building SVM models:
 sqt>tkr10.txt<<EOF
-@stk10.sql $1
+@stk10u.sql $1
 EOF
 
 date
@@ -31,6 +31,7 @@ EOF
 
 # Massage the output txt into a sql script
 grep score1_5min scorem_tkr_out.txt | grep -v SELECT > scorem_tkr.sql
+exit
 
 # Run scorem_tkr
 sqt>out_of_scorem_tkr.txt<<EOF

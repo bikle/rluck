@@ -39,7 +39,7 @@ tkrdate
 ,g27
 ,g28
 ,g29
-FROM stk_ms_svmspy
+FROM stk_ms_u
 WHERE ydate = '&1'||' '||'&2'
 AND tkr = '&3'
 /
@@ -84,7 +84,7 @@ tkrdate
 ,g27
 ,g28
 ,g29
-FROM stk_ms_svmspy
+FROM stk_ms_u
 WHERE gattn IN('nup','up')
 -- Use only rows which are older than 1 day:
 AND 1+ydate < '&1'||' '||'&2'
