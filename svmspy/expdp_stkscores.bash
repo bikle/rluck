@@ -15,6 +15,7 @@ echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/stkscores.${myts}.dpdmp z:/ora
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/stkscores.${myts}.dpdmp h:/oracle/app/oracle/admin/orcl/dpdump/"
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/stkscores.${myts}.dpdmp z2:/oracle/app/oracle/admin/orcl/dpdump/"
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/stkscores.${myts}.dpdmp z3:/oracle/app/oracle/admin/orcl/dpdump/"
+echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/stkscores.${myts}.dpdmp l:/oracle/app/oracle/admin/orcl/dpdump/"
 
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/stkscores.${myts}.dpdmp usr10@xp:dpdump/"
 
