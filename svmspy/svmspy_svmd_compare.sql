@@ -95,6 +95,7 @@ p.tkr
 FROM sspy12 p, svmd_gl_crr_l l, svmd_gl_crr_s s
 WHERE p.tkr = l.tkr
 AND   p.tkr = s.tkr
+ORDER BY crr_s_svmd - crr_l_svmd
 /
 
 
