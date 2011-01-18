@@ -14,9 +14,9 @@ date
 
 cd $SVMSPY
 
-./dl_then_svm.bash AAPL
+./dl_then_svm.bash MJN
 exit
-
+./dl_then_svm.bash AAPL
 ./dl_then_svm.bash ABT
 ./dl_then_svm.bash ABX
 ./dl_then_svm.bash ADBE
@@ -97,7 +97,7 @@ exit
 ./dl_then_svm.bash MDY
 ./dl_then_svm.bash MEE
 ./dl_then_svm.bash MET
-./dl_then_svm.bash MJN
+
 ./dl_then_svm.bash MMM
 ./dl_then_svm.bash MON
 ./dl_then_svm.bash MOS
