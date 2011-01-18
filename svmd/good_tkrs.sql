@@ -12,6 +12,8 @@ tkr VARCHAR2(9)
 )
 /
 
+-- Above statement should give me an error since I did not drop the table 1st.
+
 TRUNCATE TABLE good_tkrs_svmd;
 
 

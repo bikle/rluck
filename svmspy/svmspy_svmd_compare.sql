@@ -18,6 +18,7 @@ FROM stkscores l, stkscores s, di5min_stk_c2 g
 WHERE l.targ='gatt'AND s.targ='gattn'
 AND l.tkrdate=s.tkrdate
 AND l.tkrdate=g.tkrdate
+and l.ydate > '2010-12-27'
 /
 
 CREATE OR REPLACE VIEW sspy12 AS
