@@ -9,11 +9,11 @@
 CREATE OR REPLACE VIEW ocj_stk AS
 SELECT
 l.tkrdate
-,l.score
+,l.score score_long
 ,l.rundate
 ,l.tkr
 ,l.ydate
-,s.score gscore
+,s.score score_short
 ,p.clse
 FROM stkscores l
 ,stkscores s
@@ -30,8 +30,8 @@ COLUMN clse  FORMAT 999.9999
 
 SELECT
 tkrdate
-,ROUND(score,2) long_score
-,ROUND(gscore,2)short_score
+,ROUND(score_long,2) score_long
+,ROUND(score_short,2)score_short
 ,rundate
 ,ROUND(clse,4)clse 
 ,CASE WHEN TO_CHAR(ydate,'dy')='fri'THEN ydate + 3
