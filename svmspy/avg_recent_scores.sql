@@ -39,7 +39,7 @@ tkrdate
         ('mon','tue','wed','thu')   THEN ydate + 1
       ELSE NULL END clse_date
 FROM ocj_stk
-WHERE ydate > sysdate - 1/24
+WHERE ydate > sysdate - 3/24
 ORDER BY tkr,ydate
 /
 
