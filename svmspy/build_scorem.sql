@@ -14,7 +14,7 @@ SELECT '@score1_5min.sql 'cmd,ydate FROM stk_ms_u
 WHERE ydate NOT IN
   (SELECT ydate FROM stkscores WHERE targ='gatt'AND tkr='&1')
 AND ydate > '2010-12-01'
-AND ydate > sysdate - 4
+AND ydate > sysdate - 1/24
 -- AND ydate > sysdate - 0.5/24
 AND tkr = '&1'
 UNION
@@ -22,7 +22,7 @@ SELECT '@score1_5min_gattn.sql 'cmd,ydate FROM stk_ms_u
 WHERE ydate NOT IN
   (SELECT ydate FROM stkscores WHERE targ='gattn'AND tkr='&1')
 AND ydate > '2010-12-01'
-AND ydate > sysdate - 4
+AND ydate > sysdate - 1/24
 -- AND ydate > sysdate - 0.5/24
 AND tkr = '&1'
 )
