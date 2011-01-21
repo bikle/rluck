@@ -14,15 +14,6 @@ date
 
 cd $SVMSPY
 
-./dl_then_svm.bash TLT
-./dl_then_svm.bash V
-./dl_then_svm.bash IOC
-./dl_then_svm.bash DIA
-
-exit
-./dl_then_svm.bash MJN
-./dl_then_svm.bash QQQQ
-
 ./dl_then_svm.bash AAPL
 ./dl_then_svm.bash ABT
 ./dl_then_svm.bash ABX
@@ -65,7 +56,7 @@ exit
 ./dl_then_svm.bash CVX
 ./dl_then_svm.bash DD
 ./dl_then_svm.bash DE
-
+./dl_then_svm.bash DIA
 ./dl_then_svm.bash DIS
 ./dl_then_svm.bash DNDN
 ./dl_then_svm.bash DTV
@@ -90,7 +81,7 @@ exit
 ./dl_then_svm.bash HON
 ./dl_then_svm.bash HPQ
 ./dl_then_svm.bash IBM
-
+./dl_then_svm.bash IOC
 ./dl_then_svm.bash IWM
 ./dl_then_svm.bash JNJ
 ./dl_then_svm.bash JOYG
@@ -104,7 +95,7 @@ exit
 ./dl_then_svm.bash MDY
 ./dl_then_svm.bash MEE
 ./dl_then_svm.bash MET
-
+./dl_then_svm.bash MJN
 ./dl_then_svm.bash MMM
 ./dl_then_svm.bash MON
 ./dl_then_svm.bash MOS
@@ -123,7 +114,7 @@ exit
 ./dl_then_svm.bash POT
 ./dl_then_svm.bash PRU
 ./dl_then_svm.bash QCOM
-
+./dl_then_svm.bash QQQQ
 ./dl_then_svm.bash RIG
 ./dl_then_svm.bash RIMM
 ./dl_then_svm.bash SINA
@@ -138,11 +129,11 @@ exit
 ./dl_then_svm.bash TEVA
 ./dl_then_svm.bash TGT
 ./dl_then_svm.bash TKR
-
+./dl_then_svm.bash TLT
 ./dl_then_svm.bash UNH
 ./dl_then_svm.bash UNP
 ./dl_then_svm.bash UPS
-
+./dl_then_svm.bash V
 ./dl_then_svm.bash VECO
 ./dl_then_svm.bash VMW
 ./dl_then_svm.bash WDC
