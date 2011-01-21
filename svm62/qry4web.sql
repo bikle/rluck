@@ -61,28 +61,14 @@ p.pair
 ,score_short
 -- Next page:
 ,24*(ydate6 - p.ydate)hold_duration
-,ROUND(100*six_hr_gain / price_open,4) pct_gain
-,CASE WHEN(score_long-score_short)>0.6 THEN'buy'ELSE NULL END buy
-,CASE WHEN(score_short-score_long)>0.6 THEN'sell'ELSE NULL END sell
+,100*six_hr_gain / price_open pct_gain
+,CASE WHEN(score_long-score_short)>0.5 THEN'buy'ELSE NULL END buy
+,CASE WHEN(score_short-score_long)>0.5 THEN'sell'ELSE NULL END sell
 FROM w10 p, w12 s
 WHERE p.prdate = s.prdate
 ORDER BY p.prdate
 /
 
-SELECT
-pair
-,buy
-,sell
-,SUM(pct_gain)   sum_pct_gain
-,COUNT(pct_gain) ccount
-,CORR((score_long-score_short),pct_gain)corr_long
-,CORR((score_short-score_long),pct_gain)corr_short
-FROM w14
-WHERE ydate > sysdate - 7/24 
-AND ydate6 IS NOT NULL
-GROUP BY pair,buy,sell
-ORDER BY pair,buy,sell
-/
 
 SELECT
 pair
@@ -97,7 +83,8 @@ FROM w14
 WHERE ydate > sysdate - 7/24
 AND ydate6 IS NOT NULL
 
-COLUMN pct_gain FORMAT 999.9999
+COLUMN pct_gain FORMAT      999.9999
+COLUMN sum_pct_gain FORMAT 9999.9999
 
 SELECT
 pair
@@ -110,24 +97,98 @@ FROM w14
 WHERE ydate > sysdate - 7/24
 AND ydate6 IS NOT NULL
 
+
+CREATE OR REPLACE VIEW w16 AS
 SELECT
 pair
-,SUM(pct_gain)
+,ydate
+,buy
+,sell
+,pct_gain
+,score_long
+,score_short
 FROM w14
-WHERE ydate > sysdate - 7/24
-AND ydate6 IS NOT NULL
-AND (score_long-score_short)>0.6
-GROUP BY pair
-ORDER BY pair
+WHERE(buy='buy'OR sell='sell')
+AND ABS(pct_gain)>0
+/
 
 SELECT
 pair
-,SUM(pct_gain)
-FROM w14
-WHERE ydate > sysdate - 7/24
-AND ydate6 IS NOT NULL
-AND (score_short-score_long)>0.6
-GROUP BY pair
-ORDER BY pair
+,buy
+,sell
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+WHERE ydate > sysdate - 167/24
+GROUP BY buy,sell,pair
+ORDER BY buy,sell,pair
+/
+
+SELECT
+buy
+,sell
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+WHERE ydate > sysdate - 167/24
+GROUP BY buy,sell
+ORDER BY buy,sell
+/
+
+SELECT
+buy
+,sell
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+WHERE ydate > sysdate - 87/24
+GROUP BY buy,sell
+ORDER BY buy,sell
+/
+
+SELECT
+buy
+,sell
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+WHERE ydate > sysdate - 47/24
+GROUP BY buy,sell
+ORDER BY buy,sell
+/
+
+SELECT
+buy
+,sell
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+WHERE ydate > sysdate - 27/24
+GROUP BY buy,sell
+ORDER BY buy,sell
+/
+
+SELECT
+buy
+,sell
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+WHERE ydate > sysdate - 17/24
+GROUP BY buy,sell
+ORDER BY buy,sell
+/
 
 exit
