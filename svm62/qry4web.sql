@@ -85,6 +85,7 @@ AND ydate6 IS NOT NULL
 
 COLUMN pct_gain FORMAT      999.9999
 COLUMN sum_pct_gain FORMAT 9999.9999
+COLUMN avg_pct_gain FORMAT  999.9999
 
 SELECT
 pair
@@ -117,6 +118,7 @@ AND ABS(pct_gain)>0
 SELECT
 buy
 ,sell
+,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
@@ -131,6 +133,7 @@ SELECT
 pair
 ,buy
 ,sell
+,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
@@ -141,13 +144,12 @@ GROUP BY buy,sell,pair
 ORDER BY buy,sell,pair
 /
 
-exit
-
 SELECT
 TO_CHAR(ydate,'D')Dn
 ,TO_CHAR(ydate,'Dy')Dday
 ,buy
 ,sell
+,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
@@ -163,6 +165,7 @@ ORDER BY buy,sell,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
 SELECT
 buy
 ,sell
+,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
@@ -177,6 +180,7 @@ SELECT
 pair
 ,buy
 ,sell
+,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
@@ -187,14 +191,12 @@ GROUP BY buy,sell,pair
 ORDER BY buy,sell,pair
 /
 
-exit
-
-
 SELECT
 TO_CHAR(ydate,'D')Dn
 ,TO_CHAR(ydate,'Dy')Dday
 ,buy
 ,sell
+,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
@@ -205,12 +207,11 @@ GROUP BY buy,sell,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
 ORDER BY buy,sell,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
 /
 
-exit
-
 SELECT
 pair
 ,buy
 ,sell
+,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
@@ -224,6 +225,7 @@ ORDER BY buy,sell,pair
 SELECT
 buy
 ,sell
+,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
@@ -237,6 +239,7 @@ ORDER BY buy,sell
 SELECT
 buy
 ,sell
+,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
@@ -250,6 +253,7 @@ ORDER BY buy,sell
 SELECT
 buy
 ,sell
+,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
@@ -263,6 +267,7 @@ ORDER BY buy,sell
 SELECT
 buy
 ,sell
+,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
@@ -276,6 +281,7 @@ ORDER BY buy,sell
 SELECT
 buy
 ,sell
+,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
