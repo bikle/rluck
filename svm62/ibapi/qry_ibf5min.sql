@@ -16,6 +16,14 @@ GROUP BY pair
 ORDER BY pair
 /
 
+SELECT
+TO_CHAR(ydate,'YYYY_MM')mnth,TO_CHAR(ydate,'W')wweek
+,COUNT(pair)
+FROM ibf5min
+GROUP BY TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W')
+ORDER BY TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W')
+/
+
 -- Look for dups
 SELECT COUNT(pair)FROM
 (

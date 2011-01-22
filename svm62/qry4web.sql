@@ -6,6 +6,16 @@
 
 -- Get prices and gains first.
 
+-- Start by getting a general idea of the data distribution:
+
+SELECT
+TO_CHAR(ydate,'YYYY_MM')mnth,TO_CHAR(ydate,'W')wweek
+,COUNT(pair)
+FROM di5min
+GROUP BY TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W')
+ORDER BY TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W')
+/
+
 COLUMN price FORMAT 999.9999
 
 CREATE OR REPLACE VIEW w10 AS
@@ -21,7 +31,7 @@ FROM di5min
 ORDER BY pair,ydate
 /
 
--- I should see recent data:
+-- On weekdays I should see recent data:
 
 SELECT pair,COUNT(pair)FROM w10 WHERE ydate > sysdate - 0.5/24 GROUP BY pair;
 
@@ -44,7 +54,7 @@ AND s.targ = 'gattn'
 ORDER BY l.prdate
 /
 
--- I should see recent scores:
+-- On weekdays I should see recent scores:
 
 SELECT pair,COUNT(pair)FROM w12 WHERE ydate > sysdate - 0.5/24 GROUP BY pair;
 
@@ -68,7 +78,6 @@ FROM w10 p, w12 s
 WHERE p.prdate = s.prdate
 ORDER BY p.prdate
 /
-
 
 SELECT
 pair
@@ -98,7 +107,6 @@ FROM w14
 WHERE ydate > sysdate - 7/24
 AND ydate6 IS NOT NULL
 
-
 CREATE OR REPLACE VIEW w16 AS
 SELECT
 pair
@@ -112,6 +120,46 @@ FROM w14
 WHERE(buy='buy'OR sell='sell')
 AND ABS(pct_gain)>0
 /
+
+-- Look at weekly distributions of gains:
+
+SELECT
+pair
+,TO_CHAR(ydate,'YYYY_MM')mnth
+,TO_CHAR(ydate,'W')wweek
+,buy
+,sell
+,AVG(pct_gain)   avg_pct_gain
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+GROUP BY pair,TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W'),buy,sell
+HAVING COUNT(pct_gain) > 22
+ORDER BY pair,TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W'),buy,sell
+/
+
+-- Aggregate the pairs of above query:
+
+SELECT
+TO_CHAR(ydate,'YYYY_MM')mnth
+,TO_CHAR(ydate,'W')wweek
+,buy
+,sell
+,AVG(pct_gain)   avg_pct_gain
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+GROUP BY TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W'),buy,sell
+HAVING COUNT(pct_gain) > 222
+ORDER BY TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W'),buy,sell
+/
+
+exit
+
 
 
 -- Look at the last 2 weeks:
