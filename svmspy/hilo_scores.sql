@@ -19,7 +19,7 @@ tkrdate
         ('mon','tue','wed','thu')   THEN ydate + 1
       ELSE NULL END clse_date
 FROM ocj_stk
-WHERE ydate > sysdate - 3/24
+WHERE ydate > sysdate - 5/24
 AND (score_long > 0.8 OR score_short > 0.8)
 ORDER BY tkr,ydate
 /

@@ -112,6 +112,70 @@ WHERE(buy='buy'OR sell='sell')
 AND ABS(pct_gain)>0
 /
 
+
+-- Look at the last 2 weeks:
+SELECT
+buy
+,sell
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+WHERE ydate > sysdate - 15
+GROUP BY buy,sell
+ORDER BY buy,sell
+/
+
+SELECT
+TO_CHAR(ydate,'D')Dn
+,TO_CHAR(ydate,'Dy')Dday
+,buy
+,sell
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+WHERE ydate > sysdate - 15
+GROUP BY buy,sell,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
+ORDER BY buy,sell,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
+/
+
+exit
+
+-- Look at the last week:
+
+SELECT
+buy
+,sell
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+WHERE ydate > sysdate - 8
+GROUP BY buy,sell
+ORDER BY buy,sell
+/
+
+SELECT
+TO_CHAR(ydate,'D')Dn
+,TO_CHAR(ydate,'Dy')Dday
+,buy
+,sell
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+WHERE ydate > sysdate - 8
+GROUP BY buy,sell,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
+ORDER BY buy,sell,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
+/
+
+exit
+
 SELECT
 pair
 ,buy

@@ -10,6 +10,7 @@ export myts=`date +%Y_%m_%d_%H_%M`
 
 expdp trade/t dumpfile=ystk.${myts}.dpdmp tables=ystk
 
+echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/ystk.${myts}.dpdmp l:/oracle/app/oracle/admin/orcl/dpdump/"
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/ystk.${myts}.dpdmp z:/oracle/app/oracle/admin/orcl/dpdump/"
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/ystk.${myts}.dpdmp h:/oracle/app/oracle/admin/orcl/dpdump/"
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/ystk.${myts}.dpdmp z2:/oracle/app/oracle/admin/orcl/dpdump/"
