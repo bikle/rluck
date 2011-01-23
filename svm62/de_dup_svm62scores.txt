@@ -1,0 +1,98 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Jan 23 18:24:08 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+18:24:09 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+18:24:09 SQL> 18:24:09 SQL> --
+18:24:09 SQL> -- de_dup_svm62scores.sql
+18:24:09 SQL> --
+18:24:09 SQL> 
+18:24:09 SQL> -- I use this script after I load svm62scores from host-A into host-B.
+18:24:09 SQL> 
+18:24:09 SQL> SET LINES 66
+18:24:09 SQL> DESC svm62tmp
+ERROR:
+ORA-04043: object svm62tmp does not exist
+
+
+18:24:09 SQL> DESC svm62scores
+ Name				  Null?    Type
+ -------------------------------- -------- -----------------------
+ PRDATE 				   VARCHAR2(28)
+ TARG					   VARCHAR2(5)
+ SCORE					   NUMBER
+ RUNDATE				   DATE
+ PAIR					   VARCHAR2(7)
+ YDATE					   DATE
+
+18:24:09 SQL> SET LINES 166
+18:24:09 SQL> 
+18:24:09 SQL> DROP TABLE svm62tmp;
+DROP TABLE svm62tmp
+           *
+ERROR at line 1:
+ORA-00942: table or view does not exist
+
+
+Elapsed: 00:00:00.05
+18:24:09 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.20
+18:24:09 SQL> 
+18:24:09 SQL> 
+18:24:09 SQL> CREATE TABLE svm62tmp COMPRESS AS
+18:24:09   2  SELECT
+18:24:09   3  prdate
+18:24:09   4  ,targ
+18:24:09   5  ,AVG(score)score
+18:24:09   6  ,MAX(rundate)rundate
+18:24:09   7  ,MAX(pair)pair
+18:24:09   8  ,MAX(ydate)ydate
+18:24:09   9  FROM svm62scores
+18:24:09  10  GROUP BY prdate,targ
+18:24:09  11  /
+
+Table created.
+
+Elapsed: 00:00:00.97
+18:24:10 SQL> 
+18:24:10 SQL> SELECT COUNT(*)FROM svm62scores;
+
+  COUNT(*)
+----------
+    240723
+
+Elapsed: 00:00:00.01
+18:24:10 SQL> SELECT COUNT(*)FROM svm62tmp;
+
+  COUNT(*)
+----------
+     90525
+
+Elapsed: 00:00:00.02
+18:24:10 SQL> 
+18:24:10 SQL> DROP TABLE svm62scores;
+
+Table dropped.
+
+Elapsed: 00:00:00.48
+18:24:10 SQL> RENAME svm62tmp TO svm62scores;
+
+Table renamed.
+
+Elapsed: 00:00:00.07
+18:24:10 SQL> 
+18:24:10 SQL> Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options

@@ -101,12 +101,15 @@ b_or_s             action
 ,ROUND(pct_gain,2) pct_gain
 ,price_close
 ,six_hr_gain
+,CASE WHEN(b_or_s='buy'AND pct_gain>0.0)THEN 'good'
+      WHEN(b_or_s='sell'AND pct_gain<0.0)THEN 'good'
+      WHEN(b_or_s='buy'AND pct_gain<0.0)THEN 'bad'
+      WHEN(b_or_s='sell'AND pct_gain>0.0)THEN 'bad'
+      ELSE NULL END goodbad
 FROM w14
 WHERE ydate BETWEEN'2011-01-21 00:00:00'
             AND    '2011-01-21 00:15:00'
 /
-
-exit
 
 SELECT
 pair
@@ -136,51 +139,48 @@ CREATE OR REPLACE VIEW w16 AS
 SELECT
 pair
 ,ydate
-,buy
-,sell
+,b_or_s
 ,pct_gain
 ,score_long
 ,score_short
 FROM w14
-WHERE(buy='buy'OR sell='sell')
+WHERE(b_or_s='buy'OR b_or_s='sell')
 AND ABS(pct_gain)>0
 /
 
 -- Look at weekly distributions of gains:
 
 SELECT
-pair
+b_or_s
+,pair
 ,TO_CHAR(ydate,'YYYY_MM')mnth
 ,TO_CHAR(ydate,'W')wweek
-,buy
-,sell
 ,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
 ,CORR((score_short-score_long),pct_gain)corr_short
 FROM w16
-GROUP BY pair,TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W'),buy,sell
+GROUP BY b_or_s,pair,TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W')
 HAVING COUNT(pct_gain) > 22
-ORDER BY pair,TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W'),buy,sell
+ORDER BY b_or_s,pair,TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W')
 /
 
 -- Aggregate the pairs of above query:
 
 SELECT
-TO_CHAR(ydate,'YYYY_MM')mnth
+b_or_s
+,TO_CHAR(ydate,'YYYY_MM')mnth
 ,TO_CHAR(ydate,'W')wweek
-,buy
-,sell
 ,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
 ,CORR((score_short-score_long),pct_gain)corr_short
 FROM w16
-GROUP BY TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W'),buy,sell
+GROUP BY b_or_s,TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W')
 HAVING COUNT(pct_gain) > 33
-ORDER BY TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W'),buy,sell
+ORDER BY b_or_s,TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W')
 /
 
 exit
