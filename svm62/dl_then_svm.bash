@@ -24,7 +24,7 @@ set -x
 date
 
 cd $SVM62/ibapi
-./5min_data.bash $1
+./5min_data.bash
 
 # Merge IB data with Dukas data:
 sqt>update_di5min.txt<<EOF
