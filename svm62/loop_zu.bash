@@ -26,11 +26,11 @@ cd $SVM62
 ./svmpair.bash usd_chf > /pt/s/cron/out/svm_bash_chf_usd.${myts}.txt 2>&1
 ./svmpair.bash usd_jpy > /pt/s/cron/out/svm_bash_jpy_usd.${myts}.txt 2>&1
 
-./svmpair.bash ech_usd > /pt/s/cron/out/svm_bash_ech_usd.${myts}.txt 2>&1
-./svmpair.bash egb_usd > /pt/s/cron/out/svm_bash_egb_usd.${myts}.txt 2>&1
-./svmpair.bash eau_usd > /pt/s/cron/out/svm_bash_eau_usd.${myts}.txt 2>&1
-./svmpair.bash ejp_usd > /pt/s/cron/out/svm_bash_ejp_usd.${myts}.txt 2>&1
-./svmpair.bash ajp_usd > /pt/s/cron/out/svm_bash_ajp_usd.${myts}.txt 2>&1
+./svmpair.bash eur_chf > /pt/s/cron/out/svm_bash_eur_chf.${myts}.txt 2>&1
+./svmpair.bash eur_gbp > /pt/s/cron/out/svm_bash_eur_gbp.${myts}.txt 2>&1
+./svmpair.bash eur_aud > /pt/s/cron/out/svm_bash_eur_aud.${myts}.txt 2>&1
+./svmpair.bash eur_jpy > /pt/s/cron/out/svm_bash_eur_jpy.${myts}.txt 2>&1
+./svmpair.bash aud_jpy > /pt/s/cron/out/svm_bash_aud_jpy.${myts}.txt 2>&1
 
 sleep 3
 

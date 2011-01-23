@@ -9,12 +9,12 @@
 
 TRUNCATE TABLE op5min;
 
--- Create the EUR/CHF pair and call it ech_usd:
+-- Create the EUR/CHF pair:
 
 INSERT INTO op5min(prdate,pair,ydate,clse)
 SELECT
-'ech_usd'||e.ydate prdate
-,'ech_usd' pair
+'eur_chf'||e.ydate prdate
+,'eur_chf' pair
 ,e.ydate
 ,e.clse*c.clse clse
 FROM di5min0 e, di5min0 c
@@ -23,12 +23,12 @@ AND e.pair = 'eur_usd'
 AND c.pair = 'usd_chf'
 /
 
--- Create the EUR/GBP pair and call it egb_usd:
+-- Create the EUR/GBP pair:
 
 INSERT INTO op5min(prdate,pair,ydate,clse)
 SELECT
-'egb_usd'||e.ydate prdate
-,'egb_usd' pair
+'eur_gbp'||e.ydate prdate
+,'eur_gbp' pair
 ,e.ydate
 ,e.clse/g.clse clse
 FROM di5min0 e, di5min0 g
@@ -37,12 +37,12 @@ AND e.pair = 'eur_usd'
 AND g.pair = 'gbp_usd'
 /
 
--- Create the EUR/JPY pair and call it ejp_usd:
+-- Create the EUR/JPY pair:
 
 INSERT INTO op5min(prdate,pair,ydate,clse)
 SELECT
-'ejp_usd'||e.ydate prdate
-,'ejp_usd' pair
+'eur_jpy'||e.ydate prdate
+,'eur_jpy' pair
 ,e.ydate
 ,e.clse*j.clse clse
 FROM di5min0 e, di5min0 j
@@ -51,12 +51,12 @@ AND e.pair = 'eur_usd'
 AND j.pair = 'usd_jpy'
 /
 
--- Create the AUD/JPY pair and call it ajp_usd:
+-- Create the AUD/JPY pair:
 
 INSERT INTO op5min(prdate,pair,ydate,clse)
 SELECT
-'ajp_usd'||a.ydate prdate
-,'ajp_usd' pair
+'aud_jpy'||a.ydate prdate
+,'aud_jpy' pair
 ,a.ydate
 ,a.clse*j.clse clse
 FROM di5min0 a, di5min0 j
