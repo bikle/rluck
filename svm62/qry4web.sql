@@ -92,15 +92,15 @@ COLUMN avg_pct_gain FORMAT  999.9999
 
 SELECT
 b_or_s             action
-,ROUND(pct_gain,2) pct_gain
-,ROUND(score_long,2) score_b
-,ROUND(score_short,2)score_s
-,six_hr_gain
 ,pair
 ,ydate  date_open
-,TO_CHAR(ydate6,'MM-DD HH24:MI') date_close
 ,price_open
+,ROUND(score_long,2) score_b
+,ROUND(score_short,2)score_s
+,TO_CHAR(ydate6,'MM-DD HH24:MI') date_close
+,ROUND(pct_gain,2) pct_gain
 ,price_close
+,six_hr_gain
 FROM w14
 WHERE ydate BETWEEN'2011-01-21 00:00:00'
             AND    '2011-01-21 00:15:00'
