@@ -166,6 +166,25 @@ HAVING COUNT(pct_gain) > 22
 ORDER BY b_or_s,pair,TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W')
 /
 
+-- Look at pair distributions of gains:
+
+SELECT
+pair
+,b_or_s
+,TO_CHAR(ydate,'YYYY_MM')mnth
+,AVG(pct_gain)   avg_pct_gain
+,SUM(pct_gain)   sum_pct_gain
+,COUNT(pct_gain) ccount
+,CORR((score_long-score_short),pct_gain)corr_long
+,CORR((score_short-score_long),pct_gain)corr_short
+FROM w16
+GROUP BY pair,b_or_s,TO_CHAR(ydate,'YYYY_MM')
+HAVING COUNT(pct_gain) > 22
+ORDER BY pair,b_or_s,TO_CHAR(ydate,'YYYY_MM')
+/
+
+exit
+
 -- Aggregate the pairs of above query:
 
 SELECT

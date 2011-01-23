@@ -11,8 +11,9 @@ export myts=`date +%Y_%m_%d_%H_%M`
 ./svmpair.bash usd_chf
 ./svmpair.bash usd_jpy
 
-./svmpair.bash ech_usd
-./svmpair.bash egb_usd
-./svmpair.bash eau_usd
-./svmpair.bash ejp_usd
-./svmpair.bash ajp_usd
+./svmpair.bash aud_jpy
+./svmpair.bash eur_aud
+./svmpair.bash eur_chf
+./svmpair.bash eur_gbp
+./svmpair.bash eur_jpy
+
