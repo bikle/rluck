@@ -4,8 +4,6 @@ set -x
 export myts=`date +%Y_%m_%d_%H_%M`
 
 ./svmpair.bash aud_usd
-exit
-
 ./svmpair.bash eur_usd
 ./svmpair.bash gbp_usd
 
