@@ -72,12 +72,41 @@ p.pair
 -- Next page:
 ,24*(ydate6 - p.ydate)hold_duration
 ,100*six_hr_gain / price_open pct_gain
-,CASE WHEN(score_long-score_short)>0.5 THEN'buy'ELSE NULL END buy
-,CASE WHEN(score_short-score_long)>0.5 THEN'sell'ELSE NULL END sell
+,CASE WHEN(score_long-score_short)>0.5 THEN'buy'
+      WHEN(score_short-score_long)>0.5 THEN'sell'ELSE NULL END b_or_s
 FROM w10 p, w12 s
 WHERE p.prdate = s.prdate
 ORDER BY p.prdate
 /
+
+COLUMN action FORMAT A6
+COLUMN price_open  FORMAT 999.9999
+COLUMN price_close FORMAT 999.9999
+COLUMN six_hr_gain FORMAT  99.9999
+COLUMN score_long  FORMAT   9.99
+COLUMN score_short FORMAT   9.99
+COLUMN hold_duration FORMAT  99.99
+COLUMN pct_gain FORMAT      999.9999
+COLUMN sum_pct_gain FORMAT 9999.9999
+COLUMN avg_pct_gain FORMAT  999.9999
+
+SELECT
+b_or_s             action
+,ROUND(pct_gain,2) pct_gain
+,ROUND(score_long,2) score_b
+,ROUND(score_short,2)score_s
+,six_hr_gain
+,pair
+,ydate  date_open
+,TO_CHAR(ydate6,'MM-DD HH24:MI') date_close
+,price_open
+,price_close
+FROM w14
+WHERE ydate BETWEEN'2011-01-21 00:00:00'
+            AND    '2011-01-21 00:15:00'
+/
+
+exit
 
 SELECT
 pair
@@ -91,10 +120,6 @@ pair
 FROM w14
 WHERE ydate > sysdate - 7/24
 AND ydate6 IS NOT NULL
-
-COLUMN pct_gain FORMAT      999.9999
-COLUMN sum_pct_gain FORMAT 9999.9999
-COLUMN avg_pct_gain FORMAT  999.9999
 
 SELECT
 pair
@@ -154,7 +179,7 @@ TO_CHAR(ydate,'YYYY_MM')mnth
 ,CORR((score_short-score_long),pct_gain)corr_short
 FROM w16
 GROUP BY TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W'),buy,sell
-HAVING COUNT(pct_gain) > 222
+HAVING COUNT(pct_gain) > 33
 ORDER BY TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W'),buy,sell
 /
 
