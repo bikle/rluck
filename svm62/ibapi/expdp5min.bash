@@ -12,7 +12,7 @@ cd /pt/s/rluck/svm62/ibapi/
 # touch /oracle/app/oracle/admin/orcl/dpdump/x5min.dpdmp
 mv /oracle/app/oracle/admin/orcl/dpdump/x5min.dpdmp /oracle/app/oracle/admin/orcl/dpdump/x5min.${myts}.dpdmp
 
-expdp trade/t  dumpfile=x5min.dpdmp tables=ibf5min,di5min,dukas5min,op5min,svm62scores
+expdp trade/t  dumpfile=x5min.dpdmp tables=ibf5min,di5min,dukas5min,op5min,svm62scores,ibf_old,ibf_dups_old,ibf_dups,ibf_stage
 chmod 644 /oracle/app/oracle/admin/orcl/dpdump/x5min.dpdmp
 
 echo 'scp -p /oracle/app/oracle/admin/orcl/dpdump/x5min.dpdmp z:/oracle/app/oracle/admin/orcl/dpdump'

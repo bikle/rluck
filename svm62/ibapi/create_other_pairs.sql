@@ -9,6 +9,20 @@
 
 TRUNCATE TABLE op5min;
 
+-- Create the EUR/AUD pair:
+
+INSERT INTO op5min(prdate,pair,ydate,clse)
+SELECT
+'eur_aud'||e.ydate prdate
+,'eur_aud' pair
+,e.ydate
+,e.clse/g.clse clse
+FROM di5min0 e, di5min0 g
+WHERE e.ydate = g.ydate
+AND e.pair = 'eur_usd'
+AND g.pair = 'aud_usd'
+/
+
 -- Create the EUR/CHF pair:
 
 INSERT INTO op5min(prdate,pair,ydate,clse)
@@ -36,6 +50,7 @@ WHERE e.ydate = g.ydate
 AND e.pair = 'eur_usd'
 AND g.pair = 'gbp_usd'
 /
+
 
 -- Create the EUR/JPY pair:
 
