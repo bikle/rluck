@@ -183,8 +183,6 @@ HAVING COUNT(pct_gain) > 22
 ORDER BY pair,b_or_s,TO_CHAR(ydate,'YYYY_MM')
 /
 
-exit
-
 -- Aggregate the pairs of above query:
 
 SELECT
@@ -202,186 +200,37 @@ HAVING COUNT(pct_gain) > 33
 ORDER BY b_or_s,TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W')
 /
 
-exit
+-- Aggregate the weeks:
 
-
-
--- Look at the last 2 weeks:
 SELECT
-buy
-,sell
+b_or_s
+,pair
 ,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
 ,CORR((score_short-score_long),pct_gain)corr_short
 FROM w16
-WHERE ydate > sysdate - 15
-GROUP BY buy,sell
-ORDER BY buy,sell
+GROUP BY b_or_s,pair
+HAVING COUNT(pct_gain) > 33
+ORDER BY b_or_s,pair
 /
 
-SELECT
-pair
-,buy
-,sell
-,AVG(pct_gain)   avg_pct_gain
-,SUM(pct_gain)   sum_pct_gain
-,COUNT(pct_gain) ccount
-,CORR((score_long-score_short),pct_gain)corr_long
-,CORR((score_short-score_long),pct_gain)corr_short
-FROM w16
-WHERE ydate > sysdate - 15
-GROUP BY buy,sell,pair
-ORDER BY buy,sell,pair
-/
+-- Aggregate by day:
 
 SELECT
-TO_CHAR(ydate,'D')Dn
+b_or_s
+,TO_CHAR(ydate,'D')Dn
 ,TO_CHAR(ydate,'Dy')Dday
-,buy
-,sell
 ,AVG(pct_gain)   avg_pct_gain
 ,SUM(pct_gain)   sum_pct_gain
 ,COUNT(pct_gain) ccount
 ,CORR((score_long-score_short),pct_gain)corr_long
 ,CORR((score_short-score_long),pct_gain)corr_short
 FROM w16
-WHERE ydate > sysdate - 15
-GROUP BY buy,sell,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
-ORDER BY buy,sell,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
+GROUP BY b_or_s,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
+ORDER BY b_or_s,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
 /
 
--- Look at the last week:
-
-SELECT
-buy
-,sell
-,AVG(pct_gain)   avg_pct_gain
-,SUM(pct_gain)   sum_pct_gain
-,COUNT(pct_gain) ccount
-,CORR((score_long-score_short),pct_gain)corr_long
-,CORR((score_short-score_long),pct_gain)corr_short
-FROM w16
-WHERE ydate > sysdate - 8
-GROUP BY buy,sell
-ORDER BY buy,sell
-/
-
-SELECT
-pair
-,buy
-,sell
-,AVG(pct_gain)   avg_pct_gain
-,SUM(pct_gain)   sum_pct_gain
-,COUNT(pct_gain) ccount
-,CORR((score_long-score_short),pct_gain)corr_long
-,CORR((score_short-score_long),pct_gain)corr_short
-FROM w16
-WHERE ydate > sysdate - 8
-GROUP BY buy,sell,pair
-ORDER BY buy,sell,pair
-/
-
-SELECT
-TO_CHAR(ydate,'D')Dn
-,TO_CHAR(ydate,'Dy')Dday
-,buy
-,sell
-,AVG(pct_gain)   avg_pct_gain
-,SUM(pct_gain)   sum_pct_gain
-,COUNT(pct_gain) ccount
-,CORR((score_long-score_short),pct_gain)corr_long
-,CORR((score_short-score_long),pct_gain)corr_short
-FROM w16
-WHERE ydate > sysdate - 8
-GROUP BY buy,sell,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
-ORDER BY buy,sell,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
-/
-
-SELECT
-pair
-,buy
-,sell
-,AVG(pct_gain)   avg_pct_gain
-,SUM(pct_gain)   sum_pct_gain
-,COUNT(pct_gain) ccount
-,CORR((score_long-score_short),pct_gain)corr_long
-,CORR((score_short-score_long),pct_gain)corr_short
-FROM w16
-WHERE ydate > sysdate - 167/24
-GROUP BY buy,sell,pair
-ORDER BY buy,sell,pair
-/
-
-SELECT
-buy
-,sell
-,AVG(pct_gain)   avg_pct_gain
-,SUM(pct_gain)   sum_pct_gain
-,COUNT(pct_gain) ccount
-,CORR((score_long-score_short),pct_gain)corr_long
-,CORR((score_short-score_long),pct_gain)corr_short
-FROM w16
-WHERE ydate > sysdate - 167/24
-GROUP BY buy,sell
-ORDER BY buy,sell
-/
-
-SELECT
-buy
-,sell
-,AVG(pct_gain)   avg_pct_gain
-,SUM(pct_gain)   sum_pct_gain
-,COUNT(pct_gain) ccount
-,CORR((score_long-score_short),pct_gain)corr_long
-,CORR((score_short-score_long),pct_gain)corr_short
-FROM w16
-WHERE ydate > sysdate - 87/24
-GROUP BY buy,sell
-ORDER BY buy,sell
-/
-
-SELECT
-buy
-,sell
-,AVG(pct_gain)   avg_pct_gain
-,SUM(pct_gain)   sum_pct_gain
-,COUNT(pct_gain) ccount
-,CORR((score_long-score_short),pct_gain)corr_long
-,CORR((score_short-score_long),pct_gain)corr_short
-FROM w16
-WHERE ydate > sysdate - 47/24
-GROUP BY buy,sell
-ORDER BY buy,sell
-/
-
-SELECT
-buy
-,sell
-,AVG(pct_gain)   avg_pct_gain
-,SUM(pct_gain)   sum_pct_gain
-,COUNT(pct_gain) ccount
-,CORR((score_long-score_short),pct_gain)corr_long
-,CORR((score_short-score_long),pct_gain)corr_short
-FROM w16
-WHERE ydate > sysdate - 27/24
-GROUP BY buy,sell
-ORDER BY buy,sell
-/
-
-SELECT
-buy
-,sell
-,AVG(pct_gain)   avg_pct_gain
-,SUM(pct_gain)   sum_pct_gain
-,COUNT(pct_gain) ccount
-,CORR((score_long-score_short),pct_gain)corr_long
-,CORR((score_short-score_long),pct_gain)corr_short
-FROM w16
-WHERE ydate > sysdate - 17/24
-GROUP BY buy,sell
-ORDER BY buy,sell
-/
 
 exit
