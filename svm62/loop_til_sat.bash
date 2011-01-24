@@ -15,7 +15,7 @@ do
   date
   the_day=`date +"%A"`
   echo Today is $the_day
-  echo Now calling ./loop_zu.bash
+  echo Now calling ./loop_z3.bash
   ./loop_z3.bash
   sleep 2
 done
