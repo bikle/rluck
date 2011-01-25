@@ -8,7 +8,7 @@
 set -x
 export myts=`date +%Y_%m_%d_%H_%M`
 
-expdp trade/t dumpfile=ystk.${myts}.dpdmp tables=ystk
+expdp trade/t dumpfile=ystk.${myts}.dpdmp tables=ystk,ystk_stage
 
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/ystk.${myts}.dpdmp l:/oracle/app/oracle/admin/orcl/dpdump/"
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/ystk.${myts}.dpdmp z:/oracle/app/oracle/admin/orcl/dpdump/"
