@@ -53,7 +53,7 @@ prdate
 ,g41
 ,s.sc_corr
 FROM modsrc
-,(SELECT AVG(sc_corr)sc_corr FROM modsrc WHERE 1+ydate>(SELECT MAX(ydate)FROM modsrc))s
+,(SELECT AVG(sc_corr)sc_corr FROM modsrc WHERE gattn='up'AND 1+ydate>(SELECT MAX(ydate)FROM modsrc))s
 WHERE ydate = '&1'||' '||'&2'
 AND pair = '&3'
 /
@@ -61,7 +61,7 @@ AND pair = '&3'
 -- rpt
 -- We should see just 1 row:
 
-SELECT COUNT(prdate) FROM sme
+SELECT COUNT(prdate) FROM sme;
 
 -- Build the model:
 CREATE OR REPLACE VIEW bme AS
