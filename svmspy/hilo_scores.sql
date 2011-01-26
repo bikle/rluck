@@ -6,15 +6,21 @@
 -- I intend to look at output from this script before I open positions.
 
 
-COLUMN clse  FORMAT 999.9999
+COLUMN tkrdate  FORMAT A25
+COLUMN clse  FORMAT 999.99
+COLUMN diff  FORMAT 99.99
+COLUMN score_l  FORMAT 99.9999
+COLUMN score_s  FORMAT 99.9999
+COLUMN score_corr  FORMAT 99.999999
 
 -- Get recent CORR()tween score and g1:
 @score_corr.sql
 
 SELECT
 tkrdate
-,ROUND(score_long,2) score_long
-,ROUND(score_short,2)score_short
+,ROUND(score_long,2) score_l
+,ROUND(score_short,2)score_s
+,ROUND(score_long-score_short,2)diff
 ,CASE WHEN(score_long - score_short)>0.5 THEN'buy'
       WHEN(score_short - score_long)>0.5 THEN'sell'
       ELSE NULL END b_or_s
