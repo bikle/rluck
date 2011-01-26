@@ -272,15 +272,47 @@ GROUP BY pair,trend,gatt
 ORDER BY pair,trend,gatt
 /
 
+
+CREATE OR REPLACE VIEW sc12 AS
+SELECT
+m.pair
+,m.ydate
+,m.prdate
+,l.score score_long
+,s.score score_short
+,m.g6
+FROM svm62scores l,svm62scores s,svm6162 m
+WHERE l.targ='gatt'
+AND   s.targ='gattn'
+AND l.prdate = s.prdate
+AND l.prdate = m.prdate
+-- Speed things up:
+AND l.pair = '&1'
+AND s.pair = '&1'
+/
+
+DROP TABLE score_corr;
+
+CREATE TABLE score_corr COMPRESS AS
+SELECT
+pair
+-- ,ydate
+,prdate
+-- Find corr() tween score and g6 over 2 day period:
+,CORR((score_long - score_short),g6)
+  OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 2*24*60/5 PRECEDING AND CURRENT ROW)sc_corr
+FROM sc12
+/
+
 DROP TABLE modsrc;
 
 PURGE RECYCLEBIN;
 
 CREATE TABLE modsrc COMPRESS AS
 SELECT
-pair       
+s.pair       
 ,ydate      
-,prdate     
+,s.prdate     
 ,trend      
 ,g6
 ,gatt
@@ -327,7 +359,10 @@ pair
 ,SUM(g6)OVER(PARTITION BY trend,att37 ORDER BY ydate ROWS BETWEEN 12*30 PRECEDING AND CURRENT ROW)g39
 ,SUM(g6)OVER(PARTITION BY trend,att37 ORDER BY ydate ROWS BETWEEN 12*20 PRECEDING AND CURRENT ROW)g40
 ,SUM(g6)OVER(PARTITION BY trend,att37 ORDER BY ydate ROWS BETWEEN 12*10 PRECEDING AND CURRENT ROW)g41
-FROM svm6162
+-- Recent CORR()tween scores and gains:
+,NVL(sc_corr,0)sc_corr
+FROM svm6162 s,score_corr c
+WHERE s.prdate = c.prdate(+)
 /
 
 ANALYZE TABLE modsrc COMPUTE STATISTICS;
@@ -344,5 +379,10 @@ FROM modsrc
 GROUP BY pair,trend,gatt
 ORDER BY pair,trend,gatt
 /
+
+
+SELECT pair,COUNT(pair)FROM svm6102 GROUP BY pair;
+
+SELECT pair,COUNT(pair)FROM modsrc GROUP BY pair;
 
 exit
