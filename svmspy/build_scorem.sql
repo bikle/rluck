@@ -24,8 +24,9 @@ AND ydate > '2010-12-01'
 -- AND ydate > sysdate - 0.5/24
 AND tkr = '&1'
 )
-ORDER BY DBMS_RANDOM.VALUE
--- ORDER BY ydate,cmd
+-- ORDER BY DBMS_RANDOM.VALUE
+WHERE ydate > sysdate - 1/24
+ORDER BY ydate,cmd
 /
 
 

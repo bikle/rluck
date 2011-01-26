@@ -14,6 +14,7 @@ date
 
 cd $SVMSPY
 
+./dl_then_svm.bash SWC
 ./dl_then_svm.bash AAPL
 ./dl_then_svm.bash ABT
 ./dl_then_svm.bash ABX

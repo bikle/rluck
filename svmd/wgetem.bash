@@ -15,6 +15,7 @@ rm -f *csv
 # wget em
 
 wget --output-document=TLT.csv http://ichart.finance.yahoo.com/table.csv?s=TLT
+wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=SWC
 
 wget --output-document=EWZ.csv http://ichart.finance.yahoo.com/table.csv?s=EWZ
 wget --output-document=MDY.csv http://ichart.finance.yahoo.com/table.csv?s=MDY
