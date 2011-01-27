@@ -228,18 +228,57 @@ GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
 /
 
+CREATE OR REPLACE VIEW sc12tkr AS
+SELECT
+m.tkr
+,m.ydate
+,m.tkrdate
+,l.score score_long
+,s.score score_short
+,m.g1
+FROM ystkscores l,ystkscores s,stk_svmd16 m
+WHERE l.targ='gatt'
+AND   s.targ='gattn'
+AND l.tkrdate = s.tkrdate
+AND l.tkrdate = m.tkrdate
+-- Speed things up:
+AND l.tkr = '&1'
+AND s.tkr = '&1'
+/
+
+DROP TABLE score_corr_tkr;
+
+CREATE TABLE score_corr_tkr COMPRESS AS
+SELECT tkrdate,AVG(sc_corr)sc_corr FROM
+(
+  SELECT
+  tkrdate
+  -- Find corr() tween score and g1 over 8 day period:
+  ,CORR((score_long - score_short),g1)
+    OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8 PRECEDING AND CURRENT ROW)sc_corr
+  FROM sc12tkr
+)
+GROUP BY tkrdate
+/
+
 -- Now I derive goodness attributes:
 
 DROP TABLE stk_ms;
+
+PURGE RECYCLEBIN;
+
 CREATE TABLE stk_ms COMPRESS AS
 SELECT
 tkr
 ,ydate
-,tkrdate
+,s.tkrdate
 ,trend
 ,g1
 ,gatt
 ,gattn
+-- Recent CORR()tween scores and gains:
+,NVL(sc_corr,0)sc_corr
+-- Goodness attributes:
 ,SUM(g1)OVER(PARTITION BY trend,att00 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g00
 ,SUM(g1)OVER(PARTITION BY trend,att01 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g01
 ,SUM(g1)OVER(PARTITION BY trend,att02 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g02
@@ -271,7 +310,8 @@ tkr
 ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 60 PRECEDING AND CURRENT ROW)g27
 ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 30 PRECEDING AND CURRENT ROW)g28
 ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 10 PRECEDING AND CURRENT ROW)g29
-FROM stk_svmd16
+FROM stk_svmd16s,score_corr_tkr c
+WHERE s.tkrdate = c.tkrdate(+)
 /
 
 -- rpt

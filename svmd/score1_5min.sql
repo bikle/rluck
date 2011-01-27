@@ -9,6 +9,7 @@ CREATE OR REPLACE VIEW sme AS
 SELECT
 tkrdate
 ,NULL gatt
+,s.sc_corr
 ,g00
 ,g01
 ,g02
@@ -40,6 +41,7 @@ tkrdate
 ,g28
 ,g29
 FROM stk_ms
+,(SELECT AVG(sc_corr)sc_corr FROM stk_ms WHERE gatt='up'AND 8+ydate>(SELECT MAX(ydate)FROM stk_ms))s
 WHERE ydate = '&1'
 AND tkr = '&2'
 /
@@ -54,6 +56,7 @@ CREATE OR REPLACE VIEW bme AS
 SELECT
 tkrdate
 ,gatt
+,sc_corr
 ,g00
 ,g01
 ,g02

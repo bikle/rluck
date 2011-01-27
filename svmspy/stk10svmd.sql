@@ -271,9 +271,9 @@ GROUP BY tkrdate
 /
 
 -- Now I derive goodness attributes and join with score_corr_tkr:
--- Now I derive goodness attributes:
 
 DROP TABLE stk_ms_svmd_svmspy;
+PURGE RECYCLEBIN;
 CREATE TABLE stk_ms_svmd_svmspy COMPRESS AS
 SELECT
 tkr

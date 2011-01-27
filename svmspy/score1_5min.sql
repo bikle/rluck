@@ -9,7 +9,7 @@ CREATE OR REPLACE VIEW sme AS
 SELECT
 tkrdate
 ,NULL gatt
-,s.sc_corr
+,NVL(s.sc_corr,0)sc_corr
 ,g00
 ,g01
 ,g02
@@ -56,7 +56,7 @@ CREATE OR REPLACE VIEW bme AS
 SELECT
 tkrdate
 ,gatt
-,sc_corr
+,NVL(sc_corr,0)sc_corr
 ,g00
 ,g01
 ,g02
