@@ -39,7 +39,8 @@ tkr
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8 PRECEDING AND CURRENT ROW)max8
 ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 9 PRECEDING AND CURRENT ROW)max9
 ,LEAD(clse,1,NULL)OVER(PARTITION BY tkr ORDER BY ydate)ld
-FROM ystk
+-- ystk21 created here: svmd/cr_ystk21.sql
+FROM ystk21
 WHERE UPPER(tkr)='&1'
 AND ydate > '1990-01-01'
 AND ydate NOT IN(SELECT DISTINCT ydate FROM stk_ms_svmspy WHERE UPPER(tkr)='&1')

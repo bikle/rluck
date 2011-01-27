@@ -32,14 +32,15 @@ SELECT
 tkrdate
 ,ROUND(score_long,2) score_long
 ,ROUND(score_short,2)score_short
-,rundate
+,ROUND(score_long-score_short,2) diff
 ,ROUND(clse,4)clse 
+,rundate
 ,CASE WHEN TO_CHAR(ydate,'dy')='fri'THEN ydate + 3
       WHEN TO_CHAR(ydate,'dy')IN
         ('mon','tue','wed','thu')   THEN ydate + 1
       ELSE NULL END clse_date
 FROM ocj_stk
-WHERE ydate > sysdate - 3/24
+WHERE ydate > sysdate - 1/24
 ORDER BY tkr,ydate
 /
 
