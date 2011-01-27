@@ -161,5 +161,11 @@ sqt>merge.txt<<EOF
 @merge.sql
 EOF
 
+# Create ystk21 which has a more accurate ydate:
+sqt>merge.txt<<EOF
+@cr_ystk21.sql
+EOF
+
+
 exit
 

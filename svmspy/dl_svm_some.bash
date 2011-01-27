@@ -9,16 +9,26 @@ date
 
 cd $SVMSPY
 
-./dl_then_svm.bash DIA	
-./dl_then_svm.bash DIS	
-./dl_then_svm.bash EBAY	
-./dl_then_svm.bash GOOG	
-./dl_then_svm.bash HPQ	
-./dl_then_svm.bash IBM	
-./dl_then_svm.bash QQQQ	
-./dl_then_svm.bash SPY	
-./dl_then_svm.bash WMT	
-./dl_then_svm.bash X	
-./dl_then_svm.bash XOM	
+./dl_then_svm.bash CTSH  
+exit
+
+./dl_then_svm.bash STT   
+./dl_then_svm.bash PG    
+./dl_then_svm.bash RIMM  
+./dl_then_svm.bash VECO  
+./dl_then_svm.bash MON   
+./dl_then_svm.bash WMT   
+./dl_then_svm.bash COF   
+./dl_then_svm.bash CSX   
+./dl_then_svm.bash DIA   
+./dl_then_svm.bash UPS   
+./dl_then_svm.bash EWZ   
+./dl_then_svm.bash BIDU  
+./dl_then_svm.bash TKR   
+./dl_then_svm.bash FDX   
+./dl_then_svm.bash XLE   
+./dl_then_svm.bash TGT   
+./dl_then_svm.bash ARG   
+./dl_then_svm.bash MET   
 
 exit 0
