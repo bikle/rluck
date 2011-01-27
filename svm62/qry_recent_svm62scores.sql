@@ -15,10 +15,10 @@ prdate
       WHEN(score_short-score_long > 0.5)THEN'sell'
       ELSE null END b_or_s
 ,ROUND(score_long-score_short,2) dff
+,ROUND(clse,4)clse 
 ,ROUND(score_long,2)score_long
 ,ROUND(score_short,2)score_short
 ,rundate
-,ROUND(clse,4)clse 
 ,ydate + 6/24 clse_date
 FROM ocj
 WHERE ydate > sysdate - 2/24
