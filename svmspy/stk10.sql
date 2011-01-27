@@ -269,12 +269,16 @@ AND s.tkr = '&1'
 DROP TABLE score_corr_tkr;
 
 CREATE TABLE score_corr_tkr COMPRESS AS
-SELECT
-tkrdate
--- Find corr() tween score and g1 over 8 day period:
-,CORR((score_long - score_short),g1)
-  OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8*24*60/5 PRECEDING AND CURRENT ROW)sc_corr
-FROM sc12tkr
+SELECT tkrdate,AVG(sc_corr)sc_corr FROM
+(
+  SELECT
+  tkrdate
+  -- Find corr() tween score and g1 over 8 day period:
+  ,CORR((score_long - score_short),g1)
+    OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8*24*60/5 PRECEDING AND CURRENT ROW)sc_corr
+  FROM sc12tkr
+)
+GROUP BY tkrdate
 /
 
 -- Now I derive goodness attributes and join with score_corr_tkr:
@@ -338,6 +342,7 @@ tkr
 ,gatt
 ,COUNT(tkr)
 ,AVG(g1)
+,AVG(sc_corr)
 FROM stk_ms_svmspy
 GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
