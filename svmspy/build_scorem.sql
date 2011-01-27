@@ -12,18 +12,18 @@ SELECT cmd,ydate,'&1' tkr FROM
 (
 SELECT '@score1_5min.sql 'cmd,ydate FROM stk_ms_u
 WHERE ydate NOT IN
-  (SELECT ydate FROM stkscores WHERE targ='gatt'AND tkr='&1')
+  (SELECT ydate FROM stkscores WHERE targ='gattn'AND tkr='&1'AND ydate<sysdate-2)
 AND ydate > '2010-12-01'
 AND tkr = '&1'
 UNION
 SELECT '@score1_5min_gattn.sql 'cmd,ydate FROM stk_ms_u
 WHERE ydate NOT IN
-  (SELECT ydate FROM stkscores WHERE targ='gattn'AND tkr='&1')
+  (SELECT ydate FROM stkscores WHERE targ='gattn'AND tkr='&1'AND ydate<sysdate-2)
 AND ydate > '2010-12-01'
 AND tkr = '&1'
 )
 -- ORDER BY DBMS_RANDOM.VALUE
-WHERE ydate > sysdate - 0.3/24
+WHERE ydate > TRUNC(sysdate)
 ORDER BY ydate,cmd
 /
 
