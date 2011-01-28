@@ -322,6 +322,7 @@ tkr
 ,gatt
 ,COUNT(tkr)
 ,AVG(g1)
+,AVG(sc_corr)
 FROM stk_ms
 GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
