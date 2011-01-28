@@ -41,7 +41,7 @@ tkrdate
 ,g28
 ,g29
 FROM stk_ms
-,(SELECT AVG(sc_corr)sc_corr FROM stk_ms WHERE gatt='up'AND 8+ydate>(SELECT MAX(ydate)FROM stk_ms))s
+,(SELECT AVG(sc_corr)sc_corr FROM stk_ms WHERE 8+ydate>'&1')s
 WHERE ydate = '&1'
 AND tkr = '&2'
 /
@@ -49,7 +49,8 @@ AND tkr = '&2'
 -- rpt
 -- We should see just 1 row:
 
-SELECT COUNT(tkrdate) FROM sme
+SELECT COUNT(tkrdate) FROM sme;
+SELECT AVG(sc_corr)sc_corr FROM stk_ms WHERE 8+ydate>'&1';
 
 -- Build the model:
 CREATE OR REPLACE VIEW bme AS
@@ -96,7 +97,7 @@ AND tkr = '&2'
 
 -- rpt
 
-SELECT gatt, COUNT(tkrdate) FROM bme GROUP BY gatt
+SELECT gatt, AVG(sc_corr), COUNT(tkrdate) FROM bme GROUP BY gatt;
 
 SELECT MAX(tkrdate) FROM bme
 

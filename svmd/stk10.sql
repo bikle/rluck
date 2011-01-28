@@ -261,6 +261,9 @@ SELECT tkrdate,AVG(sc_corr)sc_corr FROM
 GROUP BY tkrdate
 /
 
+-- rpt
+SELECT AVG(sc_corr),COUNT(sc_corr)FROM score_corr_tkr;
+
 -- Now I derive goodness attributes:
 
 DROP TABLE stk_ms;
@@ -326,6 +329,20 @@ tkr
 FROM stk_ms
 GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
+/
+
+SELECT
+tkr
+,trend
+,gattn
+,MIN(ydate)
+,COUNT(tkr)
+,MAX(ydate)
+,AVG(g1)
+,AVG(sc_corr)
+FROM stk_ms
+GROUP BY tkr,trend,gattn
+ORDER BY tkr,trend,gattn
 /
 
 SELECT
