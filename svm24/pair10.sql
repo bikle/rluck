@@ -64,8 +64,6 @@ FROM svm2410
 GROUP BY pair
 /
 
-exit
-
 -- Derive trend, clse-relations, moving correlation of clse, and date related params:
 DROP TABLE svm2412;
 CREATE TABLE svm2412 COMPRESS AS
@@ -132,12 +130,18 @@ ORDER BY ydate
 
 SELECT
 pair
+,TO_CHAR(ydate,'D')dnum
+,TO_CHAR(ydate,'dy')dday
+,AVG(g1)
 ,COUNT(pair)
 ,MIN(clse),MAX(clse)
 ,MIN(ydate),MAX(ydate)
 FROM svm2412
-GROUP BY pair
+GROUP BY pair,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'dy')
+ORDER BY pair,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'dy')
 /
+
+exit
 
 -- Prepare for derivation of NTILE based params:
 
