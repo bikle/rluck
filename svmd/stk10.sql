@@ -246,23 +246,23 @@ AND l.tkr = '&1'
 AND s.tkr = '&1'
 /
 
-DROP TABLE score_corr_tkr;
-
-CREATE TABLE score_corr_tkr COMPRESS AS
-SELECT tkrdate,AVG(sc_corr)sc_corr FROM
-(
-  SELECT
-  tkrdate
-  -- Find corr() tween score and g1 over 8 day period:
-  ,CORR((score_long - score_short),g1)
-    OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8 PRECEDING AND CURRENT ROW)sc_corr
-  FROM sc12tkr
-)
-GROUP BY tkrdate
-/
-
--- rpt
-SELECT AVG(sc_corr),COUNT(sc_corr)FROM score_corr_tkr;
+-- DROP TABLE score_corr_tkr;
+-- 
+-- CREATE TABLE score_corr_tkr COMPRESS AS
+-- SELECT tkrdate,AVG(sc_corr)sc_corr FROM
+-- (
+--   SELECT
+--   tkrdate
+--   -- Find corr() tween score and g1 over 8 day period:
+--   ,CORR((score_long - score_short),g1)
+--     OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8 PRECEDING AND CURRENT ROW)sc_corr
+--   FROM sc12tkr
+-- )
+-- GROUP BY tkrdate
+-- /
+-- 
+-- -- rpt
+-- SELECT AVG(sc_corr),COUNT(sc_corr)FROM score_corr_tkr;
 
 -- Now I derive goodness attributes:
 
@@ -280,7 +280,7 @@ tkr
 ,gatt
 ,gattn
 -- Recent CORR()tween scores and gains:
-,NVL(sc_corr,0)sc_corr
+-- ,NVL(sc_corr,0)sc_corr
 -- Goodness attributes:
 ,SUM(g1)OVER(PARTITION BY trend,att00 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g00
 ,SUM(g1)OVER(PARTITION BY trend,att01 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g01
@@ -313,8 +313,9 @@ tkr
 ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 60 PRECEDING AND CURRENT ROW)g27
 ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 30 PRECEDING AND CURRENT ROW)g28
 ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 10 PRECEDING AND CURRENT ROW)g29
-FROM stk_svmd16 s,score_corr_tkr c
-WHERE s.tkrdate = c.tkrdate(+)
+-- FROM stk_svmd16 s,score_corr_tkr c
+-- WHERE s.tkrdate = c.tkrdate(+)
+FROM stk_svmd16 s
 /
 
 -- rpt
@@ -325,7 +326,7 @@ tkr
 ,gatt
 ,COUNT(tkr)
 ,AVG(g1)
-,AVG(sc_corr)
+-- ,AVG(sc_corr)
 FROM stk_ms
 GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
@@ -339,7 +340,7 @@ tkr
 ,COUNT(tkr)
 ,MAX(ydate)
 ,AVG(g1)
-,AVG(sc_corr)
+-- ,AVG(sc_corr)
 FROM stk_ms
 GROUP BY tkr,trend,gattn
 ORDER BY tkr,trend,gattn

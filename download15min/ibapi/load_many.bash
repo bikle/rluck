@@ -18,6 +18,7 @@ echo I am running an export b4 starting.
 
 date
 
+./15min_data.bash SWC
 ./15min_data.bash AAPL
 ./15min_data.bash ABT
 ./15min_data.bash ABX

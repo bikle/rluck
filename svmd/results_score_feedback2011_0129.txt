@@ -1,0 +1,292 @@
+/pt/s/rluck/svmd/results_score_feedback2011_0129.txt
+
+This file helps me compare 2 scoring schemes.
+
+The first scheme uses no feedback from ystkscores.
+
+The 2nd scheme uses feedback.
+
+It looks like adding feedback is not a valid idea.
+
+
+
+I show results from the 1st scheme and then the 2nd:
+
+
+20:03:09 SQL> @score_corr.sql
+20:58:20 SQL> --
+20:58:20 SQL> -- score_corr.sql
+20:58:20 SQL> --
+20:58:20 SQL> 
+20:58:20 SQL> -- I use this script to help me see recent CORR() between score and gain.
+20:58:20 SQL> 
+20:58:20 SQL> -- I start by getting the 1 day gain for each tkrdate.
+20:58:20 SQL> CREATE OR REPLACE VIEW scc10svmd AS
+20:58:20   2  SELECT
+20:58:20   3  tkrdate
+20:58:20   4  ,tkr
+20:58:20   5  ,ydate
+20:58:20   6  ,LEAD(clse,1,NULL)OVER(PARTITION BY tkr ORDER BY ydate)-clse g1
+20:58:20   7  FROM ystk
+20:58:20   8  WHERE ydate > sysdate - 800
+20:58:20   9  AND tkr='SPY'
+20:58:20  10  ORDER BY tkr,ydate
+20:58:20  11  /
+
+View created.
+
+Elapsed: 00:00:00.11
+20:58:20 SQL> 
+20:58:20 SQL> -- rpt
+20:58:20 SQL> SELECT tkr,AVG(g1)FROM scc10svmd GROUP BY tkr
+20:58:20   2  
+20:58:20 SQL> CREATE OR REPLACE VIEW scc12svmd AS
+20:58:20   2  SELECT
+20:58:20   3  m.tkr
+20:58:20   4  ,m.ydate
+20:58:20   5  ,m.tkrdate
+20:58:20   6  ,l.score score_long
+20:58:20   7  ,s.score score_short
+20:58:20   8  ,ROUND(l.score,1) rscore_long
+20:58:20   9  ,ROUND(s.score,1) rscore_short
+20:58:20  10  ,m.g1
+20:58:20  11  FROM ystkscores l,ystkscores s,scc10svmd m
+20:58:20  12  WHERE l.targ='gatt'
+20:58:20  13  AND   s.targ='gattn'
+20:58:20  14  AND l.tkrdate = s.tkrdate
+20:58:20  15  AND l.tkrdate = m.tkrdate
+20:58:20  16  -- Speed things up:
+20:58:20  17  AND l.ydate > sysdate - 800
+20:58:20  18  AND s.ydate > sysdate - 800
+20:58:20  19  AND l.tkr='SPY'
+20:58:20  20  AND s.tkr='SPY'
+20:58:20  21  /
+
+View created.
+
+Elapsed: 00:00:00.07
+20:58:20 SQL> 
+20:58:20 SQL> CREATE OR REPLACE VIEW score_corr_svmd AS
+20:58:20   2  SELECT
+20:58:20   3  tkr
+20:58:20   4  ,CORR((score_long - score_short),g1)score_corr
+20:58:20   5  ,COUNT(g1)ccount
+20:58:20   6  FROM scc12svmd
+20:58:20   7  WHERE ydate > sysdate -800
+20:58:20   8  GROUP BY tkr
+20:58:20   9  ORDER BY CORR((score_long - score_short),g1)
+20:58:20  10  /
+
+View created.
+
+Elapsed: 00:00:00.05
+20:58:20 SQL> 
+20:58:20 SQL> SELECT * FROM score_corr_svmd WHERE tkr='SPY';
+
+TKR       SCORE_CORR     CCOUNT
+--------- ---------- ----------
+SPY       .175178051        548
+
+Elapsed: 00:00:00.21
+20:58:21 SQL> 
+20:58:21 SQL> SELECT
+20:58:21   2  tkr
+20:58:21   3  ,rscore_long
+20:58:21   4  ,AVG(g1)
+20:58:21   5  ,COUNT(g1)
+20:58:21   6  FROM scc12svmd
+20:58:21   7  GROUP BY tkr,rscore_long
+20:58:21   8  ORDER BY tkr,rscore_long
+20:58:21   9  /
+
+TKR       RSCORE_LONG    AVG(G1)  COUNT(G1)
+--------- ----------- ---------- ----------
+SPY                .1      -.418          5
+SPY                .2 -.12681818         22
+SPY                .3 -.15131148         61
+SPY                .4 .048291457        199
+SPY                .5 .075856354        181
+SPY                .6 .635166667         60
+SPY                .7 .421578947         19
+SPY                .8       2.28          1
+
+8 rows selected.
+
+Elapsed: 00:00:00.06
+20:58:21 SQL> 
+20:58:21 SQL> SELECT
+20:58:21   2  tkr
+20:58:21   3  ,rscore_short
+20:58:21   4  ,AVG(g1)
+20:58:21   5  ,COUNT(g1)
+20:58:21   6  FROM scc12svmd
+20:58:21   7  GROUP BY tkr,rscore_short
+20:58:21   8  ORDER BY tkr,rscore_short
+20:58:21   9  /
+
+TKR       RSCORE_SHORT    AVG(G1)  COUNT(G1)
+--------- ------------ ---------- ----------
+SPY                 .1 -.05032258         31
+SPY                 .2 .393829787         94
+SPY                 .3    .116875         96
+SPY                 .4 .122463054        203
+SPY                 .5 .147926829         82
+SPY                 .6       -.53         30
+SPY                 .7 .221666667          6
+SPY                 .8      -1.93          5
+SPY                 .9      -1.82          1
+
+9 rows selected.
+
+Elapsed: 00:00:00.05
+20:58:21 SQL> 
+
+ooooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo ooooooooooooooo 
+
+Here are the results from the 2nd scheme:
+
+
+oracle@z2:/pt/s/rluck/svmd$ sqt @score_corr.sql
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sat Jan 29 03:24:14 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+03:24:14 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+03:24:14 SQL> 
+03:24:14 SQL> --
+03:24:14 SQL> -- score_corr.sql
+03:24:14 SQL> --
+03:24:14 SQL> 
+03:24:14 SQL> -- I use this script to help me see recent CORR() between score and gain.
+03:24:14 SQL> 
+03:24:14 SQL> -- I start by getting the 1 day gain for each tkrdate.
+03:24:14 SQL> CREATE OR REPLACE VIEW scc10svmd AS
+03:24:14   2  SELECT
+03:24:14   3  tkrdate
+03:24:14   4  ,tkr
+03:24:14   5  ,ydate
+03:24:14   6  ,LEAD(clse,1,NULL)OVER(PARTITION BY tkr ORDER BY ydate)-clse g1
+03:24:14   7  FROM ystk
+03:24:14   8  WHERE ydate > sysdate - 800
+03:24:14   9  AND tkr='SPY'
+03:24:14  10  ORDER BY tkr,ydate
+03:24:14  11  /
+
+View created.
+
+Elapsed: 00:00:00.09
+03:24:14 SQL> 
+03:24:14 SQL> -- rpt
+03:24:14 SQL> SELECT tkr,AVG(g1)FROM scc10svmd GROUP BY tkr
+03:24:14   2  
+03:24:14 SQL> CREATE OR REPLACE VIEW scc12svmd AS
+03:24:14   2  SELECT
+03:24:14   3  m.tkr
+03:24:14   4  ,m.ydate
+03:24:14   5  ,m.tkrdate
+03:24:14   6  ,l.score score_long
+03:24:14   7  ,s.score score_short
+03:24:14   8  ,ROUND(l.score,1) rscore_long
+03:24:14   9  ,ROUND(s.score,1) rscore_short
+03:24:14  10  ,m.g1
+03:24:14  11  FROM ystkscores l,ystkscores s,scc10svmd m
+03:24:14  12  WHERE l.targ='gatt'
+03:24:14  13  AND   s.targ='gattn'
+03:24:14  14  AND l.tkrdate = s.tkrdate
+03:24:14  15  AND l.tkrdate = m.tkrdate
+03:24:14  16  -- Speed things up:
+03:24:14  17  AND l.ydate > sysdate - 800
+03:24:14  18  AND s.ydate > sysdate - 800
+03:24:14  19  AND l.tkr='SPY'
+03:24:14  20  AND s.tkr='SPY'
+03:24:14  21  /
+
+View created.
+
+Elapsed: 00:00:00.04
+03:24:14 SQL> 
+03:24:14 SQL> CREATE OR REPLACE VIEW score_corr_svmd AS
+03:24:14   2  SELECT
+03:24:14   3  tkr
+03:24:14   4  ,CORR((score_long - score_short),g1)score_corr
+03:24:14   5  ,COUNT(g1)ccount
+03:24:14   6  FROM scc12svmd
+03:24:14   7  WHERE ydate > sysdate -800
+03:24:14   8  GROUP BY tkr
+03:24:14   9  ORDER BY CORR((score_long - score_short),g1)
+03:24:14  10  /
+
+View created.
+
+Elapsed: 00:00:00.05
+03:24:14 SQL> 
+03:24:14 SQL> SELECT * FROM score_corr_svmd WHERE tkr='SPY';
+
+TKR       SCORE_CORR     CCOUNT
+--------- ---------- ----------
+SPY       .135414039        547
+
+Elapsed: 00:00:00.22
+03:24:15 SQL> 
+03:24:15 SQL> SELECT
+03:24:15   2  tkr
+03:24:15   3  ,rscore_long
+03:24:15   4  ,AVG(g1)
+03:24:15   5  ,COUNT(g1)
+03:24:15   6  FROM scc12svmd
+03:24:15   7  GROUP BY tkr,rscore_long
+03:24:15   8  ORDER BY tkr,rscore_long
+03:24:15   9  /
+
+TKR       RSCORE_LONG    AVG(G1)  COUNT(G1)
+--------- ----------- ---------- ----------
+SPY                .1      -1.03          2
+SPY                .2     -.0625         16
+SPY                .3 -.10736842         38
+SPY                .4 .131930693        202
+SPY                .5 -.00424893        233
+SPY                .6 .605957447         47
+SPY                .7 1.04142857          7
+SPY                .8       -.27          2
+
+8 rows selected.
+
+Elapsed: 00:00:00.07
+03:24:15 SQL> 
+03:24:15 SQL> SELECT
+03:24:15   2  tkr
+03:24:15   3  ,rscore_short
+03:24:15   4  ,AVG(g1)
+03:24:15   5  ,COUNT(g1)
+03:24:15   6  FROM scc12svmd
+03:24:15   7  GROUP BY tkr,rscore_short
+03:24:15   8  ORDER BY tkr,rscore_short
+03:24:15   9  /
+
+TKR       RSCORE_SHORT    AVG(G1)  COUNT(G1)
+--------- ------------ ---------- ----------
+SPY                 .1        .19         13
+SPY                 .2 .204842105         95
+SPY                 .3 .166170213         94
+SPY                 .4 .211463415        205
+SPY                 .5 -.10863248        117
+SPY                 .6     -.8595         20
+SPY                 .7 .916666667          3
+
+7 rows selected.
+
+Elapsed: 00:00:00.05
+03:24:15 SQL> 
+03:24:15 SQL> -- exit
+03:24:15 SQL> 
+03:24:15 SQL> 

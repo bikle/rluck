@@ -1,0 +1,169 @@
+/pt/s/rluck/svm62/score_corr_eur_results.txt
+
+
+I use the results displayed in this file to help me decide if score-feedback is useful.
+
+First I show output for eur_usd where I have no score-feedback over a 33 day period from 
+2011-01-29 going back 33 days to 2010-12-29 00:00:00.
+Notice that the value for SCORE_CORR2 is .067:
+
+PAIR    SCORE_CORR2
+------- -----------
+eur_usd  .066884922
+
+
+
+Then, I show output for eur_usd where I do have score-feedback over a 33 day period from 
+2011-01-29 going back 33 days to 2010-12-29 00:00:00
+
+
+Here are no-feedback results:
+
+oracle@z3:/pt/s/rluck/svm62$ sqt @score_corr_eur.sql
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sat Jan 29 00:02:48 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+00:02:49 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+00:02:49 SQL> --
+00:02:49 SQL> -- score_corr_eur.sql
+00:02:49 SQL> --
+00:02:49 SQL> 
+00:02:49 SQL> -- I use this script to help me see recent CORR() between score and gain.
+00:02:49 SQL> 
+00:02:49 SQL> -- I start by getting the 6 hr gain for each prdate.
+00:02:49 SQL> CREATE OR REPLACE VIEW scc10 AS
+00:02:49   2  SELECT
+00:02:49   3  prdate
+00:02:49   4  ,pair
+00:02:49   5  ,ydate
+00:02:49   6  ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse g6
+00:02:49   7  FROM di5min
+00:02:49   8  WHERE ydate > sysdate - 33
+00:02:49   9  AND pair = 'eur_usd'
+00:02:49  10  ORDER BY pair,ydate
+00:02:49  11  /
+
+View created.
+
+Elapsed: 00:00:00.05
+00:02:49 SQL> 
+00:02:49 SQL> -- rpt
+00:02:49 SQL> SELECT pair,AVG(g6)FROM scc10 GROUP BY pair;
+
+PAIR       AVG(G6)
+------- ----------
+eur_usd .000507642
+
+Elapsed: 00:00:00.06
+00:02:49 SQL> 
+00:02:49 SQL> CREATE OR REPLACE VIEW scc12 AS
+00:02:49   2  SELECT
+00:02:49   3  m.pair
+00:02:49   4  ,m.ydate
+00:02:49   5  ,m.prdate
+00:02:49   6  ,l.score score_long
+00:02:49   7  ,s.score score_short
+00:02:49   8  ,ROUND(l.score,1) rscore_long
+00:02:49   9  ,ROUND(s.score,1) rscore_short
+00:02:49  10  ,m.g6
+00:02:49  11  FROM svm62scores l,svm62scores s,scc10 m
+00:02:49  12  WHERE l.targ='gatt'
+00:02:49  13  AND   s.targ='gattn'
+00:02:49  14  AND l.prdate = s.prdate
+00:02:49  15  AND l.prdate = m.prdate
+00:02:49  16  /
+
+View created.
+
+Elapsed: 00:00:00.03
+00:02:49 SQL> 
+00:02:49 SQL> SELECT
+00:02:49   2  pair
+00:02:49   3  ,CORR((score_long - score_short),g6)score_corr2
+00:02:49   4  FROM scc12
+00:02:49   5  GROUP BY pair ORDER BY CORR((score_long - score_short),g6)
+00:02:49   6  /
+
+PAIR    SCORE_CORR2
+------- -----------
+eur_usd  .066884922
+
+Elapsed: 00:00:00.16
+00:02:49 SQL> 
+00:02:49 SQL> 
+00:02:49 SQL> SELECT
+00:02:49   2  pair
+00:02:49   3  ,rscore_long
+00:02:49   4  ,AVG(g6)
+00:02:49   5  ,MIN(ydate)
+00:02:49   6  ,COUNT(g6)
+00:02:49   7  ,MAX(ydate)
+00:02:49   8  FROM scc12
+00:02:49   9  GROUP BY pair,rscore_long
+00:02:49  10  ORDER BY pair,rscore_long
+00:02:49  11  /
+
+PAIR    RSCORE_LONG    AVG(G6) MIN(YDATE)           COUNT(G6) MAX(YDATE)
+------- ----------- ---------- ------------------- ---------- -------------------
+eur_usd           0 -.00031319 2010-12-29 11:20:00         18 2011-01-25 16:35:00
+eur_usd          .1  -.0002205 2010-12-29 05:55:00        333 2011-01-28 21:10:00
+eur_usd          .2 .000388938 2010-12-29 02:30:00        699 2011-01-28 21:50:00
+eur_usd          .3 .000156747 2010-12-29 01:15:00        844 2011-01-28 21:15:00
+eur_usd          .4 .000797052 2010-12-29 00:00:00        916 2011-01-28 21:55:00
+eur_usd          .5 .000714221 2010-12-29 01:10:00        963 2011-01-28 21:40:00
+eur_usd          .6 .000589901 2010-12-29 01:05:00        867 2011-01-28 20:30:00
+eur_usd          .7 .000161256 2010-12-29 00:25:00        812 2011-01-28 21:00:00
+eur_usd          .8 .001108307 2010-12-29 00:05:00        627 2011-01-28 19:10:00
+eur_usd          .9 .000991353 2010-12-29 00:20:00        319 2011-01-28 15:25:00
+eur_usd           1 .003344141 2010-12-29 16:00:00         32 2011-01-27 05:15:00
+
+11 rows selected.
+
+Elapsed: 00:00:00.15
+00:02:49 SQL> 
+00:02:49 SQL> SELECT
+00:02:49   2  pair
+00:02:49   3  ,rscore_short
+00:02:49   4  ,AVG(g6)
+00:02:49   5  ,MIN(ydate)
+00:02:49   6  ,COUNT(g6)
+00:02:49   7  ,MAX(ydate)
+00:02:49   8  FROM scc12
+00:02:49   9  GROUP BY pair,rscore_short
+00:02:49  10  ORDER BY pair,rscore_short
+00:02:49  11  /
+
+PAIR    RSCORE_SHORT    AVG(G6) MIN(YDATE)           COUNT(G6) MAX(YDATE)
+------- ------------ ---------- ------------------- ---------- -------------------
+eur_usd            0 .002204752 2010-12-29 00:55:00         85 2011-01-28 03:15:00
+eur_usd           .1 .000448904 2010-12-29 00:20:00        629 2011-01-28 20:50:00
+eur_usd           .2 .000829094 2010-12-29 00:10:00        792 2011-01-28 20:30:00
+eur_usd           .3 .000718804 2010-12-29 00:15:00        898 2011-01-28 21:50:00
+eur_usd           .4 .000896057 2010-12-29 00:00:00        894 2011-01-28 20:40:00
+eur_usd           .5 .000707753 2010-12-29 02:10:00        861 2011-01-28 20:15:00
+eur_usd           .6 .000199871 2010-12-29 00:50:00        813 2011-01-28 21:55:00
+eur_usd           .7 .000443438 2010-12-29 02:25:00        671 2011-01-28 21:15:00
+eur_usd           .8  -.0000741 2010-12-29 03:20:00        519 2011-01-28 21:40:00
+eur_usd           .9  -.0003534 2010-12-29 06:25:00        245 2011-01-28 21:45:00
+eur_usd            1 -.00060041 2010-12-29 07:10:00         23 2011-01-28 12:15:00
+
+11 rows selected.
+
+Elapsed: 00:00:00.15
+00:02:49 SQL> 
+00:02:49 SQL> 
+00:02:49 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z3:/pt/s/rluck/svm62$ 

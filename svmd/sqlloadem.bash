@@ -11,8 +11,10 @@ cd /pt/s/rluck/svmd/cf/
 
 cat TLT.csv | awk  '{print "TLT,"$0}' | grep 0 > ystk_stage.csv
 
-cat MDY.csv | awk  '{print "MDY,"$0}' | grep 0 >>ystk_stage.csv
 cat SWC.csv | awk  '{print "SWC,"$0}' | grep 0 >>ystk_stage.csv
+cat PALL.csv | awk  '{print "PALL,"$0}' | grep 0 >>ystk_stage.csv
+cat PPLT.csv | awk  '{print "PPLT,"$0}' | grep 0 >>ystk_stage.csv
+cat MDY.csv | awk  '{print "MDY,"$0}' | grep 0 >>ystk_stage.csv
 cat XLB.csv | awk  '{print "XLB,"$0}' | grep 0 >>ystk_stage.csv
 cat EWZ.csv | awk  '{print "EWZ,"$0}' | grep 0 >>ystk_stage.csv
 cat GLD.csv    | awk  '{print "GLD,"$0}' | grep 0 >>ystk_stage.csv

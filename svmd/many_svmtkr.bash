@@ -6,6 +6,7 @@ cd /pt/s/rluck/svmd/
 
 set -x
 
+./svmtkr.bash SWC
 ./svmtkr.bash AAPL
 ./svmtkr.bash ABT
 ./svmtkr.bash ABX
