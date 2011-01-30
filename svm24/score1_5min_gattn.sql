@@ -122,7 +122,7 @@ AND pair = '&3'
 
 -- rpt
 
-SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn
+SELECT gattn, AVG(sc_corr), COUNT(prdate) FROM bme GROUP BY gattn;
 
 SELECT MAX(prdate) FROM bme;
 
