@@ -25,7 +25,7 @@ AND ydate > sysdate - 0.7/24
 AND pair = '&1'
 )
 -- ORDER BY DBMS_RANDOM.VALUE
-ORDER BY ydate DESC,cmd
+ORDER BY ydate,cmd
 /
 
 

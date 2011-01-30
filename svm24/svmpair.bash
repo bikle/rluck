@@ -31,7 +31,7 @@ EOF
 
 # Massage the output txt into a sql script
 grep score1_5min scorem_pair_out.txt | grep -v SELECT > scorem_pair.sql
-
+exit
 sqt>out_of_scorem_pair.txt<<EOF
 @scorem_pair.sql
 EOF

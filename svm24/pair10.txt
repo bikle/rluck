@@ -1,0 +1,690 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Jan 30 02:57:48 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+02:57:48 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+02:57:48 SQL> 02:57:48 SQL> --
+02:57:48 SQL> -- pair10.sql
+02:57:48 SQL> --
+02:57:48 SQL> 
+02:57:48 SQL> -- Creates views and tables needed by SVM.
+02:57:48 SQL> 
+02:57:48 SQL> -- Start by sanding off some dukas data so it resembles IB data:
+02:57:48 SQL> DROP TABLE di5min24;
+
+Table dropped.
+
+Elapsed: 00:00:00.22
+02:57:48 SQL> 
+02:57:48 SQL> CREATE TABLE di5min24 COMPRESS AS SELECT * FROM di5min;
+
+Table created.
+
+Elapsed: 00:00:00.72
+02:57:49 SQL> 
+02:57:49 SQL> DELETE di5min24 WHERE TO_CHAR(ydate,'HH24 MI')IN('22 00','22 05','22 10');
+
+1056 rows deleted.
+
+Elapsed: 00:00:00.15
+02:57:49 SQL> 
+02:57:49 SQL> CREATE OR REPLACE VIEW svm2410 AS
+02:57:49   2  SELECT
+02:57:49   3  pair
+02:57:49   4  ,ydate
+02:57:49   5  ,prdate
+02:57:49   6  ,rownum rnum -- acts as t in my time-series
+02:57:49   7  ,clse
+02:57:49   8  -- Derive a bunch of attributes from clse, the latest price:
+02:57:49   9  ,MIN(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*12 PRECEDING AND CURRENT ROW)min12
+02:57:49  10  ,MIN(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)min18
+02:57:49  11  ,MIN(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*24 PRECEDING AND CURRENT ROW)min24
+02:57:49  12  ,MIN(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*30 PRECEDING AND CURRENT ROW)min30
+02:57:49  13  ,MIN(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*36 PRECEDING AND CURRENT ROW)min36
+02:57:49  14  ,MIN(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*48 PRECEDING AND CURRENT ROW)min48
+02:57:49  15  ,MIN(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*60 PRECEDING AND CURRENT ROW)min60
+02:57:49  16  ,MIN(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*72 PRECEDING AND CURRENT ROW)min72
+02:57:49  17  --
+02:57:49  18  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*12 PRECEDING AND CURRENT ROW)avg12
+02:57:49  19  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)avg18
+02:57:49  20  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*24 PRECEDING AND CURRENT ROW)avg24
+02:57:49  21  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*30 PRECEDING AND CURRENT ROW)avg30
+02:57:49  22  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*36 PRECEDING AND CURRENT ROW)avg36
+02:57:49  23  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*48 PRECEDING AND CURRENT ROW)avg48
+02:57:49  24  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*60 PRECEDING AND CURRENT ROW)avg60
+02:57:49  25  ,AVG(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*72 PRECEDING AND CURRENT ROW)avg72
+02:57:49  26  --
+02:57:49  27  ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*12 PRECEDING AND CURRENT ROW)max12
+02:57:49  28  ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)max18
+02:57:49  29  ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*24 PRECEDING AND CURRENT ROW)max24
+02:57:49  30  ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*30 PRECEDING AND CURRENT ROW)max30
+02:57:49  31  ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*36 PRECEDING AND CURRENT ROW)max36
+02:57:49  32  ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*48 PRECEDING AND CURRENT ROW)max48
+02:57:49  33  ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*60 PRECEDING AND CURRENT ROW)max60
+02:57:49  34  ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*72 PRECEDING AND CURRENT ROW)max72
+02:57:49  35  --
+02:57:49  36  ,LEAD(clse,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld1day
+02:57:49  37  ,LEAD(ydate,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld_ydate
+02:57:49  38  FROM di5min24 WHERE pair = '&1'
+02:57:49  39  AND ydate > sysdate - 200
+02:57:49  40  ORDER BY ydate
+02:57:49  41  /
+old  38: FROM di5min24 WHERE pair = '&1'
+new  38: FROM di5min24 WHERE pair = 'eur_usd'
+
+View created.
+
+Elapsed: 00:00:00.07
+02:57:49 SQL> 
+02:57:49 SQL> -- rpt
+02:57:49 SQL> 
+02:57:49 SQL> -- I should see that ld_ydate is exactly 1 trading day ahead of ydate:
+02:57:49 SQL> 
+02:57:49 SQL> SELECT
+02:57:49   2  TO_CHAR(ydate,'YYYY-MM-DD HH24:MI Dy')dday
+02:57:49   3  ,TO_CHAR(ld_ydate,'YYYY-MM-DD HH24:MI Dy')ldday
+02:57:49   4  from svm2410
+02:57:49   5  WHERE pair='&1'
+02:57:49   6  AND ld_ydate > (SELECT MAX(ld_ydate)-1 from svm2410)
+02:57:49   7  ORDER BY ydate
+02:57:49   8  /
+old   5: WHERE pair='&1'
+new   5: WHERE pair='eur_usd'
+
+DDAY		     LDDAY
+-------------------- --------------------
+2011-01-20 22:15 Thu 2011-01-23 22:15 Sun
+2011-01-20 22:20 Thu 2011-01-23 22:20 Sun
+2011-01-20 22:25 Thu 2011-01-23 22:25 Sun
+2011-01-20 22:30 Thu 2011-01-23 22:30 Sun
+2011-01-20 22:35 Thu 2011-01-23 22:35 Sun
+2011-01-20 22:40 Thu 2011-01-23 22:40 Sun
+2011-01-20 22:45 Thu 2011-01-23 22:45 Sun
+2011-01-20 22:50 Thu 2011-01-23 22:50 Sun
+2011-01-20 22:55 Thu 2011-01-23 22:55 Sun
+2011-01-20 23:00 Thu 2011-01-23 23:00 Sun
+2011-01-20 23:05 Thu 2011-01-23 23:05 Sun
+2011-01-20 23:10 Thu 2011-01-23 23:10 Sun
+2011-01-20 23:15 Thu 2011-01-23 23:15 Sun
+2011-01-20 23:20 Thu 2011-01-23 23:20 Sun
+2011-01-20 23:25 Thu 2011-01-23 23:25 Sun
+2011-01-20 23:30 Thu 2011-01-23 23:30 Sun
+2011-01-20 23:35 Thu 2011-01-23 23:35 Sun
+2011-01-20 23:40 Thu 2011-01-23 23:40 Sun
+2011-01-20 23:45 Thu 2011-01-23 23:45 Sun
+2011-01-20 23:50 Thu 2011-01-23 23:50 Sun
+2011-01-20 23:55 Thu 2011-01-23 23:55 Sun
+2011-01-21 00:00 Fri 2011-01-24 00:00 Mon
+2011-01-21 00:05 Fri 2011-01-24 00:05 Mon
+2011-01-21 00:10 Fri 2011-01-24 00:10 Mon
+2011-01-21 00:15 Fri 2011-01-24 00:15 Mon
+2011-01-21 00:20 Fri 2011-01-24 00:20 Mon
+2011-01-21 00:25 Fri 2011-01-24 00:25 Mon
+2011-01-21 00:30 Fri 2011-01-24 00:30 Mon
+2011-01-21 00:35 Fri 2011-01-24 00:35 Mon
+2011-01-21 00:40 Fri 2011-01-24 00:40 Mon
+2011-01-21 00:45 Fri 2011-01-24 00:45 Mon
+2011-01-21 00:50 Fri 2011-01-24 00:50 Mon
+2011-01-21 00:55 Fri 2011-01-24 00:55 Mon
+2011-01-21 01:00 Fri 2011-01-24 01:00 Mon
+2011-01-21 01:05 Fri 2011-01-24 01:05 Mon
+2011-01-21 01:10 Fri 2011-01-24 01:10 Mon
+
+36 rows selected.
+
+Elapsed: 00:00:02.66
+02:57:52 SQL> 
+02:57:52 SQL> -- I should see that hr 22 is missing 3 rows of data: 00, 05, 10
+02:57:52 SQL> SELECT
+02:57:52   2  TO_CHAR(ydate,'MI')
+02:57:52   3  ,COUNT(TO_CHAR(ydate,'MI'))
+02:57:52   4  FROM svm2410
+02:57:52   5  WHERE TO_CHAR(ydate,'HH24')='22'
+02:57:52   6  AND ydate > sysdate - 30
+02:57:52   7  GROUP BY TO_CHAR(ydate,'MI')
+02:57:52   8  ORDER BY 0+TO_CHAR(ydate,'MI')
+02:57:52   9  /
+
+TO COUNT(TO_CHAR(YDATE,'MI'))
+-- --------------------------
+15			   16
+20			   16
+25			   16
+30			   16
+35			   16
+40			   16
+45			   16
+50			   16
+55			   16
+
+9 rows selected.
+
+Elapsed: 00:00:01.38
+02:57:53 SQL> 
+02:57:53 SQL> -- I should see that other hours have all 12 rows of data
+02:57:53 SQL> SELECT
+02:57:53   2  TO_CHAR(ydate,'MI')
+02:57:53   3  ,COUNT(TO_CHAR(ydate,'MI'))
+02:57:53   4  FROM svm2410
+02:57:53   5  WHERE TO_CHAR(ydate,'HH24')!='22'
+02:57:53   6  AND ydate > sysdate - 30
+02:57:53   7  GROUP BY TO_CHAR(ydate,'MI')
+02:57:53   8  ORDER BY 0+TO_CHAR(ydate,'MI')
+02:57:53   9  /
+
+TO COUNT(TO_CHAR(YDATE,'MI'))
+-- --------------------------
+00			  367
+05			  367
+10			  367
+15			  366
+20			  366
+25			  366
+30			  366
+35			  366
+40			  366
+45			  366
+50			  366
+55			  365
+
+12 rows selected.
+
+Elapsed: 00:00:01.38
+02:57:54 SQL> 
+02:57:54 SQL> -- Derive trend, clse-relations, moving correlation of clse, and date related params:
+02:57:54 SQL> 
+02:57:54 SQL> DROP TABLE svm2412;
+
+Table dropped.
+
+Elapsed: 00:00:00.18
+02:57:55 SQL> CREATE TABLE svm2412 COMPRESS AS
+02:57:55   2  SELECT
+02:57:55   3  pair
+02:57:55   4  ,ydate
+02:57:55   5  ,prdate
+02:57:55   6  ,clse
+02:57:55   7  -- g1 is important. I want to predict g1:
+02:57:55   8  ,(ld1day - clse)/clse g1
+02:57:55   9  ,SIGN(avg24 - LAG(avg24,2,NULL)OVER(PARTITION BY pair ORDER BY ydate))trend
+02:57:55  10  -- I want more attributes from the ones I derived above:
+02:57:55  11  -- clse relation to moving-min
+02:57:55  12  ,clse-min12 cm12
+02:57:55  13  ,clse-min18 cm18
+02:57:55  14  ,clse-min24 cm24
+02:57:55  15  ,clse-min30 cm30
+02:57:55  16  ,clse-min36 cm36
+02:57:55  17  ,clse-min48 cm48
+02:57:55  18  ,clse-min60 cm60
+02:57:55  19  ,clse-min72 cm72
+02:57:55  20  -- clse relation to moving-avg
+02:57:55  21  ,clse-avg12 ca12
+02:57:55  22  ,clse-avg18 ca18
+02:57:55  23  ,clse-avg24 ca24
+02:57:55  24  ,clse-avg30 ca30
+02:57:55  25  ,clse-avg36 ca36
+02:57:55  26  ,clse-avg48 ca48
+02:57:55  27  ,clse-avg60 ca60
+02:57:55  28  ,clse-avg72 ca72
+02:57:55  29  -- clse relation to moving-max
+02:57:55  30  ,clse-max12 cx12
+02:57:55  31  ,clse-max18 cx18
+02:57:55  32  ,clse-max24 cx24
+02:57:55  33  ,clse-max30 cx30
+02:57:55  34  ,clse-max36 cx36
+02:57:55  35  ,clse-max48 cx48
+02:57:55  36  ,clse-max60 cx60
+02:57:55  37  ,clse-max72 cx72
+02:57:55  38  -- Derive more attributes.
+02:57:55  39  -- I want to use CORR() here to help SVM see the shape of the series.
+02:57:55  40  -- But COVAR_POP is more stable:
+02:57:55  41  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*12 PRECEDING AND CURRENT ROW)crr12
+02:57:55  42  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*18 PRECEDING AND CURRENT ROW)crr18
+02:57:55  43  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*24 PRECEDING AND CURRENT ROW)crr24
+02:57:55  44  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*30 PRECEDING AND CURRENT ROW)crr30
+02:57:55  45  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*36 PRECEDING AND CURRENT ROW)crr36
+02:57:55  46  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*48 PRECEDING AND CURRENT ROW)crr48
+02:57:55  47  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*60 PRECEDING AND CURRENT ROW)crr60
+02:57:55  48  ,COVAR_POP(rnum,clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*72 PRECEDING AND CURRENT ROW)crr72
+02:57:55  49  -- Derive date related attributes:
+02:57:55  50  ,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
+02:57:55  51  ,0+TO_CHAR(ydate,'D')d
+02:57:55  52  ,0+TO_CHAR(ydate,'W')w
+02:57:55  53  -- mpm stands for minutes-past-midnight:
+02:57:55  54  ,ROUND( (ydate - trunc(ydate))*24*60 )mpm
+02:57:55  55  -- mph stands for minutes-past-hour:
+02:57:55  56  ,0+TO_CHAR(ydate,'MI')mph
+02:57:55  57  FROM svm2410
+02:57:55  58  -- Protect against divide by zero:
+02:57:55  59  WHERE clse > 0
+02:57:55  60  ORDER BY ydate
+02:57:55  61  /
+
+Table created.
+
+Elapsed: 00:00:02.38
+02:57:57 SQL> 
+02:57:57 SQL> -- rpt
+02:57:57 SQL> 
+02:57:57 SQL> SELECT
+02:57:57   2  pair
+02:57:57   3  ,TO_CHAR(ydate,'D')dnum
+02:57:57   4  ,TO_CHAR(ydate,'dy')dday
+02:57:57   5  ,AVG(g1)
+02:57:57   6  ,COUNT(pair)
+02:57:57   7  ,MIN(clse),MAX(clse)
+02:57:57   8  ,MIN(ydate),MAX(ydate)
+02:57:57   9  FROM svm2412
+02:57:57  10  GROUP BY pair,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'dy')
+02:57:57  11  ORDER BY pair,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'dy')
+02:57:57  12  /
+
+PAIR	D DDA	 AVG(G1) COUNT(PAIR)  MIN(CLSE)  MAX(CLSE) MIN(YDATE)	       MAX(YDATE)
+------- - --- ---------- ----------- ---------- ---------- ------------------- -------------------
+eur_usd 1 sun -.00362786	 406	1.28795     1.4074 2010-10-17 20:55:00 2011-01-23 23:55:00
+eur_usd 2 mon -.00153183	4004	1.28805     1.4075 2010-10-18 00:00:00 2011-01-24 01:10:00
+eur_usd 3 tue -.00247618	3957   1.291375     1.4052 2010-10-19 00:00:00 2011-01-18 23:55:00
+eur_usd 4 wed .002694815	3963   1.296575     1.4144 2010-10-20 00:00:00 2011-01-19 23:55:00
+eur_usd 5 thu .001064162	3980   1.297975     1.4273 2010-10-21 00:00:00 2011-01-20 23:55:00
+eur_usd 6 fri -.00140438	3688	 1.2907     1.4224 2010-10-22 00:00:00 2011-01-21 21:55:00
+
+6 rows selected.
+
+Elapsed: 00:00:00.06
+02:57:57 SQL> 
+02:57:57 SQL> -- Prepare for derivation of NTILE based params:
+02:57:57 SQL> 
+02:57:57 SQL> DROP TABLE svm2414;
+
+Table dropped.
+
+Elapsed: 00:00:00.03
+02:57:57 SQL> CREATE TABLE svm2414 COMPRESS AS
+02:57:57   2  SELECT
+02:57:57   3  pair
+02:57:57   4  ,ydate
+02:57:57   5  ,prdate
+02:57:57   6  ,clse
+02:57:57   7  ,g1
+02:57:57   8  ,CASE WHEN g1 IS NULL THEN NULL WHEN g1>0.0020 THEN'up'ELSE'nup'END gatt
+02:57:57   9  ,CASE WHEN g1 IS NULL THEN NULL WHEN g1<-0.0020 THEN'up'ELSE'nup'END gattn
+02:57:57  10  ,CASE WHEN trend IS NULL THEN 1
+02:57:57  11  	    WHEN trend =0      THEN 1
+02:57:57  12  	    ELSE trend END trend
+02:57:57  13  ,cm12
+02:57:57  14  ,cm18
+02:57:57  15  ,cm24
+02:57:57  16  ,cm30
+02:57:57  17  ,cm36
+02:57:57  18  ,cm48
+02:57:57  19  ,cm60
+02:57:57  20  ,cm72
+02:57:57  21  --
+02:57:57  22  ,ca12
+02:57:57  23  ,ca18
+02:57:57  24  ,ca24
+02:57:57  25  ,ca30
+02:57:57  26  ,ca36
+02:57:57  27  ,ca48
+02:57:57  28  ,ca60
+02:57:57  29  ,ca72
+02:57:57  30  --
+02:57:57  31  ,cx12
+02:57:57  32  ,cx18
+02:57:57  33  ,cx24
+02:57:57  34  ,cx30
+02:57:57  35  ,cx36
+02:57:57  36  ,cx48
+02:57:57  37  ,cx60
+02:57:57  38  ,cx72
+02:57:57  39  --
+02:57:57  40  ,crr12
+02:57:57  41  ,crr18
+02:57:57  42  ,crr24
+02:57:57  43  ,crr30
+02:57:57  44  ,crr36
+02:57:57  45  ,crr48
+02:57:57  46  ,crr60
+02:57:57  47  ,crr72
+02:57:57  48  --
+02:57:57  49  ,hh
+02:57:57  50  ,d
+02:57:57  51  ,w
+02:57:57  52  ,mpm
+02:57:57  53  ,mph
+02:57:57  54  FROM svm2412
+02:57:57  55  ORDER BY ydate
+02:57:57  56  /
+
+Table created.
+
+Elapsed: 00:00:00.37
+02:57:57 SQL> 
+02:57:57 SQL> -- rpt
+02:57:57 SQL> 
+02:57:57 SQL> SELECT
+02:57:57   2  pair
+02:57:57   3  ,trend
+02:57:57   4  ,gatt
+02:57:57   5  ,d
+02:57:57   6  ,hh
+02:57:57   7  ,COUNT(pair)
+02:57:57   8  ,AVG(g1)
+02:57:57   9  FROM svm2414
+02:57:57  10  GROUP BY pair,trend,gatt,d,hh
+02:57:57  11  ORDER BY AVG(g1),pair,trend,gatt,d,hh
+02:57:57  12  -- 500 rows
+02:57:57  13  
+02:57:57 SQL> -- Derive NTILE based params:
+02:57:57 SQL> 
+02:57:57 SQL> DROP TABLE svm2416;
+
+Table dropped.
+
+Elapsed: 00:00:00.04
+02:57:57 SQL> CREATE TABLE svm2416 COMPRESS AS
+02:57:57   2  SELECT
+02:57:57   3  pair
+02:57:57   4  ,ydate
+02:57:57   5  ,prdate
+02:57:57   6  ,clse
+02:57:57   7  ,g1
+02:57:57   8  ,gatt
+02:57:57   9  ,gattn
+02:57:57  10  ,trend
+02:57:57  11  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm12)att00
+02:57:57  12  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm18)att01
+02:57:57  13  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm24)att02
+02:57:57  14  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm30)att03
+02:57:57  15  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm36)att04
+02:57:57  16  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm48)att05
+02:57:57  17  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm60)att06
+02:57:57  18  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cm72)att07
+02:57:57  19  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca12)att08
+02:57:57  20  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca18)att09
+02:57:57  21  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca24)att10
+02:57:57  22  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca30)att11
+02:57:57  23  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca36)att12
+02:57:57  24  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca48)att13
+02:57:57  25  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca60)att14
+02:57:57  26  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY ca72)att15
+02:57:57  27  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx12)att16
+02:57:57  28  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx18)att17
+02:57:57  29  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx24)att18
+02:57:57  30  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx30)att19
+02:57:57  31  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx36)att20
+02:57:57  32  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx48)att21
+02:57:57  33  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx60)att22
+02:57:57  34  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY cx72)att23
+02:57:57  35  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr12)att24
+02:57:57  36  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr18)att25
+02:57:57  37  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr24)att26
+02:57:57  38  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr30)att27
+02:57:57  39  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr36)att28
+02:57:57  40  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr48)att29
+02:57:57  41  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr60)att30
+02:57:57  42  ,NTILE(9)OVER(PARTITION BY trend,pair ORDER BY crr72)att31
+02:57:57  43  ,hh  att32
+02:57:57  44  ,d   att33
+02:57:57  45  ,w   att34
+02:57:57  46  ,mpm att35
+02:57:57  47  ,mph att36
+02:57:57  48  ,trend att37
+02:57:57  49  FROM svm2414
+02:57:57  50  ORDER BY ydate
+02:57:57  51  /
+
+Table created.
+
+Elapsed: 00:00:05.04
+02:58:02 SQL> 
+02:58:02 SQL> -- rpt
+02:58:02 SQL> 
+02:58:02 SQL> SELECT
+02:58:02   2  pair
+02:58:02   3  ,trend
+02:58:02   4  ,gatt
+02:58:02   5  ,att33 daynum
+02:58:02   6  ,COUNT(pair)
+02:58:02   7  ,AVG(g1)
+02:58:02   8  FROM svm2416
+02:58:02   9  GROUP BY pair,trend,gatt,att33
+02:58:02  10  ORDER BY pair,trend,gatt,att33
+02:58:02  11  /
+
+PAIR	     TREND GAT	   DAYNUM COUNT(PAIR)	 AVG(G1)
+------- ---------- --- ---------- ----------- ----------
+eur_usd 	-1 nup		1	  121 -.00700824
+eur_usd 	-1 nup		2	 1405 -.00565626
+eur_usd 	-1 nup		3	 1587 -.00707466
+eur_usd 	-1 nup		4	 1514 -.00429242
+eur_usd 	-1 nup		5	  929 -.00416291
+eur_usd 	-1 nup		6	  970 -.00545931
+eur_usd 	-1 up		1	   53 .008641822
+eur_usd 	-1 up		2	 1027 .007275025
+eur_usd 	-1 up		3	  684 .008547346
+eur_usd 	-1 up		4	 1090 .008551735
+eur_usd 	-1 up		5	  567 .005233951
+eur_usd 	-1 up		6	  423 .006775526
+eur_usd 	 1 nup		1	  201 -.00520187
+eur_usd 	 1 nup		2	 1259 -.00594792
+eur_usd 	 1 nup		3	 1136  -.0071696
+eur_usd 	 1 nup		4	  438  -.0017579
+eur_usd 	 1 nup		5	 1167 -.00433877
+eur_usd 	 1 nup		6	 1368 -.00503614
+eur_usd 	 1 up		1	   10  .00388301
+eur_usd 	 1 up		2	  298 .006220008
+eur_usd 	 1 up		3	  550 .006777279
+eur_usd 	 1 up		4	  921 .009366823
+eur_usd 	 1 up		5	 1317 .007743657
+eur_usd 	 1 up		6	  678 .006621325
+eur_usd 	 1		1	   21
+eur_usd 	 1		2	   15
+eur_usd 	 1		6	  249
+
+27 rows selected.
+
+Elapsed: 00:00:00.04
+02:58:03 SQL> 
+02:58:03 SQL> -- Join scores and gains:
+02:58:03 SQL> 
+02:58:03 SQL> CREATE OR REPLACE VIEW sc12 AS
+02:58:03   2  SELECT
+02:58:03   3  m.pair
+02:58:03   4  ,m.ydate
+02:58:03   5  ,m.prdate
+02:58:03   6  ,l.score score_long
+02:58:03   7  ,s.score score_short
+02:58:03   8  ,ROUND(l.score,1) rscore_long
+02:58:03   9  ,ROUND(s.score,1) rscore_short
+02:58:03  10  ,m.g1
+02:58:03  11  FROM svm24scores l,svm24scores s,svm2416 m
+02:58:03  12  WHERE l.targ='gatt'
+02:58:03  13  AND   s.targ='gattn'
+02:58:03  14  AND l.prdate = s.prdate
+02:58:03  15  AND l.prdate = m.prdate
+02:58:03  16  -- Speed things up:
+02:58:03  17  AND l.pair = '&1'
+02:58:03  18  AND s.pair = '&1'
+02:58:03  19  /
+old  17: AND l.pair = '&1'
+new  17: AND l.pair = 'eur_usd'
+old  18: AND s.pair = '&1'
+new  18: AND s.pair = 'eur_usd'
+
+View created.
+
+Elapsed: 00:00:00.04
+02:58:03 SQL> 
+02:58:03 SQL> -- rpt
+02:58:03 SQL> SELECT pair,rscore_long,AVG(g1),MIN(ydate),COUNT(pair),MAX(ydate)FROM sc12
+02:58:03   2  GROUP BY pair,rscore_long
+02:58:03   3  ORDER BY pair,rscore_long
+02:58:03   4  /
+
+no rows selected
+
+Elapsed: 00:00:00.03
+02:58:03 SQL> 
+02:58:03 SQL> DROP TABLE score_corr;
+
+Table dropped.
+
+Elapsed: 00:00:00.04
+02:58:03 SQL> 
+02:58:03 SQL> CREATE TABLE score_corr COMPRESS AS
+02:58:03   2  SELECT
+02:58:03   3  pair
+02:58:03   4  -- ,ydate
+02:58:03   5  ,prdate
+02:58:03   6  -- Find corr() tween score and g1 over 11 day period:
+02:58:03   7  ,CORR((score_long - score_short),g1)
+02:58:03   8  	OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*24*11 PRECEDING AND CURRENT ROW)sc_corr
+02:58:03   9  FROM sc12
+02:58:03  10  /
+
+Table created.
+
+Elapsed: 00:00:00.05
+02:58:03 SQL> 
+02:58:03 SQL> -- rpt
+02:58:03 SQL> 
+02:58:03 SQL> SELECT pair,AVG(sc_corr),COUNT(sc_corr)FROM score_corr GROUP BY pair;
+
+no rows selected
+
+Elapsed: 00:00:00.01
+02:58:03 SQL> 
+02:58:03 SQL> DROP TABLE modsrc24;
+
+Table dropped.
+
+Elapsed: 00:00:00.04
+02:58:03 SQL> 
+02:58:03 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.43
+02:58:03 SQL> 
+02:58:03 SQL> CREATE TABLE modsrc24 COMPRESS AS
+02:58:03   2  SELECT
+02:58:03   3  s.pair
+02:58:03   4  ,ydate
+02:58:03   5  ,s.prdate
+02:58:03   6  ,trend
+02:58:03   7  ,g1
+02:58:03   8  ,gatt
+02:58:03   9  ,gattn
+02:58:03  10  ,SUM(g1)OVER(PARTITION BY trend,att00 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g00
+02:58:03  11  ,SUM(g1)OVER(PARTITION BY trend,att01 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g01
+02:58:03  12  ,SUM(g1)OVER(PARTITION BY trend,att02 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g02
+02:58:03  13  ,SUM(g1)OVER(PARTITION BY trend,att03 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g03
+02:58:03  14  ,SUM(g1)OVER(PARTITION BY trend,att04 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g04
+02:58:03  15  ,SUM(g1)OVER(PARTITION BY trend,att05 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g05
+02:58:03  16  ,SUM(g1)OVER(PARTITION BY trend,att06 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g06
+02:58:03  17  ,SUM(g1)OVER(PARTITION BY trend,att07 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g07
+02:58:03  18  ,SUM(g1)OVER(PARTITION BY trend,att08 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g08
+02:58:03  19  ,SUM(g1)OVER(PARTITION BY trend,att09 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g09
+02:58:03  20  ,SUM(g1)OVER(PARTITION BY trend,att10 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g10
+02:58:03  21  ,SUM(g1)OVER(PARTITION BY trend,att11 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g11
+02:58:03  22  ,SUM(g1)OVER(PARTITION BY trend,att12 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g12
+02:58:03  23  ,SUM(g1)OVER(PARTITION BY trend,att13 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g13
+02:58:03  24  ,SUM(g1)OVER(PARTITION BY trend,att14 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g14
+02:58:03  25  ,SUM(g1)OVER(PARTITION BY trend,att15 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g15
+02:58:03  26  ,SUM(g1)OVER(PARTITION BY trend,att16 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g16
+02:58:03  27  ,SUM(g1)OVER(PARTITION BY trend,att17 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g17
+02:58:03  28  ,SUM(g1)OVER(PARTITION BY trend,att18 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g18
+02:58:03  29  ,SUM(g1)OVER(PARTITION BY trend,att19 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g19
+02:58:03  30  ,SUM(g1)OVER(PARTITION BY trend,att20 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g20
+02:58:03  31  ,SUM(g1)OVER(PARTITION BY trend,att21 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g21
+02:58:03  32  ,SUM(g1)OVER(PARTITION BY trend,att22 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g22
+02:58:03  33  ,SUM(g1)OVER(PARTITION BY trend,att23 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g23
+02:58:03  34  ,SUM(g1)OVER(PARTITION BY trend,att24 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g24
+02:58:03  35  ,SUM(g1)OVER(PARTITION BY trend,att25 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g25
+02:58:03  36  ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g26
+02:58:03  37  ,SUM(g1)OVER(PARTITION BY trend,att27 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g27
+02:58:03  38  ,SUM(g1)OVER(PARTITION BY trend,att28 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g28
+02:58:03  39  ,SUM(g1)OVER(PARTITION BY trend,att29 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g29
+02:58:03  40  ,SUM(g1)OVER(PARTITION BY trend,att30 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g30
+02:58:03  41  ,SUM(g1)OVER(PARTITION BY trend,att31 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g31
+02:58:03  42  ,SUM(g1)OVER(PARTITION BY trend,att32 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g32
+02:58:03  43  ,SUM(g1)OVER(PARTITION BY trend,att33 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g33
+02:58:03  44  ,SUM(g1)OVER(PARTITION BY trend,att34 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g34
+02:58:03  45  ,SUM(g1)OVER(PARTITION BY trend,att35 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g35
+02:58:03  46  ,SUM(g1)OVER(PARTITION BY trend,att36 ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g36
+02:58:03  47  -- Add extra goodness attributes related to trend:
+02:58:03  48  ,SUM(g1)OVER(PARTITION BY trend ORDER BY ydate ROWS BETWEEN 12*24*40 PRECEDING AND CURRENT ROW)g37
+02:58:03  49  ,SUM(g1)OVER(PARTITION BY trend ORDER BY ydate ROWS BETWEEN 12*24*30 PRECEDING AND CURRENT ROW)g38
+02:58:03  50  ,SUM(g1)OVER(PARTITION BY trend ORDER BY ydate ROWS BETWEEN 12*24*20 PRECEDING AND CURRENT ROW)g39
+02:58:03  51  ,SUM(g1)OVER(PARTITION BY trend ORDER BY ydate ROWS BETWEEN 12*24*10 PRECEDING AND CURRENT ROW)g40
+02:58:03  52  ,SUM(g1)OVER(PARTITION BY trend ORDER BY ydate ROWS BETWEEN 12*24*5  PRECEDING AND CURRENT ROW)g41
+02:58:03  53  -- Recent CORR()tween scores and gains:
+02:58:03  54  ,NVL(sc_corr,0)sc_corr
+02:58:03  55  FROM svm2416 s,score_corr c
+02:58:03  56  WHERE s.prdate = c.prdate(+)
+02:58:03  57  /
+
+Table created.
+
+Elapsed: 00:00:06.49
+02:58:10 SQL> 
+02:58:10 SQL> ANALYZE TABLE modsrc24 COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:02.49
+02:58:12 SQL> 
+02:58:12 SQL> -- rpt
+02:58:12 SQL> 
+02:58:12 SQL> SELECT
+02:58:12   2  pair
+02:58:12   3  ,trend
+02:58:12   4  ,gatt
+02:58:12   5  ,COUNT(pair)
+02:58:12   6  ,AVG(g41)
+02:58:12   7  FROM modsrc24
+02:58:12   8  GROUP BY pair,trend,gatt
+02:58:12   9  ORDER BY pair,trend,gatt
+02:58:12  10  /
+
+PAIR	     TREND GAT COUNT(PAIR)   AVG(G41)
+------- ---------- --- ----------- ----------
+eur_usd 	-1 nup	      6526 -1.5712164
+eur_usd 	-1 up	      3844 -.65455625
+eur_usd 	 1 nup	      5569 -.68542423
+eur_usd 	 1 up	      3774 .147924917
+eur_usd 	 1	       285 4.67197528
+
+Elapsed: 00:00:00.03
+02:58:12 SQL> 
+02:58:12 SQL> 
+02:58:12 SQL> SELECT pair,COUNT(pair)FROM svm2410 GROUP BY pair;
+
+PAIR	COUNT(PAIR)
+------- -----------
+eur_usd       19998
+
+Elapsed: 00:00:01.32
+02:58:14 SQL> 
+02:58:14 SQL> SELECT pair,COUNT(pair)FROM modsrc24 GROUP BY pair;
+
+PAIR	COUNT(PAIR)
+------- -----------
+eur_usd       19998
+
+Elapsed: 00:00:00.01
+02:58:14 SQL> 
+02:58:14 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
