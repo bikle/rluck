@@ -6,6 +6,17 @@ date
 
 # The tkrs below are sorted randomly on purpose:
 
+./svmtkr.bash SLW
+./svmtkr.bash AXU
+./svmtkr.bash PAAS
+./svmtkr.bash HL
+./svmtkr.bash CDE
+./svmtkr.bash EXK
+./svmtkr.bash MVG
+./svmtkr.bash SVM
+./svmtkr.bash PALL
+./svmtkr.bash PPLT
+
 ./svmtkr.bash WFMI
 ./svmtkr.bash BTU
 ./svmtkr.bash STT

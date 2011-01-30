@@ -17,6 +17,17 @@ rm -f *csv
 wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=SWC
 wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=PALL
 wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=PPLT
+
+wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=SLW 
+wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=AXU
+wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=PAAS
+wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=HL
+wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=CDE
+wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=EXK
+wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=MVG
+wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=SVM
+
+
 wget --output-document=TLT.csv http://ichart.finance.yahoo.com/table.csv?s=TLT
 
 wget --output-document=EWZ.csv http://ichart.finance.yahoo.com/table.csv?s=EWZ

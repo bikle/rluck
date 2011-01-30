@@ -7,6 +7,17 @@ cd /pt/s/rluck/svmd/
 set -x
 
 ./svmtkr.bash SWC
+./svmtkr.bash SLW
+./svmtkr.bash AXU
+./svmtkr.bash PAAS
+./svmtkr.bash HL
+./svmtkr.bash CDE
+./svmtkr.bash EXK
+./svmtkr.bash MVG
+./svmtkr.bash SVM
+./svmtkr.bash PALL
+./svmtkr.bash PPLT
+
 ./svmtkr.bash AAPL
 ./svmtkr.bash ABT
 ./svmtkr.bash ABX

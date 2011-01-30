@@ -18,6 +18,17 @@ echo I am running an export b4 starting.
 
 date
 
+./15min_data.bash SLW
+./15min_data.bash AXU
+./15min_data.bash PAAS
+./15min_data.bash HL
+./15min_data.bash CDE
+./15min_data.bash EXK
+./15min_data.bash MVG
+./15min_data.bash SVM
+./15min_data.bash PALL
+./15min_data.bash PPLT
+
 ./15min_data.bash SWC
 ./15min_data.bash AAPL
 ./15min_data.bash ABT

@@ -1,0 +1,194 @@
+score_corr_eur_chf_results.txt
+
+Here are the no-feedback results for eur_chf.
+They are not good:
+
+
+oracle@z3:/pt/s/rluck/svm62$ sqt @score_corr_eur_chf.sql
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Jan 30 06:53:13 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+06:53:13 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+06:53:13 SQL> --
+06:53:13 SQL> -- score_corr_eur_chf.sql
+06:53:13 SQL> --
+06:53:13 SQL> 
+06:53:13 SQL> -- I use this script to help me see recent CORR() between score and gain.
+06:53:13 SQL> 
+06:53:13 SQL> -- I start by getting the 6 hr gain for each prdate.
+06:53:13 SQL> CREATE OR REPLACE VIEW scc10 AS
+06:53:13   2  SELECT
+06:53:13   3  prdate
+06:53:13   4  ,pair
+06:53:13   5  ,ydate
+06:53:13   6  ,(LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g6
+06:53:13   7  FROM di5min
+06:53:13   8  WHERE ydate > sysdate - 33
+06:53:13   9  AND pair = 'eur_chf'
+06:53:13  10  ORDER BY pair,ydate
+06:53:13  11  /
+
+View created.
+
+Elapsed: 00:00:00.04
+06:53:13 SQL> 
+06:53:13 SQL> -- rpt
+06:53:13 SQL> SELECT pair,MIN(g6),AVG(g6),COUNT(g6),MAX(g6),STDDEV(g6)FROM scc10 GROUP BY pair;
+
+PAIR       MIN(G6)    AVG(G6)  COUNT(G6)    MAX(G6) STDDEV(G6)
+------- ---------- ---------- ---------- ---------- ----------
+eur_chf -.01339151 .000225115       6662 .013761275 .003537294
+
+Elapsed: 00:00:00.07
+06:53:13 SQL> 
+06:53:13 SQL> CREATE OR REPLACE VIEW scc12 AS
+06:53:13   2  SELECT
+06:53:13   3  m.pair
+06:53:13   4  ,m.ydate
+06:53:13   5  ,m.prdate
+06:53:13   6  ,l.score score_long
+06:53:13   7  ,s.score score_short
+06:53:13   8  ,l.score - s.score score_diff
+06:53:13   9  ,ROUND(l.score,1) rscore_long
+06:53:13  10  ,ROUND(s.score,1) rscore_short
+06:53:13  11  ,ROUND((l.score-s.score),1) rscore_diff
+06:53:13  12  ,m.g6
+06:53:13  13  FROM svm62scores l,svm62scores s,scc10 m
+06:53:13  14  WHERE l.targ='gatt'
+06:53:13  15  AND   s.targ='gattn'
+06:53:13  16  AND l.prdate = s.prdate
+06:53:13  17  AND l.prdate = m.prdate
+06:53:13  18  /
+
+View created.
+
+Elapsed: 00:00:00.05
+06:53:13 SQL> 
+06:53:13 SQL> SELECT
+06:53:13   2  pair
+06:53:13   3  ,CORR((score_diff),g6)score_corr2
+06:53:13   4  FROM scc12
+06:53:13   5  GROUP BY pair ORDER BY CORR((score_long - score_short),g6)
+06:53:13   6  /
+
+PAIR    SCORE_CORR2
+------- -----------
+eur_chf  -.07980375
+
+Elapsed: 00:00:00.26
+06:53:13 SQL> 
+06:53:13 SQL> 
+06:53:13 SQL> SELECT
+06:53:13   2  pair
+06:53:13   3  ,rscore_long
+06:53:13   4  ,AVG(g6)
+06:53:13   5  ,MIN(ydate)
+06:53:13   6  ,COUNT(g6)
+06:53:13   7  ,MAX(ydate)
+06:53:13   8  FROM scc12
+06:53:13   9  GROUP BY pair,rscore_long
+06:53:13  10  ORDER BY pair,rscore_long
+06:53:13  11  /
+
+PAIR    RSCORE_LONG    AVG(G6) MIN(YDATE)           COUNT(G6) MAX(YDATE)
+------- ----------- ---------- ------------------- ---------- -------------------
+eur_chf           0 .001573044 2011-01-10 12:05:00          5 2011-01-28 09:45:00
+eur_chf          .1 .000676538 2011-01-10 10:45:00        171 2011-01-28 21:05:00
+eur_chf          .2 .000877949 2011-01-09 23:00:00        434 2011-01-28 21:30:00
+eur_chf          .3 .000771126 2011-01-09 22:50:00        663 2011-01-28 21:55:00
+eur_chf          .4 .000473356 2011-01-09 22:35:00        725 2011-01-28 21:45:00
+eur_chf          .5 .000356913 2011-01-09 22:25:00        632 2011-01-28 21:50:00
+eur_chf          .6 .000422758 2011-01-09 22:15:00        537 2011-01-28 19:55:00
+eur_chf          .7 .000238622 2011-01-09 23:15:00        511 2011-01-28 17:45:00
+eur_chf          .8 .000099012 2011-01-10 04:15:00        313 2011-01-28 17:20:00
+eur_chf          .9 -.00006629 2011-01-10 20:50:00        133 2011-01-28 14:05:00
+eur_chf           1  .00042749 2011-01-14 20:30:00          3 2011-01-26 03:20:00
+
+11 rows selected.
+
+Elapsed: 00:00:00.16
+06:53:14 SQL> 
+06:53:14 SQL> SELECT
+06:53:14   2  pair
+06:53:14   3  ,rscore_short
+06:53:14   4  ,AVG(g6)
+06:53:14   5  ,MIN(ydate)
+06:53:14   6  ,COUNT(g6)
+06:53:14   7  ,MAX(ydate)
+06:53:14   8  FROM scc12
+06:53:14   9  GROUP BY pair,rscore_short
+06:53:14  10  ORDER BY pair,rscore_short
+06:53:14  11  /
+
+PAIR    RSCORE_SHORT    AVG(G6) MIN(YDATE)           COUNT(G6) MAX(YDATE)
+------- ------------ ---------- ------------------- ---------- -------------------
+eur_chf            0 .001443077 2011-01-10 22:40:00         14 2011-01-28 16:35:00
+eur_chf           .1  .00024267 2011-01-10 18:50:00        233 2011-01-28 18:00:00
+eur_chf           .2 -.00002909 2011-01-09 23:55:00        493 2011-01-28 21:05:00
+eur_chf           .3 .000487379 2011-01-09 22:20:00        607 2011-01-28 21:45:00
+eur_chf           .4 .000592211 2011-01-09 22:15:00        691 2011-01-28 21:30:00
+eur_chf           .5 .000307759 2011-01-10 00:30:00        659 2011-01-28 21:40:00
+eur_chf           .6 .000496781 2011-01-09 23:35:00        560 2011-01-28 21:20:00
+eur_chf           .7 .000729417 2011-01-10 03:00:00        500 2011-01-28 21:50:00
+eur_chf           .8 .000868851 2011-01-09 23:40:00        300 2011-01-28 21:55:00
+eur_chf           .9 .001188158 2011-01-10 08:50:00         70 2011-01-28 13:55:00
+
+10 rows selected.
+
+Elapsed: 00:00:00.14
+06:53:14 SQL> 
+06:53:14 SQL> SELECT
+06:53:14   2  pair
+06:53:14   3  ,rscore_diff
+06:53:14   4  ,AVG(g6)
+06:53:14   5  ,MIN(ydate)
+06:53:14   6  ,COUNT(g6)
+06:53:14   7  ,MAX(ydate)
+06:53:14   8  FROM scc12
+06:53:14   9  GROUP BY pair,rscore_diff
+06:53:14  10  ORDER BY pair,rscore_diff
+06:53:14  11  /
+
+PAIR    RSCORE_DIFF    AVG(G6) MIN(YDATE)           COUNT(G6) MAX(YDATE)
+------- ----------- ---------- ------------------- ---------- -------------------
+eur_chf         -.8 .001504154 2011-01-10 10:45:00          6 2011-01-25 22:55:00
+eur_chf         -.7 .000675604 2011-01-10 12:00:00         51 2011-01-28 00:15:00
+eur_chf         -.6 .001019297 2011-01-10 03:55:00        110 2011-01-28 20:20:00
+eur_chf         -.5 .000762569 2011-01-10 03:45:00        165 2011-01-28 21:55:00
+eur_chf         -.4 .001043945 2011-01-09 23:40:00        305 2011-01-28 21:20:00
+eur_chf         -.3 .000681643 2011-01-10 01:10:00        327 2011-01-28 20:50:00
+eur_chf         -.2  .00073317 2011-01-10 00:45:00        406 2011-01-28 21:50:00
+eur_chf         -.1 .000531548 2011-01-09 23:00:00        474 2011-01-28 21:40:00
+eur_chf           0  .00044214 2011-01-09 22:50:00        433 2011-01-28 20:55:00
+eur_chf          .1 .000376901 2011-01-09 22:30:00        415 2011-01-28 21:45:00
+eur_chf          .2 .000042728 2011-01-09 22:15:00        379 2011-01-28 18:00:00
+eur_chf          .3 .000129312 2011-01-09 22:20:00        305 2011-01-28 18:45:00
+eur_chf          .4 .000349189 2011-01-10 01:55:00        263 2011-01-28 17:30:00
+eur_chf          .5 .000482648 2011-01-10 06:40:00        201 2011-01-28 15:50:00
+eur_chf          .6 .000253274 2011-01-10 20:25:00        163 2011-01-28 17:45:00
+eur_chf          .7 -.00031608 2011-01-10 20:50:00         92 2011-01-28 13:15:00
+eur_chf          .8 -.00074175 2011-01-10 20:55:00         29 2011-01-28 10:35:00
+eur_chf          .9 .000540242 2011-01-10 22:50:00          3 2011-01-18 03:30:00
+
+18 rows selected.
+
+Elapsed: 00:00:00.13
+06:53:14 SQL> 
+06:53:14 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z3:/pt/s/rluck/svm62$ 
+
+oooooooooooooooooo
+

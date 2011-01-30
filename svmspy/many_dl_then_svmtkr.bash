@@ -6,6 +6,17 @@ date
 
 # The tkrs below are sorted randomly on purpose:
 
+./dl_then_svm.bash SLW
+./dl_then_svm.bash AXU
+./dl_then_svm.bash PAAS
+./dl_then_svm.bash HL
+./dl_then_svm.bash CDE
+./dl_then_svm.bash EXK
+./dl_then_svm.bash MVG
+./dl_then_svm.bash SVM
+./dl_then_svm.bash PALL
+./dl_then_svm.bash PPLT
+
 ./dl_then_svm.bash  PEP
 ./dl_then_svm.bash  SWC
 ./dl_then_svm.bash  CTSH
