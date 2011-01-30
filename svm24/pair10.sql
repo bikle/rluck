@@ -287,7 +287,7 @@ GROUP BY pair,trend,gatt,att33
 ORDER BY pair,trend,gatt,att33
 /
 
-exit
+-- Join scores and gains:
 
 CREATE OR REPLACE VIEW sc12 AS
 SELECT
@@ -296,6 +296,8 @@ m.pair
 ,m.prdate
 ,l.score score_long
 ,s.score score_short
+,ROUND(l.score,1) rscore_long
+,ROUND(s.score,1) rscore_short
 ,m.g1
 FROM svm24scores l,svm24scores s,svm2416 m
 WHERE l.targ='gatt'
@@ -306,6 +308,14 @@ AND l.prdate = m.prdate
 AND l.pair = '&1'
 AND s.pair = '&1'
 /
+
+-- rpt
+SELECT pair,rscore_long,AVG(g1),MIN(ydate),COUNT(pair),MAX(ydate)FROM sc12
+GROUP BY pair,rscore_long
+ORDER BY pair,rscore_long
+/
+
+exit
 
 DROP TABLE score_corr;
 
