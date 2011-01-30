@@ -1,0 +1,457 @@
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Jan 30 23:09:14 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+23:09:14 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+23:09:14 SQL> 23:09:14 SQL> --
+23:09:14 SQL> -- update_di5min.sql
+23:09:14 SQL> --
+23:09:14 SQL> 
+23:09:14 SQL> -- I use this script to keep the di5min table up to date.
+23:09:14 SQL> 
+23:09:14 SQL> -- CREATE TABLE di5min0(prdate VARCHAR2(26),pair VARCHAR2(7),ydate DATE,clse NUMBER);
+23:09:14 SQL> -- CREATE TABLE di5min (prdate VARCHAR2(26),pair VARCHAR2(7),ydate DATE,clse NUMBER);
+23:09:14 SQL> 
+23:09:14 SQL> TRUNCATE TABLE di5min0;
+
+Table truncated.
+
+Elapsed: 00:00:00.41
+23:09:14 SQL> DROP TABLE di5min;
+
+Table dropped.
+
+Elapsed: 00:00:00.05
+23:09:14 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.35
+23:09:14 SQL> 
+23:09:14 SQL> -- Copy in data from ibf5min:
+23:09:14 SQL> 
+23:09:14 SQL> INSERT INTO di5min0(prdate,pair,ydate,clse)
+23:09:14   2  SELECT	     pair||ydate,pair,ydate,clse
+23:09:14   3  FROM ibf5min
+23:09:14   4  WHERE ydate >= '2010-11-30'
+23:09:14   5  /
+
+74790 rows created.
+
+Elapsed: 00:00:00.38
+23:09:15 SQL> 
+23:09:15 SQL> -- rpt
+23:09:15 SQL> SELECT
+23:09:15   2  pair
+23:09:15   3  ,MIN(ydate)
+23:09:15   4  ,COUNT(pair)
+23:09:15   5  ,MAX(ydate)
+23:09:15   6  FROM di5min0
+23:09:15   7  GROUP BY pair
+23:09:15   8  ORDER BY pair
+23:09:15   9  
+23:09:15 SQL> -- Next, copy in data from dukas:
+23:09:15 SQL> 
+23:09:15 SQL> INSERT INTO di5min0(prdate,pair,ydate,clse)
+23:09:15   2  SELECT	     pair||ydate,pair,ydate,clse
+23:09:15   3  FROM dukas5min
+23:09:15   4  WHERE ydate < '2010-11-30'
+23:09:15   5  AND ydate > sysdate - 100
+23:09:15   6  /
+
+45450 rows created.
+
+Elapsed: 00:00:00.11
+23:09:15 SQL> 
+23:09:15 SQL> -- rpt
+23:09:15 SQL> SELECT
+23:09:15   2  pair
+23:09:15   3  ,MIN(ydate)
+23:09:15   4  ,COUNT(pair)
+23:09:15   5  ,MAX(ydate)
+23:09:15   6  FROM dukas5min
+23:09:15   7  GROUP BY pair
+23:09:15   8  ORDER BY pair
+23:09:15   9  
+23:09:15 SQL> -- rpt
+23:09:15 SQL> SELECT
+23:09:15   2  pair
+23:09:15   3  ,MIN(ydate)
+23:09:15   4  ,COUNT(pair)
+23:09:15   5  ,MAX(ydate)
+23:09:15   6  FROM di5min0
+23:09:15   7  GROUP BY pair
+23:09:15   8  ORDER BY pair
+23:09:15   9  
+23:09:15 SQL> -- Create other pairs like EUR/CHF:
+23:09:15 SQL> @create_other_pairs.sql
+23:09:15 SQL> --
+23:09:15 SQL> -- create_other_pairs.sql
+23:09:15 SQL> --
+23:09:15 SQL> 
+23:09:15 SQL> -- I use this script to create other non-USD pairs like EUR/CHF.
+23:09:15 SQL> 
+23:09:15 SQL> -- DROP TABLE op5min;
+23:09:15 SQL> -- CREATE TABLE op5min(prdate VARCHAR2(26),pair VARCHAR2(7), ydate DATE, clse NUMBER);
+23:09:15 SQL> 
+23:09:15 SQL> TRUNCATE TABLE op5min;
+
+Table truncated.
+
+Elapsed: 00:00:00.32
+23:09:15 SQL> 
+23:09:15 SQL> -- Create the EUR/AUD pair:
+23:09:15 SQL> 
+23:09:15 SQL> INSERT INTO op5min(prdate,pair,ydate,clse)
+23:09:15   2  SELECT
+23:09:15   3  'eur_aud'||e.ydate prdate
+23:09:15   4  ,'eur_aud' pair
+23:09:15   5  ,e.ydate
+23:09:15   6  ,e.clse/g.clse clse
+23:09:15   7  FROM di5min0 e, di5min0 g
+23:09:15   8  WHERE e.ydate = g.ydate
+23:09:15   9  AND e.pair = 'eur_usd'
+23:09:15  10  AND g.pair = 'aud_usd'
+23:09:15  11  /
+
+20038 rows created.
+
+Elapsed: 00:00:00.14
+23:09:15 SQL> 
+23:09:15 SQL> -- Create the EUR/CHF pair:
+23:09:15 SQL> 
+23:09:15 SQL> INSERT INTO op5min(prdate,pair,ydate,clse)
+23:09:15   2  SELECT
+23:09:15   3  'eur_chf'||e.ydate prdate
+23:09:15   4  ,'eur_chf' pair
+23:09:15   5  ,e.ydate
+23:09:15   6  ,e.clse*c.clse clse
+23:09:15   7  FROM di5min0 e, di5min0 c
+23:09:15   8  WHERE e.ydate = c.ydate
+23:09:15   9  AND e.pair = 'eur_usd'
+23:09:15  10  AND c.pair = 'usd_chf'
+23:09:15  11  /
+
+20041 rows created.
+
+Elapsed: 00:00:00.08
+23:09:15 SQL> 
+23:09:15 SQL> -- Create the EUR/GBP pair:
+23:09:15 SQL> 
+23:09:15 SQL> INSERT INTO op5min(prdate,pair,ydate,clse)
+23:09:15   2  SELECT
+23:09:15   3  'eur_gbp'||e.ydate prdate
+23:09:15   4  ,'eur_gbp' pair
+23:09:15   5  ,e.ydate
+23:09:15   6  ,e.clse/g.clse clse
+23:09:15   7  FROM di5min0 e, di5min0 g
+23:09:15   8  WHERE e.ydate = g.ydate
+23:09:15   9  AND e.pair = 'eur_usd'
+23:09:15  10  AND g.pair = 'gbp_usd'
+23:09:15  11  /
+
+20040 rows created.
+
+Elapsed: 00:00:00.07
+23:09:16 SQL> 
+23:09:16 SQL> 
+23:09:16 SQL> -- Create the EUR/JPY pair:
+23:09:16 SQL> 
+23:09:16 SQL> INSERT INTO op5min(prdate,pair,ydate,clse)
+23:09:16   2  SELECT
+23:09:16   3  'eur_jpy'||e.ydate prdate
+23:09:16   4  ,'eur_jpy' pair
+23:09:16   5  ,e.ydate
+23:09:16   6  ,e.clse*j.clse clse
+23:09:16   7  FROM di5min0 e, di5min0 j
+23:09:16   8  WHERE e.ydate = j.ydate
+23:09:16   9  AND e.pair = 'eur_usd'
+23:09:16  10  AND j.pair = 'usd_jpy'
+23:09:16  11  /
+
+20036 rows created.
+
+Elapsed: 00:00:00.07
+23:09:16 SQL> 
+23:09:16 SQL> -- Create the AUD/JPY pair:
+23:09:16 SQL> 
+23:09:16 SQL> INSERT INTO op5min(prdate,pair,ydate,clse)
+23:09:16   2  SELECT
+23:09:16   3  'aud_jpy'||a.ydate prdate
+23:09:16   4  ,'aud_jpy' pair
+23:09:16   5  ,a.ydate
+23:09:16   6  ,a.clse*j.clse clse
+23:09:16   7  FROM di5min0 a, di5min0 j
+23:09:16   8  WHERE a.ydate = j.ydate
+23:09:16   9  AND a.pair = 'aud_usd'
+23:09:16  10  AND j.pair = 'usd_jpy'
+23:09:16  11  /
+
+20033 rows created.
+
+Elapsed: 00:00:00.06
+23:09:16 SQL> 
+23:09:16 SQL> -- rpt
+23:09:16 SQL> 
+23:09:16 SQL> SELECT * FROM op5min
+23:09:16   2  WHERE ydate > sysdate - 0.5/24
+23:09:16   3  ORDER BY prdate
+23:09:16   4  /
+
+PRDATE			   PAIR    YDATE		     CLSE
+-------------------------- ------- ------------------- ----------
+aud_jpy2011-01-30 22:40:00 aud_jpy 2011-01-30 22:40:00	81.306225
+aud_jpy2011-01-30 22:45:00 aud_jpy 2011-01-30 22:45:00 81.2885886
+aud_jpy2011-01-30 22:50:00 aud_jpy 2011-01-30 22:50:00	81.248781
+aud_jpy2011-01-30 22:55:00 aud_jpy 2011-01-30 22:55:00 81.2558214
+aud_jpy2011-01-30 23:00:00 aud_jpy 2011-01-30 23:00:00 81.2923725
+aud_jpy2011-01-30 23:05:00 aud_jpy 2011-01-30 23:05:00 81.2845311
+eur_aud2011-01-30 22:40:00 eur_aud 2011-01-30 22:40:00 1.37310606
+eur_aud2011-01-30 22:45:00 eur_aud 2011-01-30 22:45:00 1.37295713
+eur_aud2011-01-30 22:50:00 eur_aud 2011-01-30 22:50:00	1.3728201
+eur_aud2011-01-30 22:55:00 eur_aud 2011-01-30 22:55:00	1.3728925
+eur_aud2011-01-30 23:00:00 eur_aud 2011-01-30 23:00:00 1.37273876
+eur_aud2011-01-30 23:05:00 eur_aud 2011-01-30 23:05:00 1.37300725
+eur_chf2011-01-30 22:40:00 eur_chf 2011-01-30 22:40:00	1.2806502
+eur_chf2011-01-30 22:45:00 eur_chf 2011-01-30 22:45:00 1.28054627
+eur_chf2011-01-30 22:50:00 eur_chf 2011-01-30 22:50:00 1.27989523
+eur_chf2011-01-30 22:55:00 eur_chf 2011-01-30 22:55:00 1.27941061
+eur_chf2011-01-30 23:00:00 eur_chf 2011-01-30 23:00:00 1.27977986
+eur_chf2011-01-30 23:05:00 eur_chf 2011-01-30 23:05:00 1.27989268
+eur_gbp2011-01-30 22:40:00 eur_gbp 2011-01-30 22:40:00 .858340305
+eur_gbp2011-01-30 22:45:00 eur_gbp 2011-01-30 22:45:00 .858049443
+eur_gbp2011-01-30 22:50:00 eur_gbp 2011-01-30 22:50:00 .857661669
+eur_gbp2011-01-30 22:55:00 eur_gbp 2011-01-30 22:55:00 .857700082
+eur_gbp2011-01-30 23:00:00 eur_gbp 2011-01-30 23:00:00 .857907535
+eur_gbp2011-01-30 23:05:00 eur_gbp 2011-01-30 23:05:00 .857744878
+eur_jpy2011-01-30 22:40:00 eur_jpy 2011-01-30 22:40:00	111.64207
+eur_jpy2011-01-30 22:45:00 eur_jpy 2011-01-30 22:45:00 111.605748
+eur_jpy2011-01-30 22:50:00 eur_jpy 2011-01-30 22:50:00	111.53996
+eur_jpy2011-01-30 22:55:00 eur_jpy 2011-01-30 22:55:00 111.555507
+eur_jpy2011-01-30 23:00:00 eur_jpy 2011-01-30 23:00:00	111.59319
+eur_jpy2011-01-30 23:05:00 eur_jpy 2011-01-30 23:05:00 111.604251
+
+30 rows selected.
+
+Elapsed: 00:00:00.01
+23:09:16 SQL> 
+23:09:16 SQL> -- Dont put an exit here.
+23:09:16 SQL> -- This script is called from another SQL script.
+23:09:16 SQL> -- Here is what I want:
+23:09:16 SQL> 
+23:09:16 SQL> CREATE TABLE di5min COMPRESS AS
+23:09:16   2  SELECT
+23:09:16   3  prdate
+23:09:16   4  ,pair
+23:09:16   5  ,ydate
+23:09:16   6  ,clse
+23:09:16   7  FROM
+23:09:16   8  (
+23:09:16   9  	SELECT
+23:09:16  10  	prdate
+23:09:16  11  	,pair
+23:09:16  12  	,ydate
+23:09:16  13  	,AVG(clse)clse
+23:09:16  14  	FROM di5min0
+23:09:16  15  	GROUP BY
+23:09:16  16  	prdate
+23:09:16  17  	,pair
+23:09:16  18  	,ydate
+23:09:16  19  	UNION
+23:09:16  20  	SELECT
+23:09:16  21  	prdate
+23:09:16  22  	,pair
+23:09:16  23  	,ydate
+23:09:16  24  	,clse
+23:09:16  25  	FROM op5min
+23:09:16  26  )
+23:09:16  27  /
+
+Table created.
+
+Elapsed: 00:00:01.36
+23:09:17 SQL> 
+23:09:17 SQL> -- rpt
+23:09:17 SQL> SELECT
+23:09:17   2  pair
+23:09:17   3  ,MIN(ydate)
+23:09:17   4  ,COUNT(ydate)
+23:09:17   5  ,MAX(ydate)
+23:09:17   6  ,MIN(clse)
+23:09:17   7  ,AVG(clse)
+23:09:17   8  ,MAX(clse)
+23:09:17   9  FROM di5min
+23:09:17  10  GROUP BY pair
+23:09:17  11  ORDER BY pair
+23:09:17  12  /
+
+PAIR	MIN(YDATE)	    COUNT(YDATE) MAX(YDATE)	      MIN(CLSE)  AVG(CLSE)  MAX(CLSE)
+------- ------------------- ------------ ------------------- ---------- ---------- ----------
+aud_jpy 2010-10-24 20:55:00	   20033 2011-01-30 23:05:00  78.249976 82.0057167 83.6669853
+aud_usd 2010-10-24 20:55:00	   20039 2011-01-30 23:05:00	 .95405 .992038768     1.0246
+eur_aud 2010-10-24 20:55:00	   20038 2011-01-30 23:05:00 1.29324263 1.35576178 1.42628701
+eur_chf 2010-10-24 20:55:00	   20041 2011-01-30 23:05:00 1.24192946  1.3062681 1.38284305
+eur_gbp 2010-10-24 20:55:00	   20040 2011-01-30 23:05:00 .829062716 .852187989 .893920122
+eur_jpy 2010-10-24 20:55:00	   20036 2011-01-30 23:05:00 106.906797 111.152459  115.36994
+eur_usd 2010-10-24 20:55:00	   20042 2011-01-30 23:05:00	1.28795 1.34478986     1.4273
+gbp_usd 2010-10-24 20:55:00	   20041 2011-01-30 23:05:00   1.535325 1.57793913     1.6295
+usd_cad 2010-10-24 20:55:00	   20039 2011-01-30 23:05:00	.983925 1.00634166     1.0333
+usd_chf 2010-10-24 20:55:00	   20042 2011-01-30 23:05:00	.931675 .971340358    1.00635
+usd_jpy 2010-10-24 20:55:00	   20037 2011-01-30 23:05:00	  80.25 82.6710578     84.485
+
+11 rows selected.
+
+Elapsed: 00:00:00.16
+23:09:17 SQL> 
+23:09:17 SQL> COLUMN clse FORMAT 999.9999
+23:09:17 SQL> SELECT
+23:09:17   2  pair
+23:09:17   3  ,ROUND(clse,4)clse
+23:09:17   4  ,ydate
+23:09:17   5  FROM di5min
+23:09:17   6  WHERE ydate > sysdate - 3/24
+23:09:17   7  ORDER BY pair,ydate
+23:09:17   8  /
+
+PAIR	     CLSE YDATE
+------- --------- -------------------
+aud_jpy   81.3312 2011-01-30 22:15:00
+aud_jpy   81.3017 2011-01-30 22:20:00
+aud_jpy   81.3210 2011-01-30 22:25:00
+aud_jpy   81.3385 2011-01-30 22:30:00
+aud_jpy   81.3116 2011-01-30 22:35:00
+aud_jpy   81.3062 2011-01-30 22:40:00
+aud_jpy   81.2886 2011-01-30 22:45:00
+aud_jpy   81.2488 2011-01-30 22:50:00
+aud_jpy   81.2558 2011-01-30 22:55:00
+aud_jpy   81.2924 2011-01-30 23:00:00
+aud_jpy   81.2845 2011-01-30 23:05:00
+aud_usd     .9901 2011-01-30 22:15:00
+aud_usd     .9900 2011-01-30 22:20:00
+aud_usd     .9902 2011-01-30 22:25:00
+aud_usd     .9904 2011-01-30 22:30:00
+aud_usd     .9900 2011-01-30 22:35:00
+aud_usd     .9900 2011-01-30 22:40:00
+aud_usd     .9897 2011-01-30 22:45:00
+aud_usd     .9892 2011-01-30 22:50:00
+aud_usd     .9890 2011-01-30 22:55:00
+aud_usd     .9895 2011-01-30 23:00:00
+aud_usd     .9895 2011-01-30 23:05:00
+eur_aud    1.3724 2011-01-30 22:15:00
+eur_aud    1.3730 2011-01-30 22:20:00
+eur_aud    1.3730 2011-01-30 22:25:00
+eur_aud    1.3728 2011-01-30 22:30:00
+eur_aud    1.3731 2011-01-30 22:35:00
+eur_aud    1.3731 2011-01-30 22:40:00
+eur_aud    1.3730 2011-01-30 22:45:00
+eur_aud    1.3728 2011-01-30 22:50:00
+eur_aud    1.3729 2011-01-30 22:55:00
+eur_aud    1.3727 2011-01-30 23:00:00
+eur_aud    1.3730 2011-01-30 23:05:00
+eur_chf    1.2793 2011-01-30 22:15:00
+eur_chf    1.2800 2011-01-30 22:20:00
+eur_chf    1.2803 2011-01-30 22:25:00
+eur_chf    1.2804 2011-01-30 22:30:00
+eur_chf    1.2807 2011-01-30 22:35:00
+eur_chf    1.2807 2011-01-30 22:40:00
+eur_chf    1.2805 2011-01-30 22:45:00
+eur_chf    1.2799 2011-01-30 22:50:00
+eur_chf    1.2794 2011-01-30 22:55:00
+eur_chf    1.2798 2011-01-30 23:00:00
+eur_chf    1.2799 2011-01-30 23:05:00
+eur_gbp     .8577 2011-01-30 22:15:00
+eur_gbp     .8583 2011-01-30 22:20:00
+eur_gbp     .8585 2011-01-30 22:25:00
+eur_gbp     .8584 2011-01-30 22:30:00
+eur_gbp     .8583 2011-01-30 22:35:00
+eur_gbp     .8583 2011-01-30 22:40:00
+eur_gbp     .8580 2011-01-30 22:45:00
+eur_gbp     .8577 2011-01-30 22:50:00
+eur_gbp     .8577 2011-01-30 22:55:00
+eur_gbp     .8579 2011-01-30 23:00:00
+eur_gbp     .8577 2011-01-30 23:05:00
+eur_jpy  111.6220 2011-01-30 22:15:00
+eur_jpy  111.6284 2011-01-30 22:20:00
+eur_jpy  111.6534 2011-01-30 22:25:00
+eur_jpy  111.6619 2011-01-30 22:30:00
+eur_jpy  111.6502 2011-01-30 22:35:00
+eur_jpy  111.6421 2011-01-30 22:40:00
+eur_jpy  111.6057 2011-01-30 22:45:00
+eur_jpy  111.5400 2011-01-30 22:50:00
+eur_jpy  111.5555 2011-01-30 22:55:00
+eur_jpy  111.5932 2011-01-30 23:00:00
+eur_jpy  111.6043 2011-01-30 23:05:00
+eur_usd    1.3588 2011-01-30 22:15:00
+eur_usd    1.3593 2011-01-30 22:20:00
+eur_usd    1.3596 2011-01-30 22:25:00
+eur_usd    1.3596 2011-01-30 22:30:00
+eur_usd    1.3594 2011-01-30 22:35:00
+eur_usd    1.3594 2011-01-30 22:40:00
+eur_usd    1.3589 2011-01-30 22:45:00
+eur_usd    1.3579 2011-01-30 22:50:00
+eur_usd    1.3578 2011-01-30 22:55:00
+eur_usd    1.3583 2011-01-30 23:00:00
+eur_usd    1.3586 2011-01-30 23:05:00
+gbp_usd    1.5842 2011-01-30 22:15:00
+gbp_usd    1.5837 2011-01-30 22:20:00
+gbp_usd    1.5836 2011-01-30 22:25:00
+gbp_usd    1.5839 2011-01-30 22:30:00
+gbp_usd    1.5838 2011-01-30 22:35:00
+gbp_usd    1.5837 2011-01-30 22:40:00
+gbp_usd    1.5837 2011-01-30 22:45:00
+gbp_usd    1.5833 2011-01-30 22:50:00
+gbp_usd    1.5831 2011-01-30 22:55:00
+gbp_usd    1.5833 2011-01-30 23:00:00
+gbp_usd    1.5840 2011-01-30 23:05:00
+usd_cad    1.0014 2011-01-30 22:15:00
+usd_cad    1.0016 2011-01-30 22:20:00
+usd_cad    1.0016 2011-01-30 22:25:00
+usd_cad    1.0015 2011-01-30 22:30:00
+usd_cad    1.0016 2011-01-30 22:35:00
+usd_cad    1.0013 2011-01-30 22:40:00
+usd_cad    1.0013 2011-01-30 22:45:00
+usd_cad    1.0015 2011-01-30 22:50:00
+usd_cad    1.0015 2011-01-30 22:55:00
+usd_cad    1.0018 2011-01-30 23:00:00
+usd_cad    1.0014 2011-01-30 23:05:00
+usd_chf     .9415 2011-01-30 22:15:00
+usd_chf     .9417 2011-01-30 22:20:00
+usd_chf     .9417 2011-01-30 22:25:00
+usd_chf     .9418 2011-01-30 22:30:00
+usd_chf     .9422 2011-01-30 22:35:00
+usd_chf     .9421 2011-01-30 22:40:00
+usd_chf     .9424 2011-01-30 22:45:00
+usd_chf     .9425 2011-01-30 22:50:00
+usd_chf     .9423 2011-01-30 22:55:00
+usd_chf     .9422 2011-01-30 23:00:00
+usd_chf     .9421 2011-01-30 23:05:00
+usd_jpy   82.1475 2011-01-30 22:15:00
+usd_jpy   82.1250 2011-01-30 22:20:00
+usd_jpy   82.1238 2011-01-30 22:25:00
+usd_jpy   82.1300 2011-01-30 22:30:00
+usd_jpy   82.1350 2011-01-30 22:35:00
+usd_jpy   82.1275 2011-01-30 22:40:00
+usd_jpy   82.1325 2011-01-30 22:45:00
+usd_jpy   82.1400 2011-01-30 22:50:00
+usd_jpy   82.1575 2011-01-30 22:55:00
+usd_jpy   82.1550 2011-01-30 23:00:00
+
+PAIR	     CLSE YDATE
+------- --------- -------------------
+usd_jpy   82.1450 2011-01-30 23:05:00
+
+121 rows selected.
+
+Elapsed: 00:00:00.04
+23:09:17 SQL> Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options

@@ -12,13 +12,22 @@ prdate
 ,ydate
 ,(LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g6
 FROM di5min
-WHERE ydate > sysdate - 123
+WHERE ydate BETWEEN(sysdate - 34)AND'2011-01-14'
 AND clse > 0
 ORDER BY pair,ydate
 /
 
 -- rpt
-SELECT pair,AVG(g6)FROM scc10 GROUP BY pair;
+SELECT
+pair
+,AVG(g6)
+,MIN(ydate)
+,COUNT(ydate)
+,MAX(ydate)
+FROM scc10
+GROUP BY pair
+ORDER BY pair
+/
 
 CREATE OR REPLACE VIEW scc12 AS
 SELECT
@@ -27,6 +36,7 @@ m.pair
 ,m.prdate
 ,l.score score_long
 ,s.score score_short
+,l.score-s.score score_diff
 ,ROUND(l.score,1) rscore_long
 ,ROUND(s.score,1) rscore_short
 ,ROUND((l.score-s.score),1) rscore_diff
@@ -37,8 +47,8 @@ AND   s.targ='gattn'
 AND l.prdate = s.prdate
 AND l.prdate = m.prdate
 -- Speed things up:
-AND l.ydate > sysdate - 123
-AND s.ydate > sysdate - 123
+AND l.ydate > sysdate - 133
+AND s.ydate > sysdate - 133
 /
 
 SELECT
@@ -47,7 +57,7 @@ pair
 ,AVG(g6)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > sysdate - 123
+WHERE ydate > sysdate - 133
 GROUP BY pair,rscore_long
 ORDER BY pair,rscore_long
 /
@@ -58,7 +68,7 @@ pair
 ,AVG(g6)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > sysdate - 123
+WHERE ydate > sysdate - 133
 GROUP BY pair,rscore_short
 ORDER BY pair,rscore_short
 /
@@ -69,17 +79,20 @@ pair
 ,AVG(g6)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > sysdate - 123
+WHERE ydate > sysdate - 133
 GROUP BY pair,rscore_diff
 ORDER BY pair,rscore_diff
 /
 
 SELECT
 pair
-,CORR((score_long - score_short),g6)score_corr2
+,CORR(score_long,g6)score_corr_l
+,CORR(score_short,g6)score_corr_s
+,CORR(score_diff,g6)score_corr_d
 FROM scc12
-WHERE ydate > sysdate - 123
-GROUP BY pair ORDER BY CORR((score_long - score_short),g6)
+WHERE ydate > sysdate - 133
+GROUP BY pair 
+ORDER BY pair
 /
 
 exit
