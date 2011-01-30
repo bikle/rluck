@@ -11,6 +11,9 @@ cd $SVM62
 ./extra.bash > /pt/s/cron/out/extra_bash.${myts}.txt 2>&1
 
 ./dl_then_svm.bash aud_usd > /pt/s/cron/out/dl_then_svm_aud_usd.${myts}.txt 2>&1
+
+exit
+
 ./svmpair.bash eur_usd > /pt/s/cron/out/svm_bash_eur_usd.${myts}.txt 2>&1
 ./svmpair.bash gbp_usd > /pt/s/cron/out/svm_bash_gbp_usd.${myts}.txt 2>&1
 
