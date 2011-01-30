@@ -22,8 +22,8 @@ WHERE ydate NOT IN
 AND ydate > sysdate - 11
 AND pair = '&1'
 )
--- ORDER BY DBMS_RANDOM.VALUE
-ORDER BY ydate,cmd
+ORDER BY DBMS_RANDOM.VALUE
+-- ORDER BY ydate,cmd
 /
 
 
