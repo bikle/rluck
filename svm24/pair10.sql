@@ -39,13 +39,58 @@ pair
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*60 PRECEDING AND CURRENT ROW)max60
 ,MAX(clse)OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*72 PRECEDING AND CURRENT ROW)max72
 --
-,LEAD(clse,12*24,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld1day
+,LEAD(clse,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld1day
+,LEAD(ydate,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld_ydate
 FROM di5min WHERE pair = '&1'
-AND ydate > sysdate - 200
+-- AND ydate > sysdate - 200
+AND ydate > sysdate - 30
 ORDER BY ydate
 /
 
 -- rpt
+
+SELECT MAX(ld_ydate)from svm2410 WHERE TO_CHAR(ld_ydate,'dy HH24 MI')='thu 00 00';
+
+SELECT ydate,ld_ydate FROM svm2410
+WHERE pair='&1'
+AND TRUNC(ydate)= '2011-01-19'
+ORDER BY ydate
+/
+
+exit
+
+SELECT TO_CHAR(ydate,'dy'),MIN(ld_ydate - ydate)FROM svm2410
+GROUP BY TO_CHAR(ydate,'dy')
+/
+
+SELECT TO_CHAR(ydate,'dy'),(ld_ydate - ydate),COUNT(ld_ydate - ydate)
+FROM svm2410
+WHERE ydate > '2011-01-01'
+GROUP BY TO_CHAR(ydate,'dy'),(ld_ydate - ydate)
+ORDER BY TO_CHAR(ydate,'dy'),(ld_ydate - ydate)
+/
+
+SELECT
+TO_CHAR(ydate,'MI')
+,COUNT(TO_CHAR(ydate,'MI'))
+FROM svm2410
+WHERE TO_CHAR(ydate,'HH24')='22'
+AND ydate > '2011-01-01'
+GROUP BY TO_CHAR(ydate,'MI')
+ORDER BY 0+TO_CHAR(ydate,'MI')
+/
+
+SELECT
+TO_CHAR(ydate,'MI')
+,COUNT(TO_CHAR(ydate,'MI'))
+FROM svm2410
+WHERE TO_CHAR(ydate,'HH24')='23'
+AND ydate > '2011-01-01'
+GROUP BY TO_CHAR(ydate,'MI')
+ORDER BY 0+TO_CHAR(ydate,'MI')
+/
+
+exit
 
 SELECT
 pair
@@ -315,8 +360,6 @@ GROUP BY pair,rscore_long
 ORDER BY pair,rscore_long
 /
 
-exit
-
 DROP TABLE score_corr;
 
 CREATE TABLE score_corr COMPRESS AS
@@ -324,11 +367,17 @@ SELECT
 pair
 -- ,ydate
 ,prdate
--- Find corr() tween score and g1 over 2 day period:
+-- Find corr() tween score and g1 over 11 day period:
 ,CORR((score_long - score_short),g1)
-  OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 2*24*60/5 PRECEDING AND CURRENT ROW)sc_corr
+  OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*24*11 PRECEDING AND CURRENT ROW)sc_corr
 FROM sc12
 /
+
+-- rpt
+
+SELECT pair,AVG(sc_corr),COUNT(sc_corr)FROM score_corr GROUP BY pair;
+
+exit
 
 DROP TABLE modsrc24;
 
