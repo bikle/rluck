@@ -61,9 +61,9 @@ AND pair = '&3'
 -- rpt
 -- We should see just 1 row:
 
-SELECT COUNT(prdate) FROM sme;
+SELECT COUNT(prdate) FROM sme
 
-SELECT AVG(sc_corr)sc_corr FROM modsrc24 WHERE 11+ydate>'&1'||' '||'&2'AND ydate<'&1'||' '||'&2';
+SELECT AVG(sc_corr)sc_corr FROM modsrc24 WHERE 11+ydate>'&1'||' '||'&2'AND ydate<'&1'||' '||'&2'
 
 
 -- Build the model:
@@ -123,9 +123,9 @@ AND pair = '&3'
 
 -- rpt
 
-SELECT gattn, AVG(sc_corr), COUNT(prdate) FROM bme GROUP BY gattn;
+SELECT gattn, AVG(sc_corr), COUNT(prdate) FROM bme GROUP BY gattn
 
-SELECT MAX(prdate) FROM bme;
+SELECT MAX(prdate) FROM bme
 
 -- Now build model from bme and score sme
 @score1.sql gattn
