@@ -4,6 +4,13 @@
 
 -- Creates views and tables needed by SVM.
 
+-- Start by sanding off some dukas data so it resembles IB data:
+DROP TABLE di5min24;
+
+CREATE TABLE di5min24 COMPRESS AS SELECT * FROM di5min;
+
+DELETE di5min24 WHERE TO_CHAR(ydate,'HH24 MI')IN('22 00','22 05','22 10');
+
 CREATE OR REPLACE VIEW svm2410 AS
 SELECT
 pair
@@ -41,75 +48,48 @@ pair
 --
 ,LEAD(clse,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld1day
 ,LEAD(ydate,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld_ydate
-FROM di5min WHERE pair = '&1'
--- AND ydate > sysdate - 200
-AND ydate > sysdate - 30
+FROM di5min24 WHERE pair = '&1'
+AND ydate > sysdate - 200
 ORDER BY ydate
 /
 
 -- rpt
 
-SELECT MAX(ld_ydate)from svm2410 WHERE TO_CHAR(ld_ydate,'dy HH24 MI')='thu 00 00';
+-- I should see that ld_ydate is exactly 1 trading day ahead of ydate:
 
-SELECT ydate,ld_ydate FROM svm2410
+SELECT 
+TO_CHAR(ydate,'YYYY-MM-DD HH24:MI Dy')dday
+,TO_CHAR(ld_ydate,'YYYY-MM-DD HH24:MI Dy')ldday
+from svm2410
 WHERE pair='&1'
-AND TRUNC(ydate)= '2011-01-19'
+AND ld_ydate > (SELECT MAX(ld_ydate)-1 from svm2410)
 ORDER BY ydate
 /
 
-exit
-
-SELECT TO_CHAR(ydate,'dy'),MIN(ld_ydate - ydate)FROM svm2410
-GROUP BY TO_CHAR(ydate,'dy')
-/
-
-SELECT TO_CHAR(ydate,'dy'),(ld_ydate - ydate),COUNT(ld_ydate - ydate)
-FROM svm2410
-WHERE ydate > '2011-01-01'
-GROUP BY TO_CHAR(ydate,'dy'),(ld_ydate - ydate)
-ORDER BY TO_CHAR(ydate,'dy'),(ld_ydate - ydate)
-/
-
+-- I should see that hr 22 is missing 3 rows of data: 00, 05, 10
 SELECT
 TO_CHAR(ydate,'MI')
 ,COUNT(TO_CHAR(ydate,'MI'))
 FROM svm2410
 WHERE TO_CHAR(ydate,'HH24')='22'
-AND ydate > '2011-01-01'
+AND ydate > sysdate - 30
 GROUP BY TO_CHAR(ydate,'MI')
 ORDER BY 0+TO_CHAR(ydate,'MI')
 /
 
+-- I should see that other hours have all 12 rows of data
 SELECT
 TO_CHAR(ydate,'MI')
 ,COUNT(TO_CHAR(ydate,'MI'))
 FROM svm2410
-WHERE TO_CHAR(ydate,'HH24')='23'
-AND ydate > '2011-01-01'
+WHERE TO_CHAR(ydate,'HH24')!='22'
+AND ydate > sysdate - 30
 GROUP BY TO_CHAR(ydate,'MI')
 ORDER BY 0+TO_CHAR(ydate,'MI')
 /
 
-exit
-
-SELECT
-pair
-,COUNT(pair)
-FROM di5min
-GROUP BY pair
-/
-
-SELECT
-pair
-,COUNT(pair)
-,MIN(clse),MAX(clse)
-,MIN(avg24),MAX(avg24)
-,MIN(ydate),MAX(ydate)
-FROM svm2410
-GROUP BY pair
-/
-
 -- Derive trend, clse-relations, moving correlation of clse, and date related params:
+
 DROP TABLE svm2412;
 CREATE TABLE svm2412 COMPRESS AS
 SELECT
@@ -187,6 +167,8 @@ FROM svm2412
 GROUP BY pair,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'dy')
 ORDER BY pair,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'dy')
 /
+
+exit
 
 -- Prepare for derivation of NTILE based params:
 
