@@ -11,10 +11,18 @@ PAIR    SCORE_CORR2
 ------- -----------
 eur_usd  .066884922
 
-
-
 Then, I show output for eur_usd where I do have score-feedback over a 33 day period from 
 2011-01-29 going back 33 days to 2010-12-29 00:00:00
+
+Feedback seems to help a lot:
+
+
+PAIR    SCORE_CORR2
+------- -----------
+eur_usd  .205368517
+
+
+
 
 
 Here are no-feedback results:
@@ -164,6 +172,159 @@ Elapsed: 00:00:00.15
 00:02:49 SQL> 
 00:02:49 SQL> 
 00:02:49 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z3:/pt/s/rluck/svm62$ 
+
+oooooooooooooooooo
+Here are the feedback results:
+
+
+oracle@z3:/pt/s/rluck/svm62$ sqt @score_corr_eur.sql
+
+SQL*Plus: Release 11.2.0.1.0 Production on Sun Jan 30 06:39:57 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+06:39:57 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+06:39:57 SQL> --
+06:39:57 SQL> -- score_corr_eur.sql
+06:39:57 SQL> --
+06:39:57 SQL> 
+06:39:57 SQL> -- I use this script to help me see recent CORR() between score and gain.
+06:39:57 SQL> 
+06:39:57 SQL> -- I start by getting the 6 hr gain for each prdate.
+06:39:57 SQL> CREATE OR REPLACE VIEW scc10 AS
+06:39:57   2  SELECT
+06:39:57   3  prdate
+06:39:57   4  ,pair
+06:39:57   5  ,ydate
+06:39:57   6  ,LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse g6
+06:39:57   7  FROM di5min
+06:39:57   8  WHERE ydate > sysdate - 33
+06:39:57   9  AND pair = 'eur_usd'
+06:39:57  10  ORDER BY pair,ydate
+06:39:57  11  /
+
+View created.
+
+Elapsed: 00:00:00.05
+06:39:58 SQL> 
+06:39:58 SQL> -- rpt
+06:39:58 SQL> SELECT pair,AVG(g6)FROM scc10 GROUP BY pair;
+
+PAIR       AVG(G6)
+------- ----------
+eur_usd .000404225
+
+Elapsed: 00:00:00.05
+06:39:58 SQL> 
+06:39:58 SQL> CREATE OR REPLACE VIEW scc12 AS
+06:39:58   2  SELECT
+06:39:58   3  m.pair
+06:39:58   4  ,m.ydate
+06:39:58   5  ,m.prdate
+06:39:58   6  ,l.score score_long
+06:39:58   7  ,s.score score_short
+06:39:58   8  ,ROUND(l.score,1) rscore_long
+06:39:58   9  ,ROUND(s.score,1) rscore_short
+06:39:58  10  ,m.g6
+06:39:58  11  FROM svm62scores l,svm62scores s,scc10 m
+06:39:58  12  WHERE l.targ='gatt'
+06:39:58  13  AND   s.targ='gattn'
+06:39:58  14  AND l.prdate = s.prdate
+06:39:58  15  AND l.prdate = m.prdate
+06:39:58  16  /
+
+View created.
+
+Elapsed: 00:00:00.04
+06:39:58 SQL> 
+06:39:58 SQL> SELECT
+06:39:58   2  pair
+06:39:58   3  ,CORR((score_long - score_short),g6)score_corr2
+06:39:58   4  FROM scc12
+06:39:58   5  GROUP BY pair ORDER BY CORR((score_long - score_short),g6)
+06:39:58   6  /
+
+PAIR    SCORE_CORR2
+------- -----------
+eur_usd  .205368517
+
+Elapsed: 00:00:00.76
+06:39:58 SQL> 
+06:39:58 SQL> 
+06:39:58 SQL> SELECT
+06:39:58   2  pair
+06:39:58   3  ,rscore_long
+06:39:58   4  ,AVG(g6)
+06:39:58   5  ,MIN(ydate)
+06:39:58   6  ,COUNT(g6)
+06:39:58   7  ,MAX(ydate)
+06:39:58   8  FROM scc12
+06:39:58   9  GROUP BY pair,rscore_long
+06:39:58  10  ORDER BY pair,rscore_long
+06:39:58  11  /
+
+PAIR    RSCORE_LONG    AVG(G6) MIN(YDATE)           COUNT(G6) MAX(YDATE)
+------- ----------- ---------- ------------------- ---------- -------------------
+eur_usd           0    -.00262 2010-12-28 10:05:00         10 2011-01-05 15:35:00
+eur_usd          .1 -.00195147 2010-12-28 07:35:00        331 2011-01-28 21:10:00
+eur_usd          .2 -.00073896 2010-12-28 06:50:00        621 2011-01-28 21:50:00
+eur_usd          .3 .000146449 2010-12-28 06:45:00        782 2011-01-28 21:15:00
+eur_usd          .4 .000085897 2010-12-28 07:20:00        840 2011-01-28 21:55:00
+eur_usd          .5 .000479569 2010-12-28 06:40:00        927 2011-01-28 21:40:00
+eur_usd          .6 .000655317 2010-12-28 07:10:00       1025 2011-01-28 20:30:00
+eur_usd          .7 .000535881 2010-12-28 08:05:00        972 2011-01-28 21:00:00
+eur_usd          .8 .001535354 2010-12-28 18:45:00        743 2011-01-28 19:10:00
+eur_usd          .9 .001988887 2010-12-28 22:35:00        391 2011-01-28 15:25:00
+eur_usd           1 .003606884 2010-12-29 01:00:00         23 2011-01-27 05:15:00
+
+11 rows selected.
+
+Elapsed: 00:00:00.14
+06:39:59 SQL> 
+06:39:59 SQL> SELECT
+06:39:59   2  pair
+06:39:59   3  ,rscore_short
+06:39:59   4  ,AVG(g6)
+06:39:59   5  ,MIN(ydate)
+06:39:59   6  ,COUNT(g6)
+06:39:59   7  ,MAX(ydate)
+06:39:59   8  FROM scc12
+06:39:59   9  GROUP BY pair,rscore_short
+06:39:59  10  ORDER BY pair,rscore_short
+06:39:59  11  /
+
+PAIR    RSCORE_SHORT    AVG(G6) MIN(YDATE)           COUNT(G6) MAX(YDATE)
+------- ------------ ---------- ------------------- ---------- -------------------
+eur_usd            0 .002458395 2010-12-29 00:10:00        135 2011-01-28 03:15:00
+eur_usd           .1 .001626364 2010-12-28 06:40:00        693 2011-01-28 20:50:00
+eur_usd           .2 .001170532 2010-12-28 13:35:00        852 2011-01-28 20:30:00
+eur_usd           .3 .000590114 2010-12-28 06:45:00        869 2011-01-28 21:50:00
+eur_usd           .4 .000508211 2010-12-28 06:50:00        860 2011-01-28 20:40:00
+eur_usd           .5 .000302586 2010-12-28 06:55:00        837 2011-01-28 20:15:00
+eur_usd           .6 -.00002866 2010-12-28 07:00:00        770 2011-01-28 21:55:00
+eur_usd           .7 -.00031021 2010-12-28 07:35:00        716 2011-01-28 21:15:00
+eur_usd           .8  -.0002717 2010-12-28 07:40:00        549 2011-01-28 21:40:00
+eur_usd           .9 -.00127273 2010-12-28 07:55:00        352 2011-01-28 21:45:00
+eur_usd            1 -.00387135 2010-12-28 08:50:00         32 2011-01-28 12:15:00
+
+11 rows selected.
+
+Elapsed: 00:00:00.14
+06:39:59 SQL> 
+06:39:59 SQL> 
+06:39:59 SQL> exit
 Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 oracle@z3:/pt/s/rluck/svm62$ 
