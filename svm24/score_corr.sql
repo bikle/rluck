@@ -93,7 +93,7 @@ pair
 ,COUNT(pair)ccount
 FROM scc12
 WHERE ydate > sysdate -123
-GROUP BY pair ORDER BY pair
+GROUP BY pair ORDER BY CORR((score_long - score_short),g1)
 /
 
 exit
