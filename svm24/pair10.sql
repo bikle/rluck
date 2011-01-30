@@ -73,7 +73,7 @@ pair
 ,prdate
 ,clse
 -- g1 is important. I want to predict g1:
-,ld1day - clse g1
+,(ld1day - clse)/clse g1
 ,SIGN(avg24 - LAG(avg24,2,NULL)OVER(PARTITION BY pair ORDER BY ydate))trend
 -- I want more attributes from the ones I derived above:
 -- clse relation to moving-min
@@ -123,6 +123,8 @@ pair
 -- mph stands for minutes-past-hour:
 ,0+TO_CHAR(ydate,'MI')mph
 FROM svm2410
+-- Protect against divide by zero:
+WHERE clse > 0
 ORDER BY ydate
 /
 
@@ -141,8 +143,6 @@ GROUP BY pair,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'dy')
 ORDER BY pair,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'dy')
 /
 
-exit
-
 -- Prepare for derivation of NTILE based params:
 
 DROP TABLE svm2414;
@@ -152,9 +152,9 @@ pair
 ,ydate
 ,prdate
 ,clse
-,g6
-,CASE WHEN g6 IS NULL THEN NULL WHEN g6 > 0.0012 THEN 'up' ELSE 'nup' END gatt
-,CASE WHEN g6 IS NULL THEN NULL WHEN g6< -0.0012 THEN 'up' ELSE 'nup' END gattn
+,g1
+,CASE WHEN g1 IS NULL THEN NULL WHEN g1>0.0020 THEN'up'ELSE'nup'END gatt
+,CASE WHEN g1 IS NULL THEN NULL WHEN g1<-0.0020 THEN'up'ELSE'nup'END gattn
 ,CASE WHEN trend IS NULL THEN 1
       WHEN trend =0      THEN 1
       ELSE trend END trend
@@ -209,13 +209,14 @@ SELECT
 pair
 ,trend
 ,gatt
+,d
+,hh
 ,COUNT(pair)
-,AVG(g6)
+,AVG(g1)
 FROM svm2414
-GROUP BY pair,trend,gatt
-ORDER BY pair,trend,gatt
-/
-
+GROUP BY pair,trend,gatt,d,hh
+ORDER BY AVG(g1),pair,trend,gatt,d,hh
+-- 500 rows
 
 -- Derive NTILE based params:
 
@@ -226,7 +227,7 @@ pair
 ,ydate
 ,prdate
 ,clse
-,g6
+,g1
 ,gatt
 ,gattn
 ,trend
@@ -278,13 +279,15 @@ SELECT
 pair
 ,trend
 ,gatt
+,att33 daynum
 ,COUNT(pair)
 ,AVG(g1)
 FROM svm2416
-GROUP BY pair,trend,gatt
-ORDER BY pair,trend,gatt
+GROUP BY pair,trend,gatt,att33
+ORDER BY pair,trend,gatt,att33
 /
 
+exit
 
 CREATE OR REPLACE VIEW sc12 AS
 SELECT
