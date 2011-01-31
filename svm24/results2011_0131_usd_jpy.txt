@@ -1,0 +1,329 @@
+/pt/s/rluck/svm24/results2011_0131_usd_jpy.txt
+
+
+Unlike eur_usd, usd_jpy looks good when no feedback is used:
+
+
+
+PAIR	SCORE_CORR2	CCOUNT
+------- ----------- ----------
+eur_usd  -.13929207	  2213
+usd_jpy  .311780086	  4251
+
+I wonder why the counts are so different?
+
+Maybe I boogered up the output from build_scorem.sql ?
+
+
+
+
+
+
+No-feedback-details:
+
+oracle@zu:/pt/s/rluck/svm24$ sqt @score_corr
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Jan 31 22:54:43 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+22:54:43 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.01
+22:54:43 SQL> --
+22:54:43 SQL> -- score_corr.sql
+22:54:43 SQL> --
+22:54:43 SQL> 
+22:54:43 SQL> -- I use this script to help me see recent CORR() between score and gain.
+22:54:43 SQL> 
+22:54:43 SQL> -- I start by getting the 24 hr gain for each prdate.
+22:54:43 SQL> CREATE OR REPLACE VIEW scc10 AS
+22:54:43   2  SELECT
+22:54:43   3  prdate
+22:54:43   4  ,pair
+22:54:43   5  ,ydate
+22:54:43   6  ,(LEAD(clse,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g1
+22:54:43   7  ,LEAD(ydate,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)-ydate date_diff
+22:54:43   8  FROM di5min24
+22:54:43   9  WHERE ydate > '2011-01-10'
+22:54:43  10  AND clse > 0
+22:54:43  11  ORDER BY pair,ydate
+22:54:43  12  /
+
+View created.
+
+Elapsed: 00:00:00.04
+22:54:44 SQL> 
+22:54:44 SQL> -- rpt
+22:54:44 SQL> 
+22:54:44 SQL> -- I should see a diff of 3 days on fri:
+22:54:44 SQL> 
+22:54:44 SQL> SELECT
+22:54:44   2  pair
+22:54:44   3  ,TO_CHAR(ydate,'dy')dday
+22:54:44   4  ,AVG(g1)
+22:54:44   5  ,AVG(date_diff)
+22:54:44   6  FROM scc10
+22:54:44   7  WHERE ydate > sysdate - 11
+22:54:44   8  GROUP BY pair,TO_CHAR(ydate,'dy')
+22:54:44   9  ORDER BY pair,TO_CHAR(ydate,'dy')
+22:54:44  10  /
+
+PAIR	DDA    AVG(G1) AVG(DATE_DIFF)
+------- --- ---------- --------------
+aud_jpy fri  .00304959		    3
+aud_jpy mon -.00189239		    1
+aud_jpy sun .007482062		    1
+aud_jpy thu -.00298234	   1.09386282
+aud_jpy tue .000527933		    1
+aud_jpy wed .001560617		    1
+aud_usd fri .004361121		    3
+aud_usd mon .001690261		    1
+aud_usd sun .008458563		    1
+aud_usd thu -.00086657	   1.09386282
+aud_usd tue .002700387		    1
+aud_usd wed -.00377724		    1
+eur_aud fri .000869459		    3
+eur_aud mon .001048298		    1
+eur_aud sun  -.0064165		    1
+eur_aud thu    -.00062	   1.09386282
+eur_aud tue .000282775		    1
+eur_aud wed .005598525		    1
+eur_chf fri -.00203044		    3
+eur_chf mon -.00686913		    1
+eur_chf sun  -.0074574		    1
+eur_chf thu -.00189215	   1.09386282
+eur_chf tue -.00011427		    1
+eur_chf wed  .00293923		    1
+eur_gbp fri  .00359006		    3
+eur_gbp mon .009127207		    1
+eur_gbp sun .002546351		    1
+eur_gbp thu .000862673	   1.09386282
+eur_gbp tue .004266593		    1
+eur_gbp wed -.00287374		    1
+eur_jpy fri .003906267		    3
+eur_jpy mon -.00086458		    1
+eur_jpy sun .001017466		    1
+eur_jpy thu -.00358031	   1.09386282
+eur_jpy tue .000809387		    1
+eur_jpy wed .007169074		    1
+eur_usd fri .005220521		    3
+eur_usd mon .002720519		    1
+eur_usd sun .001987549		    1
+eur_usd thu -.00150993	   1.09386282
+eur_usd tue  .00298346		    1
+eur_usd wed .001793248		    1
+gbp_usd fri .001625403		    3
+gbp_usd mon -.00632276		    1
+gbp_usd sun -.00055739		    1
+gbp_usd thu -.00237446	   1.09386282
+gbp_usd tue -.00122001		    1
+gbp_usd wed .004686277		    1
+usd_cad fri -.00101553		    3
+usd_cad mon .001105139		    1
+usd_cad sun .000149797		    1
+usd_cad thu .001844406	   1.09386282
+usd_cad tue  .00037587		    1
+usd_cad wed -.00122782		    1
+usd_chf fri -.00721085		    3
+usd_chf mon -.00955961		    1
+usd_chf sun -.00942598		    1
+usd_chf thu -.00038654	   1.09386282
+usd_chf tue -.00308777		    1
+usd_chf wed .001144311		    1
+usd_jpy fri -.00130383		    3
+usd_jpy mon -.00357323		    1
+usd_jpy sun -.00096817		    1
+usd_jpy thu -.00209031	   1.09386282
+usd_jpy tue -.00216593		    1
+usd_jpy wed .005366663		    1
+
+66 rows selected.
+
+Elapsed: 00:00:00.36
+22:54:44 SQL> 
+22:54:44 SQL> CREATE OR REPLACE VIEW scc12 AS
+22:54:44   2  SELECT
+22:54:44   3  m.pair
+22:54:44   4  ,m.ydate
+22:54:44   5  ,m.prdate
+22:54:44   6  ,l.score score_long
+22:54:44   7  ,s.score score_short
+22:54:44   8  ,l.score-s.score score_diff
+22:54:44   9  ,ROUND(l.score,1) rscore_long
+22:54:44  10  ,ROUND(s.score,1) rscore_short
+22:54:44  11  ,ROUND((l.score-s.score),1) rscore_diff
+22:54:44  12  ,m.g1
+22:54:44  13  FROM svm24scores l,svm24scores s,scc10 m
+22:54:44  14  WHERE l.targ='gatt'
+22:54:44  15  AND   s.targ='gattn'
+22:54:44  16  AND l.prdate = s.prdate
+22:54:44  17  AND l.prdate = m.prdate
+22:54:44  18  -- Speed things up:
+22:54:44  19  AND l.ydate > sysdate - 123
+22:54:44  20  AND s.ydate > sysdate - 123
+22:54:44  21  /
+
+View created.
+
+Elapsed: 00:00:00.02
+22:54:44 SQL> 
+22:54:44 SQL> SELECT
+22:54:44   2  pair
+22:54:44   3  ,rscore_long
+22:54:44   4  ,AVG(g1)
+22:54:44   5  ,COUNT(pair)ccount
+22:54:44   6  FROM scc12
+22:54:44   7  WHERE ydate > '2011-01-10'
+22:54:44   8  GROUP BY pair,rscore_long
+22:54:44   9  ORDER BY pair,rscore_long
+22:54:44  10  /
+
+PAIR	RSCORE_LONG    AVG(G1)	   CCOUNT
+------- ----------- ---------- ----------
+eur_usd 	  0 .001413322		1
+eur_usd 	 .1 .001114806		2
+eur_usd 	 .2 .002343051	       22
+eur_usd 	 .3 .002854896	       79
+eur_usd 	 .4 .002937675	      134
+eur_usd 	 .5 .002833628	      201
+eur_usd 	 .6 .002386112	      337
+eur_usd 	 .7 .002257371	      514
+eur_usd 	 .8 .002028787	      555
+eur_usd 	 .9 .002381373	      343
+eur_usd 	  1 .003669497	       25
+usd_jpy 	  0 -.00484669	       29
+usd_jpy 	 .1 -.00453499	      287
+usd_jpy 	 .2 -.00253498	      385
+usd_jpy 	 .3 -.00146458	      666
+usd_jpy 	 .4 -.00001178	     1013
+usd_jpy 	 .5 .000880189	      949
+usd_jpy 	 .6 .000761764	      581
+usd_jpy 	 .7 .000736273	      244
+usd_jpy 	 .8 .002537233	       68
+usd_jpy 	 .9 .002203086	       26
+usd_jpy 	  1 .002650933		3
+
+22 rows selected.
+
+Elapsed: 00:00:00.22
+22:54:44 SQL> 
+22:54:44 SQL> SELECT
+22:54:44   2  pair
+22:54:44   3  ,rscore_short
+22:54:44   4  ,AVG(g1)
+22:54:44   5  ,COUNT(pair)ccount
+22:54:44   6  FROM scc12
+22:54:44   7  WHERE ydate > '2011-01-10'
+22:54:44   8  GROUP BY pair,rscore_short
+22:54:44   9  ORDER BY pair,rscore_short
+22:54:44  10  /
+
+PAIR	RSCORE_SHORT	AVG(G1)     CCOUNT
+------- ------------ ---------- ----------
+eur_usd 	   0 .001802886 	32
+eur_usd 	  .1 .000919562        434
+eur_usd 	  .2 .002166492        513
+eur_usd 	  .3 .002469945        579
+eur_usd 	  .4  .00311288        301
+eur_usd 	  .5 .003386007        205
+eur_usd 	  .6 .004405241        104
+eur_usd 	  .7 .002846009 	34
+eur_usd 	  .8  .00288056 	10
+eur_usd 	  .9 .002618091 	 1
+usd_jpy 	   0 -.00380833 	14
+usd_jpy 	  .1 -.00155324        123
+usd_jpy 	  .2 .000763967        308
+usd_jpy 	  .3  .00118594        665
+usd_jpy 	  .4 .000739332        939
+usd_jpy 	  .5 -.00047898        873
+usd_jpy 	  .6 -.00139159        623
+usd_jpy 	  .7  -.0020559        334
+usd_jpy 	  .8 -.00324821        272
+usd_jpy 	  .9 -.00366768 	97
+usd_jpy 	   1 -.00554238 	 3
+
+21 rows selected.
+
+Elapsed: 00:00:00.21
+22:54:44 SQL> 
+22:54:44 SQL> SELECT
+22:54:44   2  pair
+22:54:44   3  ,rscore_diff
+22:54:44   4  ,AVG(g1)
+22:54:44   5  ,COUNT(pair)ccount
+22:54:44   6  FROM scc12
+22:54:44   7  WHERE ydate > '2011-01-10'
+22:54:44   8  GROUP BY pair,rscore_diff
+22:54:44   9  ORDER BY pair,rscore_diff
+22:54:44  10  /
+
+PAIR	RSCORE_DIFF    AVG(G1)	   CCOUNT
+------- ----------- ---------- ----------
+eur_usd 	-.6 .001114806		1
+eur_usd 	-.5 .003622368		7
+eur_usd 	-.4 .003226773	       12
+eur_usd 	-.3 .003126279	       42
+eur_usd 	-.2  .00270859	       61
+eur_usd 	-.1 .003127221	       66
+eur_usd 	  0 .003933939	      100
+eur_usd 	 .1 .002926584	      126
+eur_usd 	 .2 .003147415	      167
+eur_usd 	 .3 .002042296	      231
+eur_usd 	 .4 .002838485	      337
+eur_usd 	 .5 .002417607	      300
+eur_usd 	 .6 .001607204	      290
+eur_usd 	 .7 .001175981	      265
+eur_usd 	 .8 .001892724	      175
+eur_usd 	 .9 .003419313	       33
+usd_jpy 	-.9  -.0043943		3
+usd_jpy 	-.8 -.00464101	       77
+usd_jpy 	-.7 -.00451801	      115
+usd_jpy 	-.6 -.00362439	      113
+usd_jpy 	-.5 -.00315197	      155
+usd_jpy 	-.4 -.00262241	      218
+usd_jpy 	-.3  -.0018745	      361
+usd_jpy 	-.2 -.00158306	      417
+usd_jpy 	-.1 -.00025806	      568
+usd_jpy 	  0  .00081382	      566
+usd_jpy 	 .1 .000979495	      572
+usd_jpy 	 .2 .001307339	      418
+usd_jpy 	 .3 .001278297	      293
+usd_jpy 	 .4  .00039869	      194
+usd_jpy 	 .5 .000558738	      113
+usd_jpy 	 .6 -.00019909	       46
+usd_jpy 	 .7 .000380771	       14
+usd_jpy 	 .8 .001890755		7
+usd_jpy 	 .9 .000661833		1
+
+35 rows selected.
+
+Elapsed: 00:00:00.21
+22:54:45 SQL> 
+22:54:45 SQL> SELECT
+22:54:45   2  pair
+22:54:45   3  ,CORR(score_diff,g1)score_corr2
+22:54:45   4  ,COUNT(pair)ccount
+22:54:45   5  FROM scc12
+22:54:45   6  WHERE ydate > '2011-01-10'
+22:54:45   7  GROUP BY pair ORDER BY CORR(score_diff,g1)
+22:54:45   8  /
+
+PAIR	SCORE_CORR2	CCOUNT
+------- ----------- ----------
+eur_usd  -.13929207	  2213
+usd_jpy  .311780086	  4251
+
+Elapsed: 00:00:00.23
+22:54:45 SQL> 
+22:54:45 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@zu:/pt/s/rluck/svm24$ 

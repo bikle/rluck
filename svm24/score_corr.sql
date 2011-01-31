@@ -28,7 +28,7 @@ pair
 ,AVG(g1)
 ,AVG(date_diff)
 FROM scc10
-WHERE ydate > sysdate - 9
+WHERE ydate > sysdate - 22
 GROUP BY pair,TO_CHAR(ydate,'dy')
 ORDER BY pair,TO_CHAR(ydate,'dy')
 /
