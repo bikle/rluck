@@ -53,7 +53,7 @@ prdate
 ,g41
 ,s.sc_corr
 FROM modsrc
-,(SELECT AVG(sc_corr)sc_corr FROM modsrc WHERE gatt='up'AND 1+ydate>(SELECT MAX(ydate)FROM modsrc))s
+,(SELECT AVG(sc_corr)sc_corr FROM modsrc WHERE 2+ydate>'&1'||' '||'&2'AND ydate<'&1'||' '||'&2')s
 WHERE ydate = '&1'||' '||'&2'
 AND pair = '&3'
 /

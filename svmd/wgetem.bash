@@ -14,31 +14,34 @@ rm -f *csv
 
 # wget em
 
+
+wget --output-document=HL.csv http://ichart.finance.yahoo.com/table.csv?s=HL
+wget --output-document=CHK.csv http://ichart.finance.yahoo.com/table.csv?s=CHK
+wget --output-document=SOHU.csv http://ichart.finance.yahoo.com/table.csv?s=SOHU
+wget --output-document=RDY.csv http://ichart.finance.yahoo.com/table.csv?s=RDY
+wget --output-document=CEO.csv http://ichart.finance.yahoo.com/table.csv?s=CEO
+wget --output-document=AGU.csv http://ichart.finance.yahoo.com/table.csv?s=AGU
+
+wget --output-document=SCCO.csv http://ichart.finance.yahoo.com/table.csv?s=SCCO
+wget --output-document=RTP.csv http://ichart.finance.yahoo.com/table.csv?s=RTP
+wget --output-document=VALE.csv http://ichart.finance.yahoo.com/table.csv?s=VALE
 wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=SWC
-wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=PALL
-wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=PPLT
-
-wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=SLW 
-wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=AXU
-wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=PAAS
-wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=HL
-wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=CDE
-wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=EXK
-wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=MVG
-wget --output-document=SWC.csv http://ichart.finance.yahoo.com/table.csv?s=SVM
-
-
+wget --output-document=PALL.csv http://ichart.finance.yahoo.com/table.csv?s=PALL
+wget --output-document=PPLT.csv http://ichart.finance.yahoo.com/table.csv?s=PPLT
+wget --output-document=SLW.csv http://ichart.finance.yahoo.com/table.csv?s=SLW 
+wget --output-document=AXU.csv http://ichart.finance.yahoo.com/table.csv?s=AXU
+wget --output-document=PAAS.csv http://ichart.finance.yahoo.com/table.csv?s=PAAS
+wget --output-document=CDE.csv http://ichart.finance.yahoo.com/table.csv?s=CDE
+wget --output-document=EXK.csv http://ichart.finance.yahoo.com/table.csv?s=EXK
+wget --output-document=MVG.csv http://ichart.finance.yahoo.com/table.csv?s=MVG
+wget --output-document=SVM.csv http://ichart.finance.yahoo.com/table.csv?s=SVM  
 wget --output-document=TLT.csv http://ichart.finance.yahoo.com/table.csv?s=TLT
-
 wget --output-document=EWZ.csv http://ichart.finance.yahoo.com/table.csv?s=EWZ
 wget --output-document=MDY.csv http://ichart.finance.yahoo.com/table.csv?s=MDY
 wget --output-document=XLB.csv http://ichart.finance.yahoo.com/table.csv?s=XLB
 wget --output-document=GLD.csv http://ichart.finance.yahoo.com/table.csv?s=GLD
 wget --output-document=SLV.csv http://ichart.finance.yahoo.com/table.csv?s=SLV
 wget --output-document=OIH.csv http://ichart.finance.yahoo.com/table.csv?s=OIH
-
-# 01:07:43 SQL> select distinct tkr from vlc where cmprice > 30 and vol > 33 and oi > 123 and (ask-bid)/ask < 0.03 order by tkr;
-
 wget --output-document=DIA.csv http://ichart.finance.yahoo.com/table.csv?s=DIA
 wget --output-document=AAPL.csv http://ichart.finance.yahoo.com/table.csv?s=AAPL  
 wget --output-document=ABT.csv http://ichart.finance.yahoo.com/table.csv?s=ABT   
