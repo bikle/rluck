@@ -13,7 +13,7 @@ prdate
 ,(LEAD(clse,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g1
 ,LEAD(ydate,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)-ydate date_diff
 FROM di5min24
-WHERE ydate > sysdate - 123
+WHERE ydate > '2011-01-10'
 AND clse > 0
 ORDER BY pair,ydate
 /
@@ -40,6 +40,7 @@ m.pair
 ,m.prdate
 ,l.score score_long
 ,s.score score_short
+,l.score-s.score score_diff
 ,ROUND(l.score,1) rscore_long
 ,ROUND(s.score,1) rscore_short
 ,ROUND((l.score-s.score),1) rscore_diff
@@ -60,7 +61,7 @@ pair
 ,AVG(g1)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > sysdate - 123
+WHERE ydate > '2011-01-10'
 GROUP BY pair,rscore_long
 ORDER BY pair,rscore_long
 /
@@ -71,7 +72,7 @@ pair
 ,AVG(g1)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > sysdate - 123
+WHERE ydate > '2011-01-10'
 GROUP BY pair,rscore_short
 ORDER BY pair,rscore_short
 /
@@ -82,18 +83,18 @@ pair
 ,AVG(g1)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > sysdate - 123
+WHERE ydate > '2011-01-10'
 GROUP BY pair,rscore_diff
 ORDER BY pair,rscore_diff
 /
 
 SELECT
 pair
-,CORR((score_long - score_short),g1)score_corr2
+,CORR(score_diff,g1)score_corr2
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > sysdate -123
-GROUP BY pair ORDER BY CORR((score_long - score_short),g1)
+WHERE ydate > '2011-01-10'
+GROUP BY pair ORDER BY CORR(score_diff,g1)
 /
 
 exit
