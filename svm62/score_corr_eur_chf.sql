@@ -12,7 +12,7 @@ prdate
 ,ydate
 ,(LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g6
 FROM di5min
-WHERE ydate > sysdate - 33
+WHERE ydate BETWEEN'2011-01-10'AND'2011-01-29'
 AND pair = 'eur_chf'
 ORDER BY pair,ydate
 /

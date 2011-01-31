@@ -41,7 +41,7 @@ tkrdate
 ,g28
 ,g29
 FROM stk_ms_u
-,(SELECT AVG(sc_corr)sc_corr FROM stk_ms_u WHERE gattn='up'AND 8+ydate>(SELECT MAX(ydate)FROM stk_ms_u))s
+,(SELECT AVG(sc_corr)sc_corr FROM stk_ms_u WHERE 8+ydate>'&1'||' '||'&2'AND 1+ydate<'&1'||' '||'&2')s
 WHERE ydate = '&1'||' '||'&2'
 AND tkr = '&3'
 /
