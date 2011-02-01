@@ -20,6 +20,7 @@ cat AGU.csv | awk  '{print "AGU,"$0}' | grep 0 >>ystk_stage.csv
 cat SCCO.csv | awk  '{print "SCCO,"$0}' | grep 0 >>ystk_stage.csv
 cat RTP.csv | awk  '{print "RTP,"$0}' | grep 0 >>ystk_stage.csv
 cat VALE.csv | awk  '{print "VALE,"$0}' | grep 0 >>ystk_stage.csv
+cat EBAY.csv | awk  '{print "EBAY,"$0}' | grep 0 >>ystk_stage.csv
 cat SWC.csv | awk  '{print "SWC,"$0}' | grep 0 >>ystk_stage.csv
 cat SLW.csv | awk  '{print "SLW,"$0}' | grep 0 >>ystk_stage.csv
 cat AXU.csv | awk  '{print "AXU,"$0}' | grep 0 >>ystk_stage.csv

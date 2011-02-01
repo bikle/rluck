@@ -21,6 +21,7 @@ wget --output-document=SOHU.csv http://ichart.finance.yahoo.com/table.csv?s=SOHU
 wget --output-document=RDY.csv http://ichart.finance.yahoo.com/table.csv?s=RDY
 wget --output-document=CEO.csv http://ichart.finance.yahoo.com/table.csv?s=CEO
 wget --output-document=AGU.csv http://ichart.finance.yahoo.com/table.csv?s=AGU
+wget --output-document=EBAY.csv http://ichart.finance.yahoo.com/table.csv?s=EBAY
 
 wget --output-document=SCCO.csv http://ichart.finance.yahoo.com/table.csv?s=SCCO
 wget --output-document=RTP.csv http://ichart.finance.yahoo.com/table.csv?s=RTP

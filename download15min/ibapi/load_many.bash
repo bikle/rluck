@@ -40,6 +40,7 @@ date
 ./15min_data.bash SVM
 ./15min_data.bash SWC
 ./15min_data.bash VALE
+./15min_data.bash EBAY
 
 ./15min_data.bash AAPL
 ./15min_data.bash ABT

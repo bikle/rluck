@@ -49,9 +49,9 @@ AND tkr = '&2'
 -- rpt
 -- We should see just 1 row:
 
-SELECT COUNT(tkrdate) FROM sme;
+SELECT COUNT(tkrdate) FROM sme
 
-SELECT AVG(sc_corr)sc_corr FROM stk_ms WHERE 11+ydate>'&1'AND 2+ydate<'&1' ;
+SELECT AVG(sc_corr)sc_corr FROM stk_ms WHERE 11+ydate>'&1'AND 2+ydate<'&1' 
 
 -- Build the model:
 CREATE OR REPLACE VIEW bme AS

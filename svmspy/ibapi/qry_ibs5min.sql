@@ -10,10 +10,12 @@ SET LINES 166
 
 SELECT
 tkr
+,MIN(ydate)
 ,COUNT(tkr)
+,MAX(ydate)
 FROM ibs5min
 GROUP BY tkr
-ORDER BY tkr
+ORDER BY MAX(ydate)
 /
 
 -- Look for dups
