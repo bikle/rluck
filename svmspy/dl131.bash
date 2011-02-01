@@ -17,17 +17,26 @@ date
 
 cd $SVMSPY/ibapi
 
-./5min_data.bash SWC
-./5min_data.bash SLW
-./5min_data.bash AXU
-./5min_data.bash PAAS
 ./5min_data.bash HL
+
+./5min_data.bash AGU
+./5min_data.bash AXU
 ./5min_data.bash CDE
+./5min_data.bash CEO
+./5min_data.bash CHK
 ./5min_data.bash EXK
 ./5min_data.bash MVG
-./5min_data.bash SVM
+./5min_data.bash PAAS
 ./5min_data.bash PALL
 ./5min_data.bash PPLT
+./5min_data.bash RDY
+./5min_data.bash RTP
+./5min_data.bash SCCO
+./5min_data.bash SLW
+./5min_data.bash SOHU
+./5min_data.bash SVM
+./5min_data.bash SWC
+./5min_data.bash VALE
 
 ./5min_data.bash AAPL
 ./5min_data.bash ABT

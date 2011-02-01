@@ -349,7 +349,7 @@ pair
 ,prdate
 -- Find corr() tween score and g1 over 11 day period:
 ,CORR((score_long - score_short),g1)
-  OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*24*11 PRECEDING AND CURRENT ROW)sc_corr
+  OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*24*5 PRECEDING AND CURRENT ROW)sc_corr
 FROM sc12
 /
 

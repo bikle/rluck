@@ -53,7 +53,7 @@ prdate
 ,g41
 ,s.sc_corr
 FROM modsrc24
-,(SELECT AVG(sc_corr)sc_corr FROM modsrc24 WHERE 11+ydate>'&1'||' '||'&2'AND 1+ydate<'&1'||' '||'&2')s
+,(SELECT AVG(sc_corr)sc_corr FROM modsrc24 WHERE 5+ydate>'&1'||' '||'&2'AND 1+ydate<'&1'||' '||'&2')s
 WHERE ydate = '&1'||' '||'&2'
 AND pair = '&3'
 /
@@ -63,7 +63,7 @@ AND pair = '&3'
 
 SELECT COUNT(prdate) FROM sme
 
-SELECT AVG(sc_corr)sc_corr FROM modsrc24 WHERE 11+ydate>'&1'||' '||'&2'AND 1+ydate<'&1'||' '||'&2'
+SELECT AVG(sc_corr)sc_corr FROM modsrc24 WHERE 5+ydate>'&1'||' '||'&2'AND 1+ydate<'&1'||' '||'&2'
 
 
 -- Build the model:
