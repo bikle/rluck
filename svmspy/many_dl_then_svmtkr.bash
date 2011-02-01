@@ -6,10 +6,21 @@ date
 
 # The tkrs below are sorted randomly on purpose:
 
+./dl_then_svm.bash HL
+
+./dl_then_svm.bash CHK
+./dl_then_svm.bash SOHU
+./dl_then_svm.bash RDY
+./dl_then_svm.bash CEO
+./dl_then_svm.bash AGU
+./dl_then_svm.bash SCCO
+./dl_then_svm.bash RTP
+./dl_then_svm.bash VALE
+./dl_then_svm.bash EBAY
+./dl_then_svm.bash SWC
 ./dl_then_svm.bash SLW
 ./dl_then_svm.bash AXU
 ./dl_then_svm.bash PAAS
-./dl_then_svm.bash HL
 ./dl_then_svm.bash CDE
 ./dl_then_svm.bash EXK
 ./dl_then_svm.bash MVG
