@@ -6,7 +6,7 @@
 -- I intend to look at output from this script before I open positions.
 
 -- Start by joining long scores, short scores, and prices:
-CREATE OR REPLACE VIEW ocj_stk AS
+CREATE OR REPLACE VIEW ocj_stk1 AS
 SELECT
 l.tkrdate
 ,l.score score_long
@@ -28,19 +28,69 @@ AND s.targ = 'gattn'
 
 COLUMN clse  FORMAT 999.9999
 
+CREATE OR REPLACE VIEW ocj_stk2 AS
 SELECT
 tkrdate
+,tkr
+,ydate
 ,ROUND(score_long,2) score_long
 ,ROUND(score_short,2)score_short
-,ROUND(score_long-score_short,2) diff
+,ROUND(score_long-score_short,2) score_diff
 ,ROUND(clse,4)clse 
 ,rundate
 ,CASE WHEN TO_CHAR(ydate,'dy')='fri'THEN ydate + 3
       WHEN TO_CHAR(ydate,'dy')IN
         ('mon','tue','wed','thu')   THEN ydate + 1
       ELSE NULL END clse_date
-FROM ocj_stk
+FROM ocj_stk1
+WHERE ydate > sysdate - 1
+ORDER BY tkr,ydate
+/
+
+SELECT
+tkr
+,score_long
+,score_short
+,score_diff
+,clse
+,clse_date
+FROM ocj_stk2
 WHERE ydate > sysdate - 1/24
+/
+
+
+CREATE OR REPLACE VIEW ocj_stk AS
+SELECT
+tkrdate
+,o.tkr
+,ydate
+,score_long
+,score_short
+,score_diff
+,clse 
+,rundate
+,clse_date
+,score_corr
+,min_date
+,ccount
+,max_date
+FROM ocj_stk2 o, score_corr_svmspy s
+WHERE ydate > sysdate - 1
+AND o.tkr = s.tkr
+ORDER BY tkr,ydate
+/
+
+SELECT
+CASE WHEN score_diff > 0.6 THEN'Buy'
+     WHEN score_diff < -0.6 THEN'Sell  '
+     ELSE NULL END action
+,tkr
+,score_diff
+,clse
+,clse_date
+,score_corr
+FROM ocj_stk
+WHERE ydate > sysdate - 3/24
 ORDER BY tkr,ydate
 /
 
