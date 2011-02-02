@@ -1,0 +1,636 @@
+/pt/s/rluck/svm62/results_2010_11_w3.txt
+
+I captured these results on hp.
+
+They are for week 3 of 2010_11.
+
+These are no-feedback results.
+
+They are very good results but I'll see if feedback can enhance them.
+
+
+oracle@hp2:/pt/s/rluck/svm62$ sqt @score_corr
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Jan 31 00:51:48 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+00:51:48 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+00:51:48 SQL> --
+00:51:48 SQL> -- score_corr.sql
+00:51:48 SQL> --
+00:51:48 SQL> 
+00:51:48 SQL> -- I use this script to help me see recent CORR() between score and gain.
+00:51:48 SQL> 
+00:51:48 SQL> -- I start by getting the 6 hr gain for each prdate.
+00:51:48 SQL> CREATE OR REPLACE VIEW scc10 AS
+00:51:48   2  SELECT
+00:51:48   3  prdate
+00:51:48   4  ,pair
+00:51:48   5  ,ydate
+00:51:48   6  ,(LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g6
+00:51:48   7  FROM di5min
+00:51:48   8  -- WHERE ydate BETWEEN(sysdate - 34)AND'2011-01-14'
+00:51:48   9  -- WHERE ydate > sysdate - 12
+00:51:48  10  WHERE TO_CHAR(ydate,'W YYYY_MM')= '3 2010_11'
+00:51:48  11  AND clse > 0
+00:51:48  12  ORDER BY pair,ydate
+00:51:48  13  /
+
+View created.
+
+Elapsed: 00:00:00.18
+00:51:48 SQL> 
+00:51:48 SQL> -- rpt
+00:51:48 SQL> SELECT
+00:51:48   2  pair
+00:51:48   3  ,AVG(g6)
+00:51:48   4  ,MIN(ydate)
+00:51:48   5  ,COUNT(ydate)
+00:51:48   6  ,MAX(ydate)
+00:51:48   7  FROM scc10
+00:51:48   8  GROUP BY pair
+00:51:48   9  ORDER BY pair
+00:51:48  10  /
+
+PAIR       AVG(G6) MIN(YDATE)          COUNT(YDATE) MAX(YDATE)
+------- ---------- ------------------- ------------ -------------------
+aud_jpy .000578915 2010-11-15 00:00:01         1442 2010-11-21 23:55:01
+aud_usd .000036868 2010-11-15 00:00:01         1442 2010-11-21 23:55:01
+eur_aud -.00002231 2010-11-15 00:00:01         1442 2010-11-21 23:55:01
+eur_chf .000744965 2010-11-15 00:00:01         1442 2010-11-21 23:55:01
+eur_gbp .000482069 2010-11-15 00:00:01         1442 2010-11-21 23:55:01
+eur_jpy .000551521 2010-11-15 00:00:01         1442 2010-11-21 23:55:01
+eur_usd 9.4799E-06 2010-11-15 00:00:01         1442 2010-11-21 23:55:01
+gbp_usd -.00047083 2010-11-15 00:00:01         1442 2010-11-21 23:55:01
+usd_cad .000362222 2010-11-15 00:00:01         1442 2010-11-21 23:55:01
+usd_chf .000747038 2010-11-15 00:00:01         1442 2010-11-21 23:55:01
+usd_jpy .000546197 2010-11-15 00:00:01         1442 2010-11-21 23:55:01
+
+11 rows selected.
+
+Elapsed: 00:00:00.38
+00:51:48 SQL> 
+00:51:48 SQL> CREATE OR REPLACE VIEW scc12 AS
+00:51:48   2  SELECT
+00:51:48   3  m.pair
+00:51:48   4  ,m.ydate
+00:51:48   5  ,m.prdate
+00:51:48   6  ,l.score score_long
+00:51:48   7  ,s.score score_short
+00:51:48   8  ,l.score-s.score score_diff
+00:51:48   9  ,ROUND(l.score,1) rscore_long
+00:51:48  10  ,ROUND(s.score,1) rscore_short
+00:51:48  11  ,ROUND((l.score-s.score),1) rscore_diff
+00:51:48  12  ,m.g6
+00:51:48  13  FROM svm62scores l,svm62scores s,scc10 m
+00:51:48  14  WHERE l.targ='gatt'
+00:51:48  15  AND   s.targ='gattn'
+00:51:48  16  AND l.prdate = s.prdate
+00:51:48  17  AND l.prdate = m.prdate
+00:51:48  18  -- Speed things up:
+00:51:48  19  AND l.ydate > sysdate - 999
+00:51:48  20  AND s.ydate > sysdate - 999
+00:51:48  21  /
+
+View created.
+
+Elapsed: 00:00:00.04
+00:51:48 SQL> 
+00:51:48 SQL> SELECT
+00:51:48   2  pair
+00:51:48   3  ,rscore_long
+00:51:48   4  ,AVG(g6)
+00:51:48   5  ,COUNT(pair)ccount
+00:51:48   6  FROM scc12
+00:51:48   7  WHERE TO_CHAR(ydate,'W YYYY_MM')= '3 2010_11'
+00:51:48   8  GROUP BY pair,rscore_long
+00:51:48   9  ORDER BY pair,rscore_long
+00:51:48  10  /
+
+PAIR    RSCORE_LONG    AVG(G6)     CCOUNT
+------- ----------- ---------- ----------
+aud_jpy           0 -.00067128          3
+aud_jpy          .1 -.00195315         53
+aud_jpy          .2 -.00049629        108
+aud_jpy          .3 -.00079622        180
+aud_jpy          .4 .000079023        237
+aud_jpy          .5 .000859702        242
+aud_jpy          .6 .001380439        222
+aud_jpy          .7 .001171577        165
+aud_jpy          .8 .001585694        151
+aud_jpy          .9 .002284411         80
+aud_jpy           1 .005970947          1
+aud_usd           0 -.00146446         11
+aud_usd          .1 -.00103383        154
+aud_usd          .2 -.00088974        285
+aud_usd          .3 -.00035679        222
+aud_usd          .4 -.00008856        204
+aud_usd          .5 -.00004838        158
+aud_usd          .6 .000401405        136
+aud_usd          .7 .001430319         86
+aud_usd          .8 .002661622        124
+aud_usd          .9 .002835667         52
+aud_usd           1 .004349519         10
+eur_aud           0 -.00202269         22
+eur_aud          .1 -.00180242        218
+eur_aud          .2 -.00063072        294
+eur_aud          .3  -.0000312        277
+eur_aud          .4 .000385211        209
+eur_aud          .5  .00115121        176
+eur_aud          .6 .001357045        123
+eur_aud          .7 .000279117         67
+eur_aud          .8 .001411654         40
+eur_aud          .9 .003209792         15
+eur_aud           1 .003050187          1
+eur_chf          .1 .000085317         47
+eur_chf          .2 .000193768        295
+eur_chf          .3 .000478911        330
+eur_chf          .4 .000898826        294
+eur_chf          .5 .000713158        242
+eur_chf          .6 .001804035        125
+eur_chf          .7 .002436461         60
+eur_chf          .8 .001633468         35
+eur_chf          .9 .002128015         14
+eur_gbp           0 .000072659          3
+eur_gbp          .1 .000278795        149
+eur_gbp          .2  .00011843        377
+eur_gbp          .3 .000312409        373
+eur_gbp          .4 .000620298        225
+eur_gbp          .5 .000800678        121
+eur_gbp          .6 .000964999         86
+eur_gbp          .7 .001503796         58
+eur_gbp          .8 .001884733         36
+eur_gbp          .9 .001881594         14
+eur_jpy           0 -.00461071          6
+eur_jpy          .1 -.00017845         63
+eur_jpy          .2 -.00015018        121
+eur_jpy          .3 -.00045703        169
+eur_jpy          .4 .000078839        189
+eur_jpy          .5  .00052382        228
+eur_jpy          .6 .000711855        209
+eur_jpy          .7 .001168048        201
+eur_jpy          .8 .001352904        154
+eur_jpy          .9 .001977203         98
+eur_jpy           1 .000305618          4
+eur_usd           0 -.00882369          8
+eur_usd          .1 -.00144405        121
+eur_usd          .2 -.00129481        225
+eur_usd          .3 -.00099567        264
+eur_usd          .4 -.00005083        250
+eur_usd          .5  .00049066        226
+eur_usd          .6 .001655092        174
+eur_usd          .7 .002269084         96
+eur_usd          .8 .002759634         62
+eur_usd          .9 .002825085         16
+gbp_usd           0  -.0040524         10
+gbp_usd          .1 -.00209959        197
+gbp_usd          .2 -.00134318        243
+gbp_usd          .3 -.00056833        205
+gbp_usd          .4 -.00019037        229
+gbp_usd          .5 .000239118        191
+gbp_usd          .6 .000430533        176
+gbp_usd          .7 .000642213        120
+gbp_usd          .8 .001466573         54
+gbp_usd          .9 .001401138         16
+gbp_usd           1 .005943583          1
+usd_cad           0 -.00434697          2
+usd_cad          .1 -.00230942         98
+usd_cad          .2 -.00067667        252
+usd_cad          .3 -.00005298        329
+usd_cad          .4  .00062448        272
+usd_cad          .5 .001291441        228
+usd_cad          .6 .001089904        132
+usd_cad          .7 .002202067         85
+usd_cad          .8  .00290966         39
+usd_cad          .9 .002269139          5
+usd_chf           0 -.00143212          8
+usd_chf          .1 -.00109871        219
+usd_chf          .2 -.00012463        270
+usd_chf          .3 -.00000805        249
+usd_chf          .4 .000983017        197
+usd_chf          .5 .001206598        143
+usd_chf          .6 .001547069        113
+usd_chf          .7 .002126522         94
+usd_chf          .8 .003864676         95
+usd_chf          .9 .006038304         45
+usd_chf           1 .009219127          9
+usd_jpy          .1 -.00050068          8
+usd_jpy          .2 -.00064072         52
+usd_jpy          .3 -.00016656         93
+usd_jpy          .4 -.00011818         97
+usd_jpy          .5 .000047247        150
+usd_jpy          .6 .000378557        216
+usd_jpy          .7 .000841274        253
+usd_jpy          .8 .000874911        350
+usd_jpy          .9  .00093724        221
+usd_jpy           1 .002162422          2
+
+115 rows selected.
+
+Elapsed: 00:00:00.62
+00:51:49 SQL> 
+00:51:49 SQL> SELECT
+00:51:49   2  pair
+00:51:49   3  ,rscore_short
+00:51:49   4  ,AVG(g6)
+00:51:49   5  ,COUNT(pair)ccount
+00:51:49   6  FROM scc12
+00:51:49   7  WHERE TO_CHAR(ydate,'W YYYY_MM')= '3 2010_11'
+00:51:49   8  GROUP BY pair,rscore_short
+00:51:49   9  ORDER BY pair,rscore_short
+00:51:49  10  /
+
+PAIR    RSCORE_SHORT    AVG(G6)     CCOUNT
+------- ------------ ---------- ----------
+aud_jpy            0 .005260537          2
+aud_jpy           .1 .002144215         88
+aud_jpy           .2 .002011849        156
+aud_jpy           .3 .001489721        226
+aud_jpy           .4 .000775514        213
+aud_jpy           .5 .000361008        198
+aud_jpy           .6 -.00061789        212
+aud_jpy           .7 -.00032082        180
+aud_jpy           .8 -.00038024        108
+aud_jpy           .9  -.0011137         57
+aud_jpy            1 -.00291541          2
+aud_usd            0 .002947255         59
+aud_usd           .1 .000987896        188
+aud_usd           .2 .000493576        203
+aud_usd           .3 .000165036        237
+aud_usd           .4 -.00092307        185
+aud_usd           .5 -.00039204        190
+aud_usd           .6 -.00127007        160
+aud_usd           .7 -.00010847        120
+aud_usd           .8 .000407179         67
+aud_usd           .9 .000926268         31
+aud_usd            1   .0019378          2
+eur_aud            0  .00606911          1
+eur_aud           .1 .003110405         71
+eur_aud           .2 .001402307        205
+eur_aud           .3 .000882639        329
+eur_aud           .4 -.00009823        335
+eur_aud           .5 -.00130918        214
+eur_aud           .6 -.00230453        160
+eur_aud           .7 -.00146981         85
+eur_aud           .8 -.00117268         38
+eur_aud           .9 -.00115634          4
+eur_chf            0 .003188687          1
+eur_chf           .1 .002010644         57
+eur_chf           .2 .001749193        167
+eur_chf           .3 .001557731        265
+eur_chf           .4 .000801041        319
+eur_chf           .5 .000329289        283
+eur_chf           .6 -.00020255        189
+eur_chf           .7 -3.305E-06        118
+eur_chf           .8 .000225108         38
+eur_chf           .9 -.00096554          5
+eur_gbp            0 .000561596          9
+eur_gbp           .1 .001062933        179
+eur_gbp           .2 .000705594        315
+eur_gbp           .3 .000553505        271
+eur_gbp           .4  .00070526        240
+eur_gbp           .5 .000209501        170
+eur_gbp           .6 -.00031468        109
+eur_gbp           .7 -.00019794         90
+eur_gbp           .8   -.000443         52
+eur_gbp           .9 .002465083          6
+eur_gbp            1 -.00069393          1
+eur_jpy            0 .000778315          4
+eur_jpy           .1 .001751565        100
+eur_jpy           .2 .001351725        150
+eur_jpy           .3 .001074624        201
+eur_jpy           .4 .000725324        224
+eur_jpy           .5 .000661202        197
+eur_jpy           .6 .000120174        198
+eur_jpy           .7 -.00026799        155
+eur_jpy           .8 -.00001018        121
+eur_jpy           .9  -.0007823         84
+eur_jpy            1 -.00250249          8
+eur_usd            0 -.00029549         13
+eur_usd           .1 .002103963        132
+eur_usd           .2 .001650937        186
+eur_usd           .3 .001286036        197
+eur_usd           .4 .000468807        170
+eur_usd           .5 -.00034876        170
+eur_usd           .6 -.00088183        170
+eur_usd           .7 -.00116814        161
+eur_usd           .8 -.00163719        134
+eur_usd           .9 -.00199593        104
+eur_usd            1 -.00542503          5
+gbp_usd            0 .002431413         31
+gbp_usd           .1 .000774617        314
+gbp_usd           .2   .0001388        281
+gbp_usd           .3 -.00005587        239
+gbp_usd           .4 -.00061509        173
+gbp_usd           .5  -.0014364        136
+gbp_usd           .6 -.00232134        111
+gbp_usd           .7 -.00236311         78
+gbp_usd           .8 -.00237396         45
+gbp_usd           .9 -.00406285         25
+gbp_usd            1 -.00530364          9
+usd_cad            0 .003122533         33
+usd_cad           .1 .001017117        219
+usd_cad           .2 .000990698        260
+usd_cad           .3 .000373012        247
+usd_cad           .4  -.0000855        217
+usd_cad           .5 -.00067997        162
+usd_cad           .6 .000162598        142
+usd_cad           .7 .000034122        100
+usd_cad           .8 -.00075186         47
+usd_cad           .9 -.00162042         14
+usd_cad            1 -.00297532          1
+usd_chf            0 .003049523         87
+usd_chf           .1 .002358721        277
+usd_chf           .2 .001130519        277
+usd_chf           .3  .00028932        255
+usd_chf           .4 .000339903        198
+usd_chf           .5 .000174453        115
+usd_chf           .6  -.0003791         79
+usd_chf           .7 -.00139374         82
+usd_chf           .8 -.00200891         42
+usd_chf           .9   -.004544         30
+usd_jpy            0  -.0001847          8
+usd_jpy           .1 .000919557        210
+usd_jpy           .2 .000973904        361
+usd_jpy           .3 .000586022        270
+usd_jpy           .4 .000586531        194
+usd_jpy           .5  -.0000764        145
+usd_jpy           .6 -.00015002         96
+usd_jpy           .7 -.00022644         89
+usd_jpy           .8 -.00051808         53
+usd_jpy           .9 .000066018         16
+
+117 rows selected.
+
+Elapsed: 00:00:00.62
+00:51:49 SQL> 
+00:51:49 SQL> SELECT
+00:51:49   2  pair
+00:51:49   3  ,rscore_diff
+00:51:49   4  ,AVG(g6)
+00:51:49   5  ,COUNT(pair)ccount
+00:51:49   6  FROM scc12
+00:51:49   7  WHERE TO_CHAR(ydate,'W YYYY_MM')= '3 2010_11'
+00:51:49   8  GROUP BY pair,rscore_diff
+00:51:49   9  ORDER BY pair,rscore_diff
+00:51:49  10  /
+
+PAIR    RSCORE_DIFF    AVG(G6)     CCOUNT
+------- ----------- ---------- ----------
+aud_jpy         -.9 -.00231537          5
+aud_jpy         -.8 -.00214308         20
+aud_jpy         -.7 -.00118709         43
+aud_jpy         -.6   -.001002         49
+aud_jpy         -.5 -.00038494         57
+aud_jpy         -.4 -.00026845         93
+aud_jpy         -.3 -.00072954        128
+aud_jpy         -.2 -.00019483         86
+aud_jpy         -.1  .00027221        107
+aud_jpy           0 .000183765        126
+aud_jpy          .1 .000802979        139
+aud_jpy          .2 .001249796        129
+aud_jpy          .3 .001477064        114
+aud_jpy          .4   .0019441         94
+aud_jpy          .5 .001411113         90
+aud_jpy          .6 .001803306         67
+aud_jpy          .7 .002089942         54
+aud_jpy          .8 .002044757         37
+aud_jpy          .9 .003952817          4
+aud_usd         -.9 -.00017878          2
+aud_usd         -.8 .001171044          9
+aud_usd         -.7 .000246093         34
+aud_usd         -.6 .000231295         65
+aud_usd         -.5 -.00166711         80
+aud_usd         -.4 -.00146266        101
+aud_usd         -.3 -.00067562        132
+aud_usd         -.2 -.00054102        112
+aud_usd         -.1 -.00033191        117
+aud_usd           0 -.00058419        124
+aud_usd          .1 -.00016107        135
+aud_usd          .2 .000521921        114
+aud_usd          .3 3.4648E-06        101
+aud_usd          .4 .000345091         69
+aud_usd          .5 .001793655         69
+aud_usd          .6 .001889738         40
+aud_usd          .7  .00208474         58
+aud_usd          .8 .003688085         63
+aud_usd          .9 .003578651         10
+aud_usd           1 .004452966          7
+eur_aud         -.8 -.00123471          6
+eur_aud         -.7 -.00132775         19
+eur_aud         -.6 -.00232825         49
+eur_aud         -.5 -.00253028         65
+eur_aud         -.4 -.00197021        103
+eur_aud         -.3 -.00174469        168
+eur_aud         -.2 -.00072924        189
+eur_aud         -.1  .00025399        173
+eur_aud           0 .000843403        162
+eur_aud          .1  .00101731        117
+eur_aud          .2 .001450771        114
+eur_aud          .3  .00147977        110
+eur_aud          .4  .00098001         69
+eur_aud          .5 .001574883         56
+eur_aud          .6 .002000507         27
+eur_aud          .7 .002689738         11
+eur_aud          .8 .003382485          3
+eur_aud          .9 .003050187          1
+eur_chf         -.8 -.00040246          3
+eur_chf         -.7 -.00183601          5
+eur_chf         -.6 -.00038714         28
+eur_chf         -.5  -.0000849         83
+eur_chf         -.4 -.00015794        115
+eur_chf         -.3 -.00029253        162
+eur_chf         -.2 .000776906        144
+eur_chf         -.1 .001059197        178
+eur_chf           0 .001006603        185
+eur_chf          .1 .000635795        163
+eur_chf          .2 .001020969        136
+eur_chf          .3 .001830193         98
+eur_chf          .4 .002960862         53
+eur_chf          .5 .002345941         40
+eur_chf          .6 .000997232         29
+eur_chf          .7 .002580139         17
+eur_chf          .8 .001900906          3
+eur_gbp         -.8 -.00039287          2
+eur_gbp         -.7 -.00003709         12
+eur_gbp         -.6 .000505895         37
+eur_gbp         -.5 -.00042567         63
+eur_gbp         -.4 -.00028657        101
+eur_gbp         -.3  -.0003592        105
+eur_gbp         -.2 .000177937        166
+eur_gbp         -.1 .000591096        182
+eur_gbp           0 .000308176        206
+eur_gbp          .1 .000966612        158
+eur_gbp          .2 .000680777        166
+eur_gbp          .3 .001398985         90
+eur_gbp          .4 .001061298         63
+eur_gbp          .5 .001665852         47
+eur_gbp          .6 .001548411         31
+eur_gbp          .7 .000871563         11
+eur_gbp          .8 .001736965          2
+eur_jpy         -.9 -.00212803         13
+eur_jpy         -.8 -.00065822         35
+eur_jpy         -.7 -.00058802         54
+eur_jpy         -.6 .000436491         50
+eur_jpy         -.5 -.00018925         71
+eur_jpy         -.4  -.0006767         82
+eur_jpy         -.3 -.00001774         95
+eur_jpy         -.2 -.00029869        107
+eur_jpy         -.1 .000442239         96
+eur_jpy           0 .000912862        122
+eur_jpy          .1 .000303247        100
+eur_jpy          .2 .000756435        114
+eur_jpy          .3 .001271599        118
+eur_jpy          .4 .000851667         94
+eur_jpy          .5 .001028034         93
+eur_jpy          .6 .001741841         68
+eur_jpy          .7  .00176785         60
+eur_jpy          .8 .002052617         51
+eur_jpy          .9 .001376321         19
+eur_usd         -.9 -.00710267         10
+eur_usd         -.8 -.00202422         39
+eur_usd         -.7 -.00140715         78
+eur_usd         -.6 -.00129632         79
+eur_usd         -.5 -.00132908        101
+eur_usd         -.4 -.00126193         96
+eur_usd         -.3 -.00162645        115
+eur_usd         -.2   -.001241        107
+eur_usd         -.1 -.00022399        108
+eur_usd           0 .000705208        111
+
+PAIR    RSCORE_DIFF    AVG(G6)     CCOUNT
+------- ----------- ---------- ----------
+eur_usd          .1  .00037917        128
+eur_usd          .2  .00101334        111
+eur_usd          .3 .001783225        108
+eur_usd          .4 .002406649         91
+eur_usd          .5 .001904059         71
+eur_usd          .6 .002506885         50
+eur_usd          .7 .002568292         30
+eur_usd          .8 .002676066          9
+gbp_usd         -.9 -.00561611          9
+gbp_usd         -.8 -.00372654         19
+gbp_usd         -.7 -.00308293         35
+gbp_usd         -.6 -.00258723         46
+gbp_usd         -.5 -.00225224         64
+gbp_usd         -.4 -.00161476         72
+gbp_usd         -.3 -.00188745         87
+gbp_usd         -.2 -.00135137        101
+gbp_usd         -.1 -.00073448         95
+gbp_usd           0  -.0004989        162
+gbp_usd          .1 -.00004061        129
+gbp_usd          .2  .00041653        118
+gbp_usd          .3  .00031542        136
+gbp_usd          .4 .000719101        118
+gbp_usd          .5 .000764098        124
+gbp_usd          .6 .000947625         72
+gbp_usd          .7 .001575973         36
+gbp_usd          .8 .000475118         14
+gbp_usd          .9 .005564494          5
+usd_cad         -.8 -.00264035          3
+usd_cad         -.7 -.00165167         11
+usd_cad         -.6 -.00136115         30
+usd_cad         -.5 -.00094158         64
+usd_cad         -.4 -.00068994        100
+usd_cad         -.3 -.00045708        115
+usd_cad         -.2 -.00050101        136
+usd_cad         -.1 -.00023442        161
+usd_cad           0 .000420381        142
+usd_cad          .1 .000257671        144
+usd_cad          .2 .000694621        154
+usd_cad          .3 .001257593        133
+usd_cad          .4 .001442888         99
+usd_cad          .5 .001619575         77
+usd_cad          .6 .002050718         36
+usd_cad          .7 .003361696         24
+usd_cad          .8  .00449587         12
+usd_cad          .9 .007442322          1
+usd_chf         -.9 -.00706021          2
+usd_chf         -.8 -.00500947         21
+usd_chf         -.7 -.00258659         31
+usd_chf         -.6 -.00149672         34
+usd_chf         -.5 -.00127868         53
+usd_chf         -.4  -.0012556         53
+usd_chf         -.3 -.00032381        101
+usd_chf         -.2 -.00034319        136
+usd_chf         -.1 .000308161        133
+usd_chf           0 .000262126        138
+usd_chf          .1 .000647626        149
+usd_chf          .2 .001441725        136
+usd_chf          .3  .00136401        111
+usd_chf          .4 .001953544         97
+usd_chf          .5 .002408483         70
+usd_chf          .6 .002900521         63
+usd_chf          .7 .004220305         51
+usd_chf          .8 .003573909         44
+usd_chf          .9 .006972419         19
+usd_jpy         -.8 -.00012024          1
+usd_jpy         -.7 -.00016629          8
+usd_jpy         -.6  -.0006515         25
+usd_jpy         -.5 -.00018867         30
+usd_jpy         -.4 -.00043925         37
+usd_jpy         -.3 -.00030736         49
+usd_jpy         -.2 -.00009773         54
+usd_jpy         -.1 -.00005509         74
+usd_jpy           0 -.00034642         83
+usd_jpy          .1  .00017765         84
+usd_jpy          .2 .000393201        103
+usd_jpy          .3 .000783666        127
+usd_jpy          .4  .00054099        130
+usd_jpy          .5 .000869834        172
+usd_jpy          .6 .000934218        193
+usd_jpy          .7 .001149835        161
+usd_jpy          .8 .000792432         96
+usd_jpy          .9 .001122948         15
+
+202 rows selected.
+
+Elapsed: 00:00:00.64
+00:51:50 SQL> 
+00:51:50 SQL> SELECT
+00:51:50   2  pair
+00:51:50   3  ,CORR(score_long,g6)score_corr_l
+00:51:50   4  ,CORR(score_short,g6)score_corr_s
+00:51:50   5  ,CORR(score_diff,g6)score_corr_d
+00:51:50   6  ,COUNT(pair)ccount
+00:51:50   7  FROM scc12
+00:51:50   8  WHERE TO_CHAR(ydate,'W YYYY_MM')= '3 2010_11'
+00:51:50   9  GROUP BY pair
+00:51:50  10  ORDER BY CORR(score_diff,g6)
+00:51:50  11  /
+
+PAIR    SCORE_CORR_L SCORE_CORR_S SCORE_CORR_D     CCOUNT
+------- ------------ ------------ ------------ ----------
+usd_jpy   .212471289   -.20035378   .218567917       1442
+eur_gbp    .18334055   -.16881724   .221254463       1442
+eur_chf   .196861508   -.24914234   .252716542       1442
+aud_usd   .314051295   -.14326845   .259998757       1442
+eur_jpy     .2684106   -.26123151   .270951789       1442
+usd_cad    .32304627   -.17741744    .28713071       1442
+aud_jpy   .333888781   -.34413572   .357940176       1442
+usd_chf    .35590866   -.31330803   .386823052       1442
+gbp_usd   .335463191   -.41797259   .420557167       1442
+eur_aud   .322692558   -.43466615   .437288348       1442
+eur_usd   .423948145   -.40683681   .450679369       1442
+
+11 rows selected.
+
+Elapsed: 00:00:00.82
+00:51:51 SQL> 
+00:51:51 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@hp2:/pt/s/rluck/svm62$ 
+oracle@hp2:/pt/s/rluck/svm62$ 
+
+ooooooooooooooooooooooo ooooooooooooooooooooooo ooooooooooooooooooooooo 
