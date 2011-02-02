@@ -5,6 +5,9 @@
 -- I use this script to aggregate recent scores.
 -- I intend to look at output from this script before I open positions.
 
+-- This script depends on score_corr.sql
+@score_corr.sql
+
 -- Start by joining long scores, short scores, and prices:
 CREATE OR REPLACE VIEW ocj_stk1 AS
 SELECT
