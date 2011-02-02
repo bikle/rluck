@@ -13,7 +13,8 @@ prdate
 ,(LEAD(clse,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g1
 ,LEAD(ydate,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)-ydate date_diff
 FROM di5min24
-WHERE ydate > '2011-01-10'
+-- WHERE ydate > '2011-01-10'
+WHERE ydate > sysdate - 12
 AND clse > 0
 ORDER BY pair,ydate
 /
@@ -27,8 +28,9 @@ pair
 ,TO_CHAR(ydate,'dy')dday
 ,AVG(g1)
 ,AVG(date_diff)
+,COUNT(g1)
 FROM scc10
-WHERE ydate > sysdate - 22
+WHERE ydate > sysdate - 8
 GROUP BY pair,TO_CHAR(ydate,'dy')
 ORDER BY pair,TO_CHAR(ydate,'dy')
 /
@@ -51,8 +53,8 @@ AND   s.targ='gattn'
 AND l.prdate = s.prdate
 AND l.prdate = m.prdate
 -- Speed things up:
-AND l.ydate > sysdate - 123
-AND s.ydate > sysdate - 123
+AND l.ydate > sysdate - 12
+AND s.ydate > sysdate - 12
 /
 
 SELECT
@@ -61,10 +63,9 @@ pair
 ,AVG(g1)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > '2011-01-10'
+WHERE ydate > sysdate - 12
 GROUP BY pair,rscore_long
 ORDER BY pair,rscore_long
-/
 
 SELECT
 pair
@@ -72,10 +73,9 @@ pair
 ,AVG(g1)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > '2011-01-10'
+WHERE ydate > sysdate - 12
 GROUP BY pair,rscore_short
 ORDER BY pair,rscore_short
-/
 
 SELECT
 pair
@@ -83,7 +83,7 @@ pair
 ,AVG(g1)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > '2011-01-10'
+WHERE ydate > sysdate - 12
 GROUP BY pair,rscore_diff
 ORDER BY pair,rscore_diff
 /
@@ -93,7 +93,7 @@ pair
 ,CORR(score_diff,g1)score_corr2
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > '2011-01-10'
+WHERE ydate > sysdate - 5
 GROUP BY pair ORDER BY CORR(score_diff,g1)
 /
 

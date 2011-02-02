@@ -21,7 +21,7 @@ prdate
 ,rundate
 ,ydate + 6/24 clse_date
 FROM ocj
-WHERE ydate > sysdate - 2/24
+WHERE ydate > sysdate - 4/24
 ORDER BY prdate
 /
 

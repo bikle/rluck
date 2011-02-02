@@ -26,6 +26,10 @@ m.tkr
 ,m.tkrdate
 ,l.score score_long
 ,s.score score_short
+,l.score - s.score score_diff
+,ROUND(l.score,1)rscore_long
+,ROUND(s.score,1)rscore_short
+,ROUND((l.score-s.score),1)rscore_diff
 ,m.g1
 FROM stkscores l,stkscores s,scc10svmspy m
 WHERE l.targ='gatt'
@@ -40,15 +44,22 @@ AND s.ydate > sysdate - 8
 CREATE OR REPLACE VIEW score_corr_svmspy AS
 SELECT
 tkr
-,CORR((score_long - score_short),g1)score_corr
+,CORR(score_diff,g1)score_corr
+,MIN(ydate)min_date
 ,COUNT(g1)ccount
+,MAX(ydate)max_date
 FROM scc12svmspy
 WHERE ydate > sysdate -8
 GROUP BY tkr
 ORDER BY CORR((score_long - score_short),g1)
 /
 
-SELECT * FROM score_corr_svmspy;
+SELECT * FROM score_corr_svmspy
+
+SELECT * FROM score_corr_svmspy
+WHERE ccount > 9
+AND max_date > sysdate - 1
+/
 
 -- exit
 

@@ -58,10 +58,10 @@ pair
 ,AVG(g6)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > sysdate - 133
+WHERE ydate > sysdate - 3
 GROUP BY pair,rscore_long
 ORDER BY pair,rscore_long
-
+/
 
 SELECT
 pair
@@ -69,7 +69,7 @@ pair
 ,AVG(g6)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > sysdate - 133
+WHERE ydate > sysdate - 3
 GROUP BY pair,rscore_short
 ORDER BY pair,rscore_short
 
@@ -80,7 +80,7 @@ pair
 ,AVG(g6)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE ydate > sysdate - 133
+WHERE ydate > sysdate - 3
 GROUP BY pair,rscore_diff
 ORDER BY pair,rscore_diff
 

@@ -4,9 +4,9 @@
 
 # I use this script to add extra functionality to other scripts.
 
-# Now this script is empty.
-
 echo $0 called
+cd /pt/s/rluck/svm24/
+./svm24.bash > /pt/s/cron/out/svm24.txt 2>&1
 echo $0 finished
 
 exit 0
