@@ -18,6 +18,8 @@ cd $SVM24
 ./svmpair.bash usd_jpy > /pt/s/cron/out/svm24.usd_jpy.${myts}.txt 2>&1
 date
 ./svmpair.bash eur_usd > /pt/s/cron/out/svm24.eur_usd.${myts}.txt 2>&1
+date
+./svmpair.bash usd_cad > /pt/s/cron/out/svm24.usd_cad.${myts}.txt 2>&1
 
 date
 
