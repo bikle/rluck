@@ -8,13 +8,25 @@
 @score_corr
 
 SELECT
-'./dl_then_svm.bash'
+-- './dl_then_svm.bash'
+'./svmtkr.bash'
 ,tkr
 ,score_corr
 FROM score_corr_svmspy
 WHERE ccount > 9
 AND max_date > sysdate - 3
 AND score_corr > 0.0
+ORDER BY score_corr DESC
+/
+
+SELECT
+-- './dl_then_svm.bash'
+'./svmtkr.bash'
+,tkr
+,score_corr
+FROM score_corr_svmspy
+WHERE ccount > 0
+AND score_corr <= 0
 ORDER BY score_corr DESC
 /
 
