@@ -13,8 +13,8 @@ SELECT
 ,score_corr
 FROM score_corr_svmspy
 WHERE ccount > 9
-AND max_date > sysdate - 1
-AND score_corr > 0.5
+AND max_date > sysdate - 3
+AND score_corr > 0.0
 ORDER BY score_corr DESC
 /
 

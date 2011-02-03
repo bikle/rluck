@@ -49,7 +49,7 @@ tkr
 ,COUNT(g1)ccount
 ,MAX(ydate)max_date
 FROM scc12svmspy
-WHERE ydate > sysdate -8
+WHERE ydate > sysdate - 8
 GROUP BY tkr
 ORDER BY CORR(score_diff,g1)
 /
@@ -58,8 +58,8 @@ SELECT * FROM score_corr_svmspy
 
 SELECT * FROM score_corr_svmspy
 WHERE ccount > 9
-AND max_date > sysdate - 1
-AND score_corr > 0.2
+AND max_date > sysdate - 3
+AND score_corr > 0.0
 /
 
 -- exit
