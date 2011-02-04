@@ -8,6 +8,8 @@ set -x
 
 ./svmtkr.bash HL
 
+./svmtkr.bash GFI
+
 ./svmtkr.bash AGU
 ./svmtkr.bash AXU
 ./svmtkr.bash CDE

@@ -16,6 +16,9 @@ rm -f *csv
 
 
 wget --output-document=HL.csv http://ichart.finance.yahoo.com/table.csv?s=HL
+
+get --output-document=GFI.csv http://ichart.finance.yahoo.com/table.csv?s=GFI
+
 wget --output-document=CHK.csv http://ichart.finance.yahoo.com/table.csv?s=CHK
 wget --output-document=SOHU.csv http://ichart.finance.yahoo.com/table.csv?s=SOHU
 wget --output-document=RDY.csv http://ichart.finance.yahoo.com/table.csv?s=RDY

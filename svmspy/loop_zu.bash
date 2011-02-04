@@ -94,4 +94,6 @@ cd /pt/s/rluck/svmspy/
 ./svmtkr.bash CLF   
 ./svmtkr.bash ABX   
 ./svmtkr.bash PG    
-./svmtkr.bash TKR   
+./svmtkr.bash TKR
+   
+./svmtkr.bash GFI

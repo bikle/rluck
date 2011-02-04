@@ -24,7 +24,7 @@ prdate
 ,rundate
 ,ydate + 1 clse_date
 FROM ocj24
-WHERE ydate > sysdate - 4/24
+WHERE ydate > sysdate - 8/24
 ORDER BY prdate
 /
 
