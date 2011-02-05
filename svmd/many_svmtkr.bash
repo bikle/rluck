@@ -7,6 +7,10 @@ cd /pt/s/rluck/svmd/
 set -x
 
 ./svmtkr.bash HL
+./svmtkr.bash GD
+./svmtkr.bash RTN
+./svmtkr.bash NOC
+./svmtkr.bash LMT
 
 ./svmtkr.bash GFI
 

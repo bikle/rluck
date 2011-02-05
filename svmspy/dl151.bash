@@ -17,6 +17,10 @@ date
 
 cd $SVMSPY/ibapi
 
+./5min_data.bash GD
+./5min_data.bash RTN
+./5min_data.bash NOC
+./5min_data.bash LMT
 ./5min_data.bash GFI
 
 ./5min_data.bash AAPL

@@ -17,7 +17,11 @@ rm -f *csv
 
 wget --output-document=HL.csv http://ichart.finance.yahoo.com/table.csv?s=HL
 
-get --output-document=GFI.csv http://ichart.finance.yahoo.com/table.csv?s=GFI
+wget --output-document=GFI.csv http://ichart.finance.yahoo.com/table.csv?s=GFI
+wget --output-document=GD.csv http://ichart.finance.yahoo.com/table.csv?s=GD
+wget --output-document=RTN.csv http://ichart.finance.yahoo.com/table.csv?s=RTN
+wget --output-document=NOC.csv http://ichart.finance.yahoo.com/table.csv?s=NOC
+wget --output-document=LMT.csv http://ichart.finance.yahoo.com/table.csv?s=LMT
 
 wget --output-document=CHK.csv http://ichart.finance.yahoo.com/table.csv?s=CHK
 wget --output-document=SOHU.csv http://ichart.finance.yahoo.com/table.csv?s=SOHU
