@@ -57,7 +57,7 @@ pair
 ,AVG(g6)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE TO_CHAR(ydate,'W YYYY_MM')= '1 2011_01'
+WHERE TO_CHAR(ydate,'W YYYY_MM')= '3 2010_11'
 GROUP BY pair,rscore_long
 ORDER BY pair,rscore_long
 /
@@ -68,7 +68,7 @@ pair
 ,AVG(g6)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE TO_CHAR(ydate,'W YYYY_MM')= '1 2011_01'
+WHERE TO_CHAR(ydate,'W YYYY_MM')= '3 2010_11'
 GROUP BY pair,rscore_short
 ORDER BY pair,rscore_short
 /
@@ -79,7 +79,7 @@ pair
 ,AVG(g6)
 ,COUNT(pair)ccount
 FROM scc12
-WHERE TO_CHAR(ydate,'W YYYY_MM')= '1 2011_01'
+WHERE TO_CHAR(ydate,'W YYYY_MM')= '3 2010_11'
 GROUP BY pair,rscore_diff
 ORDER BY pair,rscore_diff
 /
@@ -91,7 +91,7 @@ pair
 ,CORR(score_diff,g6)score_corr_d
 ,COUNT(pair)ccount
 FROM scc12
-WHERE TO_CHAR(ydate,'W YYYY_MM')= '1 2011_01'
+WHERE TO_CHAR(ydate,'W YYYY_MM')= '3 2010_11'
 GROUP BY pair 
 ORDER BY CORR(score_diff,g6)
 /

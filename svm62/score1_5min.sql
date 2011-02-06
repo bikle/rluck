@@ -51,9 +51,7 @@ prdate
 ,g39
 ,g40
 ,g41
-,s.sc_corr
 FROM modsrc
-,(SELECT AVG(sc_corr)sc_corr FROM modsrc WHERE 2+ydate>'&1'||' '||'&2'AND ydate<'&1'||' '||'&2')s
 WHERE ydate = '&1'||' '||'&2'
 AND pair = '&3'
 /
@@ -110,7 +108,6 @@ prdate
 ,g39
 ,g40
 ,g41
-,sc_corr
 FROM modsrc
 WHERE gatt IN('nup','up')
 -- Use only rows which are older than 1 day:

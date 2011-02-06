@@ -313,49 +313,50 @@ ORDER BY pair,trend,gatt,att33
 /
 
 -- Join scores and gains:
-
-CREATE OR REPLACE VIEW sc12 AS
-SELECT
-m.pair
-,m.ydate
-,m.prdate
-,l.score score_long
-,s.score score_short
-,ROUND(l.score,1) rscore_long
-,ROUND(s.score,1) rscore_short
-,m.g1
-FROM svm24scores l,svm24scores s,svm2416 m
-WHERE l.targ='gatt'
-AND   s.targ='gattn'
-AND l.prdate = s.prdate
-AND l.prdate = m.prdate
--- Speed things up:
-AND l.pair = '&1'
-AND s.pair = '&1'
-/
-
--- rpt
-SELECT pair,rscore_long,AVG(g1),MIN(ydate),COUNT(pair),MAX(ydate)FROM sc12
-GROUP BY pair,rscore_long
-ORDER BY pair,rscore_long
-/
-
-DROP TABLE score_corr;
-
-CREATE TABLE score_corr COMPRESS AS
-SELECT
-pair
--- ,ydate
-,prdate
--- Find corr() tween score and g1 over 11 day period:
-,CORR((score_long - score_short),g1)
-  OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*24*5 PRECEDING AND CURRENT ROW)sc_corr
-FROM sc12
-/
-
--- rpt
-
-SELECT pair,AVG(sc_corr),COUNT(sc_corr)FROM score_corr GROUP BY pair;
+-- Comment out feedback related syntax:
+-- 
+-- CREATE OR REPLACE VIEW sc12 AS
+-- SELECT
+-- m.pair
+-- ,m.ydate
+-- ,m.prdate
+-- ,l.score score_long
+-- ,s.score score_short
+-- ,ROUND(l.score,1) rscore_long
+-- ,ROUND(s.score,1) rscore_short
+-- ,m.g1
+-- FROM svm24scores l,svm24scores s,svm2416 m
+-- WHERE l.targ='gatt'
+-- AND   s.targ='gattn'
+-- AND l.prdate = s.prdate
+-- AND l.prdate = m.prdate
+-- -- Speed things up:
+-- AND l.pair = '&1'
+-- AND s.pair = '&1'
+-- /
+-- 
+-- -- rpt
+-- SELECT pair,rscore_long,AVG(g1),MIN(ydate),COUNT(pair),MAX(ydate)FROM sc12
+-- GROUP BY pair,rscore_long
+-- ORDER BY pair,rscore_long
+-- /
+-- 
+-- DROP TABLE score_corr;
+-- 
+-- CREATE TABLE score_corr COMPRESS AS
+-- SELECT
+-- pair
+-- -- ,ydate
+-- ,prdate
+-- -- Find corr() tween score and g1 over 11 day period:
+-- ,CORR((score_long - score_short),g1)
+--   OVER(PARTITION BY pair ORDER BY ydate ROWS BETWEEN 12*24*5 PRECEDING AND CURRENT ROW)sc_corr
+-- FROM sc12
+-- /
+-- 
+-- -- rpt
+-- 
+-- SELECT pair,AVG(sc_corr),COUNT(sc_corr)FROM score_corr GROUP BY pair;
 
 DROP TABLE modsrc24;
 
@@ -363,9 +364,9 @@ PURGE RECYCLEBIN;
 
 CREATE TABLE modsrc24 COMPRESS AS
 SELECT
-s.pair       
+pair       
 ,ydate      
-,s.prdate     
+,prdate     
 ,trend      
 ,g1
 ,gatt
@@ -414,9 +415,7 @@ s.pair
 ,SUM(g1)OVER(PARTITION BY trend ORDER BY ydate ROWS BETWEEN 12*24*10 PRECEDING AND CURRENT ROW)g40
 ,SUM(g1)OVER(PARTITION BY trend ORDER BY ydate ROWS BETWEEN 12*24*5  PRECEDING AND CURRENT ROW)g41
 -- Recent CORR()tween scores and gains:
-,NVL(sc_corr,0)sc_corr
-FROM svm2416 s,score_corr c
-WHERE s.prdate = c.prdate(+)
+FROM svm2416
 /
 
 ANALYZE TABLE modsrc24 COMPUTE STATISTICS;

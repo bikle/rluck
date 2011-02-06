@@ -20,7 +20,7 @@ AND pair = '&1'
 )
 WHERE '&1'||ydate NOT IN(SELECT DISTINCT prdate FROM svm24scores)
 AND ydate > sysdate - 2
-ORDER BY ydate,cmd
+ORDER BY ydate DESC,cmd
 /
 
 

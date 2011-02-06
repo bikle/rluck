@@ -51,9 +51,7 @@ prdate
 ,g39
 ,g40
 ,g41
-,s.sc_corr
 FROM modsrc24
-,(SELECT AVG(sc_corr)sc_corr FROM modsrc24 WHERE 5+ydate>'&1'||' '||'&2'AND 1+ydate<'&1'||' '||'&2')s
 WHERE ydate = '&1'||' '||'&2'
 AND pair = '&3'
 /
@@ -62,9 +60,6 @@ AND pair = '&3'
 -- We should see just 1 row:
 
 SELECT COUNT(prdate) FROM sme
-
-SELECT AVG(sc_corr)sc_corr FROM modsrc24 WHERE 5+ydate>'&1'||' '||'&2'AND 1+ydate<'&1'||' '||'&2'
-
 
 -- Build the model:
 CREATE OR REPLACE VIEW bme AS
@@ -113,7 +108,6 @@ prdate
 ,g39
 ,g40
 ,g41
-,sc_corr
 FROM modsrc24
 WHERE gattn IN('nup','up')
 -- Use only rows which are older than 1 day:
@@ -123,7 +117,7 @@ AND pair = '&3'
 
 -- rpt
 
-SELECT gattn, AVG(sc_corr), COUNT(prdate) FROM bme GROUP BY gattn
+SELECT gattn, COUNT(prdate) FROM bme GROUP BY gattn
 
 SELECT MAX(prdate) FROM bme
 
