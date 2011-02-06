@@ -111,11 +111,11 @@ COLUMN sum_pct_gain FORMAT 9999.9999
 COLUMN avg_pct_gain FORMAT  999.9999
 
 SELECT
-action
+ROUND(score,2) score
+,action
 ,pair
 ,ydate  date_open
 ,price_open
-,ROUND(score,2) score
 ,TO_CHAR(ydate6,'MM-DD HH24:MI') date_close
 ,ROUND(pct_gain,2) pct_gain
 ,price_close
@@ -126,7 +126,19 @@ action
       WHEN(action='sell  'AND pct_gain>0.0)THEN 'bad'
       ELSE NULL END goodbad
 FROM w14
-WHERE ydate > sysdate - 1/2
+-- WHERE ydate > sysdate - 1/2
+WHERE ydate > (SELECT MAX(ydate)-8/24 FROM w14)
+
+
+-- Aggregate above query results:
+
+SELECT
+NVL(action,'avoid')action
+,SUM(pct_gain)sum_pct_gain
+FROM w14
+WHERE ydate > (SELECT MAX(ydate)-8/24 FROM w14)
+GROUP BY NVL(action,'avoid')
+ORDER BY NVL(action,'avoid')
 /
 
 -- rpt on prediction aggregations
@@ -135,15 +147,14 @@ CREATE OR REPLACE VIEW w16 AS
 SELECT
 pair
 ,ydate
-,action
+,NVL(action,'avoid')action
 ,pct_gain
 ,score
 ,ROUND(score,1)          rscore
 ,TO_CHAR(ydate,'YYYY_MM')mnth
 ,TO_CHAR(ydate,'W')      wk_num
 FROM w14
-WHERE(action='buy'OR action='sell  ')
-AND ABS(pct_gain)>0
+WHERE ABS(pct_gain)>0
 /
 
 -- Look at weekly distributions of gains:
@@ -151,7 +162,7 @@ AND ABS(pct_gain)>0
 SELECT
 mnth
 ,wk_num
-,COUNT(pct_gain)     ccount
+,COUNT(pct_gain)              ccount
 ,action
 ,ROUND(AVG(pct_gain),2)       avg_pct_gain
 ,ROUND(SUM(pct_gain),2)       sum_pct_gain
@@ -163,24 +174,22 @@ HAVING COUNT(pct_gain) > 22
 ORDER BY action,mnth,wk_num
 /
 
-exit
-
 -- Look at pair distributions of gains:
 
 SELECT
 pair
+,COUNT(pct_gain)              ccount
 ,action
-,TO_CHAR(ydate,'YYYY_MM')mnth
-,AVG(pct_gain)   avg_pct_gain
-,SUM(pct_gain)   sum_pct_gain
-,COUNT(pct_gain) ccount
-,CORR((score_long-score_short),pct_gain)corr_long
-,CORR((score_short-score_long),pct_gain)corr_short
+,ROUND(AVG(pct_gain),2)       avg_pct_gain
+,ROUND(SUM(pct_gain),2)       sum_pct_gain
+,ROUND(AVG(score),2)          avg_score
+,ROUND(CORR(score,pct_gain),2)score_corr
 FROM w16
-GROUP BY pair,action,TO_CHAR(ydate,'YYYY_MM')
-HAVING COUNT(pct_gain) > 22
-ORDER BY pair,action,TO_CHAR(ydate,'YYYY_MM')
+GROUP BY action,pair
+ORDER BY action,pair
 /
+
+exit
 
 -- Aggregate the pairs of above query:
 
@@ -198,6 +207,8 @@ GROUP BY action,TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W')
 HAVING COUNT(pct_gain) > 33
 ORDER BY action,TO_CHAR(ydate,'YYYY_MM'),TO_CHAR(ydate,'W')
 /
+
+exit
 
 -- Aggregate the weeks:
 
