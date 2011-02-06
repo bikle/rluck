@@ -280,7 +280,7 @@ CREATE TABLE stk_ms_svmd_svmspy COMPRESS AS
 SELECT
 tkr
 ,ydate
-,s.tkrdate
+,tkrdate
 ,trend
 ,g1
 ,gatt
