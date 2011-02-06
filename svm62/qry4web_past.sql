@@ -117,12 +117,16 @@ SELECT
 action
 ,SUM(pct_gain)                  sum_pct_gain
 ,COUNT(pct_gain)                ccount
+,AVG(pct_gain)
+,STDDEV(pct_gain)
 ,AVG(pct_gain)/STDDEV(pct_gain) sharpe_r
 FROM w14
 WHERE ydate > (SELECT MAX(ydate)-8/24 FROM w14)
 GROUP BY action
 ORDER BY action
 /
+
+exit
 
 -- Show 30 hr before max(ydate):
 
