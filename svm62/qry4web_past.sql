@@ -128,9 +128,9 @@ ORDER BY action
 
 SELECT
 action
-,SUM(pct_gain)sum_pct_gain
-,COUNT(pct_gain)ccount
-,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2) sharpe_r
+,SUM(pct_gain)                          sum_pct_gain
+,COUNT(pct_gain)                        ccount
+,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_r
 FROM w14
 WHERE ydate>(SELECT MAX(ydate)-30/24 FROM w14)
 GROUP BY action
@@ -158,19 +158,17 @@ WHERE ABS(pct_gainx100)>0
 
 SELECT
 pair
-,COUNT(pct_gain)              ccount
+,COUNT(pct_gain)               ccount
 ,action
 ,ROUND(AVG(pct_gainx100),2)    avg_pct_gainx100
 ,ROUND(SUM(pct_gain),2)        sum_pct_gain
 ,ROUND(AVG(score),2)           avg_score
 ,ROUND(CORR(score,pct_gain),2) score_corr
-,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2) sharpe_r
+,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_r
 FROM w16
 GROUP BY action,pair
 ORDER BY action,pair
 /
-
-exit
 
 -- Aggregate by day:
 
@@ -179,10 +177,11 @@ TO_CHAR(ydate,'D')Dn
 ,TO_CHAR(ydate,'Dy')Dday
 ,COUNT(pct_gain)              ccount
 ,action
-,ROUND(AVG(pct_gain),2)       avg_pct_gain
+,ROUND(AVG(pct_gainx100),2)   avg_pct_gainx100
 ,ROUND(SUM(pct_gain),2)       sum_pct_gain
 ,ROUND(AVG(score),2)          avg_score
 ,ROUND(CORR(score,pct_gain),2)score_corr
+,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_r
 FROM w16
 GROUP BY action,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
 ORDER BY action,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
@@ -194,10 +193,11 @@ SELECT
 mnth
 ,COUNT(pct_gain)              ccount
 ,action
-,ROUND(AVG(pct_gain),2)       avg_pct_gain
+,ROUND(AVG(pct_gainx100),2)   avg_pct_gainx100
 ,ROUND(SUM(pct_gain),2)       sum_pct_gain
 ,ROUND(AVG(score),2)          avg_score
 ,ROUND(CORR(score,pct_gain),2)score_corr
+,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_r
 FROM w16
 GROUP BY action,mnth
 ORDER BY action,mnth
@@ -210,10 +210,11 @@ mnth
 ,wk_num
 ,COUNT(pct_gain)              ccount
 ,action
-,ROUND(AVG(pct_gain),2)       avg_pct_gain
+,ROUND(AVG(pct_gainx100),2)   avg_pct_gainx100
 ,ROUND(SUM(pct_gain),2)       sum_pct_gain
 ,ROUND(AVG(score),2)          avg_score
 ,ROUND(CORR(score,pct_gain),2)score_corr
+,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_r
 FROM w16
 GROUP BY action,mnth,wk_num
 HAVING COUNT(pct_gain) > 22
