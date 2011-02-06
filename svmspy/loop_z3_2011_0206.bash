@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# loop_z3_2011_0206.bash
+
+./dl_then_svm.bash UNH   
+./dl_then_svm.bash BEN   
+./dl_then_svm.bash PNC   
+./dl_then_svm.bash BA    
+./dl_then_svm.bash APC   
+./dl_then_svm.bash BUCY  
+./dl_then_svm.bash DNDN  
+./dl_then_svm.bash COST  
+./dl_then_svm.bash BBT   
+./dl_then_svm.bash CMI   
+./dl_then_svm.bash MEE   
+./dl_then_svm.bash MDY   
+./dl_then_svm.bash HES   
+./dl_then_svm.bash DE    
+./dl_then_svm.bash APA   
+./dl_then_svm.bash POT   
+./dl_then_svm.bash HD    
+./dl_then_svm.bash CVS   
+./dl_then_svm.bash RIG   
+./dl_then_svm.bash BTU   
+./dl_then_svm.bash JOYG  
+./dl_then_svm.bash MJN   
+./dl_then_svm.bash NEM   
+./dl_then_svm.bash SKX   
+./dl_then_svm.bash BRCM  
+./dl_then_svm.bash BIDU  
+./dl_then_svm.bash DIA   
+./dl_then_svm.bash WDC   
+./dl_then_svm.bash FFIV  
+./dl_then_svm.bash RIMM  
+./dl_then_svm.bash AXP   
+./dl_then_svm.bash GDX   
+./dl_then_svm.bash DD    
+./dl_then_svm.bash TKR   
+./dl_then_svm.bash AIG   

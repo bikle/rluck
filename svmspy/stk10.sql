@@ -247,39 +247,39 @@ GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt
 /
 
-
-CREATE OR REPLACE VIEW sc12tkr AS
-SELECT
-m.tkr
-,m.ydate
-,m.tkrdate
-,l.score score_long
-,s.score score_short
-,m.g1
-FROM stkscores l,stkscores s,stk16svmspy m
-WHERE l.targ='gatt'
-AND   s.targ='gattn'
-AND l.tkrdate = s.tkrdate
-AND l.tkrdate = m.tkrdate
--- Speed things up:
-AND l.tkr = '&1'
-AND s.tkr = '&1'
-/
-
-DROP TABLE score_corr_tkr;
-
-CREATE TABLE score_corr_tkr COMPRESS AS
-SELECT tkrdate,AVG(sc_corr)sc_corr FROM
-(
-  SELECT
-  tkrdate
-  -- Find corr() tween score and g1 over 8 day period:
-  ,CORR((score_long - score_short),g1)
-    OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8*24*60/5 PRECEDING AND CURRENT ROW)sc_corr
-  FROM sc12tkr
-)
-GROUP BY tkrdate
-/
+-- Comment out feedback related syntax:
+-- CREATE OR REPLACE VIEW sc12tkr AS
+-- SELECT
+-- m.tkr
+-- ,m.ydate
+-- ,m.tkrdate
+-- ,l.score score_long
+-- ,s.score score_short
+-- ,m.g1
+-- FROM stkscores l,stkscores s,stk16svmspy m
+-- WHERE l.targ='gatt'
+-- AND   s.targ='gattn'
+-- AND l.tkrdate = s.tkrdate
+-- AND l.tkrdate = m.tkrdate
+-- -- Speed things up:
+-- AND l.tkr = '&1'
+-- AND s.tkr = '&1'
+-- /
+-- 
+-- DROP TABLE score_corr_tkr;
+-- 
+-- CREATE TABLE score_corr_tkr COMPRESS AS
+-- SELECT tkrdate,AVG(sc_corr)sc_corr FROM
+-- (
+--   SELECT
+--   tkrdate
+--   -- Find corr() tween score and g1 over 8 day period:
+--   ,CORR((score_long - score_short),g1)
+--     OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8*24*60/5 PRECEDING AND CURRENT ROW)sc_corr
+--   FROM sc12tkr
+-- )
+-- GROUP BY tkrdate
+-- /
 
 -- Now I derive goodness attributes and join with score_corr_tkr:
 
@@ -291,13 +291,11 @@ CREATE TABLE stk_ms_svmspy COMPRESS AS
 SELECT
 tkr
 ,ydate
-,s.tkrdate
+,tkrdate
 ,trend
 ,g1
 ,gatt
 ,gattn
--- Recent CORR()tween scores and gains:
-,NVL(sc_corr,0)sc_corr
 -- Goodness attributes:
 ,SUM(g1)OVER(PARTITION BY trend,att00 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g00
 ,SUM(g1)OVER(PARTITION BY trend,att01 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g01
@@ -330,8 +328,7 @@ tkr
 ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 60*24*60/5 PRECEDING AND CURRENT ROW)g27
 ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 30*24*60/5 PRECEDING AND CURRENT ROW)g28
 ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 10*24*60/5 PRECEDING AND CURRENT ROW)g29
-FROM stk16svmspy s,score_corr_tkr c
-WHERE s.tkrdate = c.tkrdate(+)
+FROM stk16svmspy
 /
 
 -- rpt
@@ -342,7 +339,6 @@ tkr
 ,gatt
 ,COUNT(tkr)
 ,AVG(g1)
-,AVG(sc_corr)
 FROM stk_ms_svmspy
 GROUP BY tkr,trend,gatt
 ORDER BY tkr,trend,gatt

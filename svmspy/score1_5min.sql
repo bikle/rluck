@@ -9,7 +9,6 @@ CREATE OR REPLACE VIEW sme AS
 SELECT
 tkrdate
 ,NULL gatt
-,NVL(s.sc_corr,0)sc_corr
 ,g00
 ,g01
 ,g02
@@ -41,7 +40,6 @@ tkrdate
 ,g28
 ,g29
 FROM stk_ms_u
-,(SELECT AVG(sc_corr)sc_corr FROM stk_ms_u WHERE 8+ydate>'&1'||' '||'&2'AND 1+ydate<'&1'||' '||'&2')s
 WHERE ydate = '&1'||' '||'&2'
 AND tkr = '&3'
 /
@@ -56,7 +54,6 @@ CREATE OR REPLACE VIEW bme AS
 SELECT
 tkrdate
 ,gatt
-,NVL(sc_corr,0)sc_corr
 ,g00
 ,g01
 ,g02
