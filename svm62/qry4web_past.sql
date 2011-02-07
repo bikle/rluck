@@ -95,8 +95,20 @@ ROUND(score,2) score
 ,pair
 ,ydate  date_open
 ,price_open
-,TO_CHAR(ydate6,'MM-DD HH24:MI') date_close0
-,TO_CHAR(ydate6,'MM-DD HH24:MI') date_close
+,CASE WHEN action='avoid 'THEN NULL
+ -- case-when I avoid-open then date_close should be null
+ -- else I should know date_close:
+ ELSE
+   NVL(ydate6
+    ,CASE WHEN(TO_CHAR(ydate,'dy')='fri'AND 0+TO_CHAR(ydate,'HH24')>16.0)THEN
+     -- case-when I am near mkt close on fri then I should delay close by 2 days:
+     2+(6/24)+ydate
+     -- Else I should close after 6 hours:
+     ELSE (6/24)+ydate
+     END 
+   -- NVL()
+   )
+ END date_close
 ,ROUND(pct_gainx100,2) pct_gainx100
 ,price_close
 ,six_hr_gain
@@ -106,8 +118,7 @@ ROUND(score,2) score
       WHEN(action='sell  'AND pct_gain>0.0)THEN 'bad'
       ELSE NULL END goodbad
 FROM w14
--- WHERE ydate > sysdate - 1/2
-WHERE ydate > (SELECT MAX(ydate)-1/24 FROM w14)
+WHERE ydate > (SELECT MAX(ydate)-8/24 FROM w14)
 /
 exit
 
