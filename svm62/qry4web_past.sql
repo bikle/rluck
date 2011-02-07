@@ -87,7 +87,7 @@ COLUMN pct_gainx100 FORMAT  999.9999
 COLUMN sum_pct_gain FORMAT 9999.9999
 COLUMN avg_pct_gain FORMAT  999.9999
 COLUMN avg_pct_gainx100 FORMAT  999.9999
-COLUMN sharpe_r     FORMAT  999.9999
+COLUMN sharpe_ratio     FORMAT  999.9999
 
 SELECT
 ROUND(score,2) score
@@ -95,6 +95,7 @@ ROUND(score,2) score
 ,pair
 ,ydate  date_open
 ,price_open
+,TO_CHAR(ydate6,'MM-DD HH24:MI') date_close0
 ,TO_CHAR(ydate6,'MM-DD HH24:MI') date_close
 ,ROUND(pct_gainx100,2) pct_gainx100
 ,price_close
@@ -106,8 +107,9 @@ ROUND(score,2) score
       ELSE NULL END goodbad
 FROM w14
 -- WHERE ydate > sysdate - 1/2
-WHERE ydate > (SELECT MAX(ydate)-8/24 FROM w14)
-
+WHERE ydate > (SELECT MAX(ydate)-1/24 FROM w14)
+/
+exit
 
 -- Aggregate above query results.
 
@@ -119,7 +121,7 @@ action
 ,COUNT(pct_gain)                ccount
 ,AVG(pct_gain)
 ,STDDEV(pct_gain)
-,AVG(pct_gain)/STDDEV(pct_gain) sharpe_r
+,AVG(pct_gain)/STDDEV(pct_gain) sharpe_ratio
 FROM w14
 WHERE ydate > (SELECT MAX(ydate)-8/24 FROM w14)
 GROUP BY action
@@ -134,7 +136,7 @@ SELECT
 action
 ,SUM(pct_gain)                          sum_pct_gain
 ,COUNT(pct_gain)                        ccount
-,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_r
+,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_ratio
 FROM w14
 WHERE ydate>(SELECT MAX(ydate)-30/24 FROM w14)
 GROUP BY action
@@ -168,7 +170,7 @@ pair
 ,ROUND(SUM(pct_gain),2)        sum_pct_gain
 ,ROUND(AVG(score),2)           avg_score
 ,ROUND(CORR(score,pct_gain),2) score_corr
-,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_r
+,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_ratio
 FROM w16
 GROUP BY action,pair
 ORDER BY action,pair
@@ -185,7 +187,7 @@ TO_CHAR(ydate,'D')Dn
 ,ROUND(SUM(pct_gain),2)       sum_pct_gain
 ,ROUND(AVG(score),2)          avg_score
 ,ROUND(CORR(score,pct_gain),2)score_corr
-,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_r
+,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_ratio
 FROM w16
 GROUP BY action,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
 ORDER BY action,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
@@ -201,7 +203,7 @@ mnth
 ,ROUND(SUM(pct_gain),2)       sum_pct_gain
 ,ROUND(AVG(score),2)          avg_score
 ,ROUND(CORR(score,pct_gain),2)score_corr
-,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_r
+,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_ratio
 FROM w16
 GROUP BY action,mnth
 ORDER BY action,mnth
@@ -218,7 +220,7 @@ mnth
 ,ROUND(SUM(pct_gain),2)       sum_pct_gain
 ,ROUND(AVG(score),2)          avg_score
 ,ROUND(CORR(score,pct_gain),2)score_corr
-,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_r
+,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_ratio
 FROM w16
 GROUP BY action,mnth,wk_num
 HAVING COUNT(pct_gain) > 22

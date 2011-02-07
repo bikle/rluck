@@ -14,7 +14,7 @@ prdate
 ,LEAD(ydate,12*24-3,NULL)OVER(PARTITION BY pair ORDER BY ydate)-ydate date_diff
 FROM di5min24
 -- WHERE ydate > '2011-01-10'
-WHERE ydate > sysdate - 12
+WHERE ydate > sysdate - 122
 AND clse > 0
 ORDER BY pair,ydate
 /
@@ -53,8 +53,8 @@ AND   s.targ='gattn'
 AND l.prdate = s.prdate
 AND l.prdate = m.prdate
 -- Speed things up:
-AND l.ydate > sysdate - 12
-AND s.ydate > sysdate - 12
+AND l.ydate > sysdate - 122
+AND s.ydate > sysdate - 122
 /
 
 SELECT
@@ -91,7 +91,20 @@ ORDER BY pair,rscore_diff
 SELECT
 pair
 ,CORR(score_diff,g1)score_corr2
+,MIN(ydate)
 ,COUNT(pair)ccount
+,MAX(ydate)
+FROM scc12
+WHERE ydate > sysdate - 122
+GROUP BY pair ORDER BY CORR(score_diff,g1)
+/
+
+SELECT
+pair
+,CORR(score_diff,g1)score_corr2
+,MIN(ydate)
+,COUNT(pair)ccount
+,MAX(ydate)
 FROM scc12
 WHERE ydate > sysdate - 5
 GROUP BY pair ORDER BY CORR(score_diff,g1)

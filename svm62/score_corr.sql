@@ -13,7 +13,7 @@ prdate
 ,(LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g6
 FROM di5min
 -- WHERE ydate BETWEEN(sysdate - 34)AND'2011-01-14'
-WHERE ydate > sysdate - 12
+WHERE ydate > sysdate - 122
 AND clse > 0
 ORDER BY pair,ydate
 /
@@ -83,6 +83,20 @@ FROM scc12
 WHERE ydate > sysdate - 3
 GROUP BY pair,rscore_diff
 ORDER BY pair,rscore_diff
+
+SELECT
+pair
+,CORR(score_long,g6)score_corr_l
+,CORR(score_short,g6)score_corr_s
+,CORR(score_diff,g6)score_corr_d
+,MIN(ydate)
+,COUNT(pair)ccount
+,MAX(ydate)
+FROM scc12
+WHERE ydate > sysdate - 66
+GROUP BY pair 
+ORDER BY CORR(score_diff,g6)
+/
 
 
 SELECT

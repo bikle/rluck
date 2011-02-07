@@ -2,9 +2,9 @@
 -- qry_recent_svm24scores.sql
 --
 
-SELECT * FROM svm24scores WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
+SELECT * FROM svm24scores WHERE rundate> sysdate -0.5/24 ORDER BY rundate
 
--- ocj is created here:
+-- ocj24 is created here:
 -- avg_recent_scores.sql
 
 COLUMN clse  FORMAT 999.9999
