@@ -22,7 +22,8 @@ ORDER BY l.tkr
 
 
 SELECT
-l.tkr
+g.tkr
+,g.clse
 ,AVG(l.score)score_long
 ,AVG(s.score)score_short
 ,COUNT(l.tkr)ccount
@@ -33,13 +34,14 @@ AND l.tkr = g.tkr
 AND s.targ = 'gattn'
 AND l.targ = 'gatt'
 AND l.ydate > sysdate - 4
-GROUP BY l.tkr
+GROUP BY g.tkr,g.clse
 HAVING AVG(l.score) > 0.7
-ORDER BY l.tkr
+ORDER BY g.tkr
 /
 
 SELECT
-l.tkr
+g.tkr
+,g.clse
 ,AVG(l.score)score_long
 ,AVG(s.score)score_short
 ,COUNT(l.tkr)ccount
@@ -50,11 +52,9 @@ AND l.tkr = g.tkr
 AND s.targ = 'gattn'
 AND l.targ = 'gatt'
 AND l.ydate > sysdate - 4
-GROUP BY l.tkr
-HAVING AVG(S.score) > 0.7
-ORDER BY l.tkr
+GROUP BY g.tkr,g.clse
+HAVING AVG(s.score) > 0.7
+ORDER BY g.tkr
 /
-
-
 
 exit

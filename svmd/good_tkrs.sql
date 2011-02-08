@@ -86,7 +86,7 @@ ORDER BY tkr,crr_l
 /
 
 CREATE OR REPLACE VIEW good_tkrs_svmd_v AS
-SELECT tkr,crr_l,crr_s FROM
+SELECT g.tkr,crr_l,crr_s, clse FROM
 (
 SELECT
 tkr
@@ -95,7 +95,9 @@ tkr
 FROM good_tkrs_svmd
 GROUP BY tkr
 HAVING COUNT(tkr)>1
-)
+)g
+,(SELECT tkr,clse FROM ystk WHERE ydate=(SELECT MAX(ydate)FROM ystk))y
+WHERE g.tkr = y.tkr
 ORDER BY crr_s - crr_l
 /
 
