@@ -4,6 +4,9 @@
 
 -- I use this script to help me see recent CORR() between score and gain.
 
+-- I use this script to see corr_of_corr:
+-- @corrocorr.sql
+
 -- I start by getting the 6 hr gain for each prdate.
 CREATE OR REPLACE VIEW scc10 AS
 SELECT
@@ -95,9 +98,8 @@ pair
 FROM scc12
 WHERE ydate > sysdate - 66
 GROUP BY pair 
-ORDER BY CORR(score_diff,g6)
+ORDER BY pair 
 /
-
 
 SELECT
 pair
@@ -110,7 +112,35 @@ pair
 FROM scc12
 WHERE ydate > sysdate - 3
 GROUP BY pair 
-ORDER BY CORR(score_diff,g6)
+ORDER BY pair 
+/
+
+SELECT
+pair
+,CORR(score_long,g6)score_corr_l
+,CORR(score_short,g6)score_corr_s
+,CORR(score_diff,g6)score_corr_d
+,MIN(ydate)
+,COUNT(pair)ccount
+,MAX(ydate)
+FROM scc12
+WHERE ydate > sysdate - 2
+GROUP BY pair 
+ORDER BY pair 
+/
+
+SELECT
+pair
+,CORR(score_long,g6)score_corr_l
+,CORR(score_short,g6)score_corr_s
+,CORR(score_diff,g6)score_corr_d
+,MIN(ydate)
+,COUNT(pair)ccount
+,MAX(ydate)
+FROM scc12
+WHERE ydate > sysdate - 1
+GROUP BY pair 
+ORDER BY pair 
 /
 
 exit
