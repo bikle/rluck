@@ -51,7 +51,7 @@ tkr
 FROM scc12svmspy
 WHERE ydate > sysdate - 8
 GROUP BY tkr
-ORDER BY CORR(score_diff,g1)
+ORDER BY CORR(score_diff,g1) DESC
 /
 
 SELECT * FROM score_corr_svmspy
