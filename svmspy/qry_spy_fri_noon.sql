@@ -1,5 +1,5 @@
 --
--- qry_fri_noon.sql
+-- qry_spy_fri_noon.sql
 --
 
 -- I use this script to look at prices for SPY on Fridays.

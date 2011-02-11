@@ -2,6 +2,8 @@
 
 # stop_loop.bash
 
+set -x
+
 cd /pt/s/rluck/svmspy/
 
 mv score1_5min_gattn.sql score1_5min_gattn.x
