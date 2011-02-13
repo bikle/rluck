@@ -22,6 +22,11 @@ date
 
 ./15min_data.bash DD
 
+./15min_data.bash SU
+./15min_data.bash CVE
+./15min_data.bash VLO
+./15min_data.bash TSO
+
 ./15min_data.bash AAPL
 ./15min_data.bash ABT
 ./15min_data.bash ABX
@@ -67,7 +72,6 @@ date
 ./15min_data.bash CTSH
 ./15min_data.bash CVS
 ./15min_data.bash CVX
-./15min_data.bash DD
 ./15min_data.bash DE
 ./15min_data.bash DIA
 ./15min_data.bash DIS
