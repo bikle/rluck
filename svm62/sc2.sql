@@ -114,11 +114,17 @@ UNION
 SELECT * FROM scc18_t WHERE(cpp2>0 AND crr2>0)
 UNION
 SELECT * FROM scc18_t WHERE(cpp3>0 AND crr3>0)
+UNION
+SELECT * FROM scc18_t WHERE(cpp1<0 AND crr1<0)
+UNION
+SELECT * FROM scc18_t WHERE(cpp2<0 AND crr2<0)
+UNION
+SELECT * FROM scc18_t WHERE(cpp3<0 AND crr3<0)
 /
 
 -- rpt
 SELECT * FROM scc20
-ORDER BY cpp1+cpp2+cpp3+crr1+crr2+crr3
+ORDER BY cpp1
 /
 
 exit

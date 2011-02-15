@@ -20,7 +20,7 @@ WHERE ydate NOT IN
   (SELECT ydate FROM ystkscores WHERE targ='gattn'AND tkr='&1')
 AND tkr = '&1'
 )
-WHERE ydate > sysdate - 9
+WHERE ydate > sysdate - 4
 -- ORDER BY DBMS_RANDOM.VALUE
 ORDER BY ydate,cmd
 /

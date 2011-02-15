@@ -3,10 +3,10 @@
 # extra.bash
 
 # I use this script to add extra functionality to other scripts.
-
-# This takes too long
+sleep 1
+# This script takes too long
 exit
-# This takes too long
+# This script takes too long
 
 echo $0 called
 cd /pt/s/rluck/svm24/
