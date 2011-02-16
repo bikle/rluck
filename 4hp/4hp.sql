@@ -86,22 +86,27 @@ pair
 ,ydate4
 ,clse4
 ,npg
-,AVG(npg)OVER(PARTITION BY pair,dhr ORDER BY ydate)avg_npg1
-,AVG(npg)OVER(PARTITION BY pair,dhr)avg_npg2
+,AVG(npg)OVER(PARTITION BY pair,dhr ORDER BY ydate)avg_npg
+,STDDEV(npg)OVER(PARTITION BY pair,dhr ORDER BY ydate)std_npg
 FROM hp12
 ORDER BY pair,dhr,ydate
 /
 
 -- rpt
 
+select count(*)from
+(
 SELECT
 pair,dhr,dyhr
-,avg_npg1
-,avg_npg2
+,avg_npg
+,std_npg
+,avg_npg/std_npg aos
 FROM hp14
 WHERE pair = 'usd_jpy'
 AND dhr = '5_16'
-AND ydate IN( '2011-02-10 16:25:00','2010-11-11 15:30:00')
+AND ABS(avg_npg/std_npg) > 0.5
+AND std_npg > 0
+)
 /
 
 
