@@ -55,6 +55,7 @@ ORDER BY pair,ydate
 
 --rpt
 SELECT COUNT(ydate)FROM hp10;
+SELECT COUNT(ydate)FROM hp12;
 
 -- rpt aggregate:
 SELECT
@@ -93,13 +94,16 @@ ORDER BY pair,dhr,ydate
 /
 
 -- rpt
-
+-- I should see variance of avg_npg, std_npg:
 SELECT
 pair
 ,dhr
 ,trunc_date
+,STDDEV(avg_npg)
+,STDDEV(std_npg)
 FROM hp14
 WHERE pair='usd_jpy'AND dhr='5_16'
+GROUP BY pair,dhr,trunc_date
 /
 
 -- I aggregate
@@ -115,13 +119,13 @@ FROM hp14
 GROUP BY 
 pair
 ,dhr
-,dyhr
 ,trunc_date
+,dyhr
 ORDER BY 
 pair
 ,dhr
-,dyhr
 ,trunc_date
+,dyhr
 /
 
 -- rpt
@@ -130,10 +134,45 @@ SELECT
 pair
 ,dhr
 ,trunc_date
+,dyhr
 ,avg_npg
 ,std_npg
 FROM hp16
 WHERE pair='usd_jpy'AND dhr='5_16'
 /
+
+-- Add column with date 1 week in future.
+CREATE OR REPLACE VIEW hp18 AS
+SELECT
+pair
+,dhr
+,dyhr
+,trunc_date
+,avg_npg
+,std_npg
+,LEAD(trunc_date,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_tdate
+FROM hp16
+ORDER BY 
+pair
+,dhr
+,trunc_date
+,dyhr
+/
+
+-- rpt
+
+SELECT
+pair
+,dhr
+,trunc_date
+,dyhr
+,ld_tdate
+,avg_npg
+,std_npg
+FROM hp18
+WHERE pair='usd_jpy'AND dhr='5_16'
+/
+
+
 
 exit
