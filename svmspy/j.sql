@@ -4,7 +4,11 @@
 
 -- I use this to give me a list of distinct tkrs.
 
-SELECT './svmtkr.bash '||tkr FROM
+set head off pages 888
+
+select './svmtkr.bash '||tkr FROM
+(
+SELECT tkr FROM
 (
 SELECT DISTINCT tkr FROM ystk
 UNION
@@ -13,6 +17,7 @@ UNION
 SELECT DISTINCT tkr FROM ibs15min
 )
 ORDER BY tkr
+)
 /
 
 exit
