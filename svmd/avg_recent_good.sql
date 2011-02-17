@@ -14,7 +14,7 @@ WHERE s.tkrdate = l.tkrdate
 AND l.tkr = g.tkr
 AND s.targ = 'gattn'
 AND l.targ = 'gatt'
-AND l.ydate > sysdate - 4
+AND l.ydate > sysdate - 2
 GROUP BY l.tkr
 ORDER BY l.tkr
 /
@@ -33,7 +33,7 @@ WHERE s.tkrdate = l.tkrdate
 AND l.tkr = g.tkr
 AND s.targ = 'gattn'
 AND l.targ = 'gatt'
-AND l.ydate > sysdate - 4
+AND l.ydate > sysdate - 2
 GROUP BY g.tkr,g.clse
 HAVING AVG(l.score) > 0.7
 ORDER BY g.tkr
@@ -51,7 +51,7 @@ WHERE s.tkrdate = l.tkrdate
 AND l.tkr = g.tkr
 AND s.targ = 'gattn'
 AND l.targ = 'gatt'
-AND l.ydate > sysdate - 4
+AND l.ydate > sysdate - 2
 GROUP BY g.tkr,g.clse
 HAVING AVG(s.score) > 0.7
 ORDER BY g.tkr

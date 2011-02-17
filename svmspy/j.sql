@@ -1,6 +1,18 @@
+--
+-- qry_distinct_tkr.sql
+--
 
-select count(*)from stkscores WHERE tkr='DIA';
+-- I use this to give me a list of distinct tkrs.
 
-select count(*)from stk_ms where ydate not in 
-  (SELECT ydate FROM stkscores WHERE targ='gatt'AND tkr='DIA')
+SELECT './svmtkr.bash '||tkr FROM
+(
+SELECT DISTINCT tkr FROM ystk
+UNION
+SELECT DISTINCT tkr FROM di5min_stk_c2
+UNION
+SELECT DISTINCT tkr FROM ibs15min
+)
+ORDER BY tkr
 /
+
+exit

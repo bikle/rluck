@@ -56,7 +56,7 @@ ORDER BY pair,ydate
 --rpt
 SELECT COUNT(ydate)FROM hp10;
 
--- Now I can aggregate:
+-- rpt aggregate:
 SELECT
 pair,dhr,dyhr
 ,MIN(ydate)min_date
@@ -79,7 +79,7 @@ ORDER BY pair,dhr,dyhr
 CREATE OR REPLACE VIEW hp14 AS
 SELECT
 pair
-,ydate
+,TRUNC(ydate)trunc_date
 ,clse
 ,dhr
 ,dyhr
@@ -94,20 +94,46 @@ ORDER BY pair,dhr,ydate
 
 -- rpt
 
-select count(*)from
-(
 SELECT
-pair,dhr,dyhr
-,avg_npg
-,std_npg
-,avg_npg/std_npg aos
+pair
+,dhr
+,trunc_date
 FROM hp14
-WHERE pair = 'usd_jpy'
-AND dhr = '5_16'
-AND ABS(avg_npg/std_npg) > 0.5
-AND std_npg > 0
-)
+WHERE pair='usd_jpy'AND dhr='5_16'
 /
 
+-- I aggregate
+CREATE OR REPLACE VIEW hp16 AS
+SELECT
+pair
+,dhr
+,dyhr
+,trunc_date
+,AVG(avg_npg)avg_npg
+,AVG(std_npg)std_npg
+FROM hp14
+GROUP BY 
+pair
+,dhr
+,dyhr
+,trunc_date
+ORDER BY 
+pair
+,dhr
+,dyhr
+,trunc_date
+/
+
+-- rpt
+
+SELECT
+pair
+,dhr
+,trunc_date
+,avg_npg
+,std_npg
+FROM hp16
+WHERE pair='usd_jpy'AND dhr='5_16'
+/
 
 exit

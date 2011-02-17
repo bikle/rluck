@@ -45,6 +45,7 @@ set -x
 ./svmtkr.bash CRM
 ./svmtkr.bash CSX
 ./svmtkr.bash CTSH
+./svmtkr.bash CVE
 ./svmtkr.bash CVS
 ./svmtkr.bash CVX
 ./svmtkr.bash DD
@@ -134,6 +135,7 @@ set -x
 ./svmtkr.bash SOHU
 ./svmtkr.bash SPY
 ./svmtkr.bash STT
+./svmtkr.bash SU
 ./svmtkr.bash SUN
 ./svmtkr.bash SVM
 ./svmtkr.bash SWC
@@ -141,12 +143,14 @@ set -x
 ./svmtkr.bash TGT
 ./svmtkr.bash TKR
 ./svmtkr.bash TLT
+./svmtkr.bash TSO
 ./svmtkr.bash UNH
 ./svmtkr.bash UNP
 ./svmtkr.bash UPS
 ./svmtkr.bash V
 ./svmtkr.bash VALE
 ./svmtkr.bash VECO
+./svmtkr.bash VLO
 ./svmtkr.bash VMW
 ./svmtkr.bash WDC
 ./svmtkr.bash WFMI
@@ -158,3 +162,4 @@ set -x
 ./svmtkr.bash XLE
 ./svmtkr.bash XLU
 ./svmtkr.bash XOM
+
