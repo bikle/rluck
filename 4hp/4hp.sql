@@ -99,9 +99,9 @@ pair
 ,dhr
 ,trunc_date
 ,dyhr
-,AVG(npg)            avg_npg
-,STDDEV(npg)         std_npg
-,AVG(npg)/STDDEV(npg)sratio
+,AVG(npg)            avg_npg1
+,STDDEV(npg)         std_npg1
+,AVG(npg)/STDDEV(npg)sratio1
 FROM hp14
 GROUP BY 
 pair
@@ -122,9 +122,9 @@ pair
 ,dhr
 ,trunc_date
 ,dyhr
-,avg_npg
-,std_npg
-,sratio
+,avg_npg1
+,std_npg1
+,sratio1
 FROM hp16
 WHERE pair='usd_jpy'AND dhr='5_16'
 /
@@ -136,13 +136,13 @@ pair
 ,dhr
 ,dyhr
 ,trunc_date
-,avg_npg
-,std_npg
-,sratio
+,avg_npg1
+,std_npg1
+,sratio1
 ,LEAD(trunc_date,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_tdate
-,LEAD(avg_npg,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_avg_npg
-,LEAD(std_npg,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_std_npg
-,LEAD(sratio,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_sratio
+,LEAD(avg_npg1,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_avg_npg1
+,LEAD(std_npg1,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_std_npg1
+,LEAD(sratio1,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_sratio1
 FROM hp16
 ORDER BY 
 pair
@@ -159,22 +159,26 @@ pair
 ,dyhr
 ,trunc_date
 ,ld_tdate
-,sratio
-,ld_sratio
-,avg_npg
-,ld_avg_npg
-,std_npg
-,ld_std_npg
+,sratio1
+,ld_sratio1
+-- ,avg_npg1
+-- ,ld_avg_npg1
+-- ,std_npg1
+-- ,ld_std_npg1
+,COUNT(dhr)OVER(PARTITION BY pair,dhr ORDER BY trunc_date  ROWS BETWEEN 3 PRECEDING AND CURRENT ROW)count10
+,AVG(sratio1)OVER(PARTITION BY pair,dhr ORDER BY trunc_date ROWS BETWEEN 3 PRECEDING AND CURRENT ROW)avg_sratio1
 FROM hp18
 WHERE pair='usd_jpy'AND dhr='5_16'
 /
 
+exit
+
 SELECT
 pair
-,AVG(sratio)
-,AVG(ld_sratio)
-,AVG(avg_npg)
-,AVG(ld_avg_npg)
+,AVG(sratio1)
+,AVG(ld_sratio1)
+,AVG(avg_npg1)
+,AVG(ld_avg_npg1)
 FROM hp18
 WHERE pair='usd_jpy'AND dhr='5_16'
 GROUP BY pair
