@@ -80,41 +80,28 @@ ORDER BY pair,dhr,dyhr
 CREATE OR REPLACE VIEW hp14 AS
 SELECT
 pair
-,TRUNC(ydate)trunc_date
+,ydate
 ,clse
 ,dhr
 ,dyhr
 ,ydate4
 ,clse4
 ,npg
-,AVG(npg)OVER(PARTITION BY pair,dhr ORDER BY ydate)avg_npg
-,STDDEV(npg)OVER(PARTITION BY pair,dhr ORDER BY ydate)std_npg
+,TRUNC(ydate)trunc_date
 FROM hp12
 ORDER BY pair,dhr,ydate
 /
 
--- rpt
--- I should see some variance of avg_npg, std_npg:
-SELECT
-pair
-,dhr
-,trunc_date
-,STDDEV(avg_npg)
-,STDDEV(std_npg)
-FROM hp14
-WHERE pair='usd_jpy'AND dhr='5_16'
-GROUP BY pair,dhr,trunc_date
-/
-
--- I aggregate
+-- I aggregate now.
 CREATE OR REPLACE VIEW hp16 AS
 SELECT
 pair
 ,dhr
-,dyhr
 ,trunc_date
-,AVG(avg_npg)avg_npg
-,AVG(std_npg)std_npg
+,dyhr
+,AVG(npg)            avg_npg
+,STDDEV(npg)         std_npg
+,AVG(npg)/STDDEV(npg)sratio
 FROM hp14
 GROUP BY 
 pair
@@ -137,6 +124,7 @@ pair
 ,dyhr
 ,avg_npg
 ,std_npg
+,sratio
 FROM hp16
 WHERE pair='usd_jpy'AND dhr='5_16'
 /
@@ -150,10 +138,11 @@ pair
 ,trunc_date
 ,avg_npg
 ,std_npg
-,avg_npg/std_npg sratio
+,sratio
 ,LEAD(trunc_date,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_tdate
 ,LEAD(avg_npg,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_avg_npg
 ,LEAD(std_npg,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_std_npg
+,LEAD(sratio,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_sratio
 FROM hp16
 ORDER BY 
 pair
@@ -167,10 +156,11 @@ pair
 SELECT
 pair
 ,dhr
-,trunc_date
 ,dyhr
-,sratio
+,trunc_date
 ,ld_tdate
+,sratio
+,ld_sratio
 ,avg_npg
 ,ld_avg_npg
 ,std_npg
@@ -181,14 +171,14 @@ WHERE pair='usd_jpy'AND dhr='5_16'
 
 SELECT
 pair
-,dhr
 ,AVG(sratio)
+,AVG(ld_sratio)
 ,AVG(avg_npg)
 ,AVG(ld_avg_npg)
 FROM hp18
 WHERE pair='usd_jpy'AND dhr='5_16'
-GROUP BY pair,dhr
-ORDER BY pair,dhr
+GROUP BY pair
+ORDER BY pair
 /
 
 
