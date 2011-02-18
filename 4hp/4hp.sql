@@ -94,7 +94,7 @@ ORDER BY pair,dhr,ydate
 /
 
 -- rpt
--- I should see variance of avg_npg, std_npg:
+-- I should see some variance of avg_npg, std_npg:
 SELECT
 pair
 ,dhr
@@ -150,6 +150,7 @@ pair
 ,trunc_date
 ,avg_npg
 ,std_npg
+,avg_npg/std_npg sratio
 ,LEAD(trunc_date,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_tdate
 ,LEAD(avg_npg,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_avg_npg
 ,LEAD(std_npg,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_std_npg
@@ -168,6 +169,7 @@ pair
 ,dhr
 ,trunc_date
 ,dyhr
+,sratio
 ,ld_tdate
 ,avg_npg
 ,ld_avg_npg
@@ -177,6 +179,17 @@ FROM hp18
 WHERE pair='usd_jpy'AND dhr='5_16'
 /
 
+SELECT
+pair
+,dhr
+,AVG(sratio)
+,AVG(avg_npg)
+,AVG(ld_avg_npg)
+FROM hp18
+WHERE pair='usd_jpy'AND dhr='5_16'
+GROUP BY pair,dhr
+ORDER BY pair,dhr
+/
 
 
 exit
