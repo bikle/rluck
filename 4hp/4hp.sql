@@ -74,7 +74,6 @@ GROUP BY pair,dhr,dyhr
 -- I want a Sharpe Ratio > 0.5
 HAVING ABS(AVG(npg)/STDDEV(npg)) > 0.5
 ORDER BY pair,dhr,dyhr
-/
 
 -- I derive more attributes:
 CREATE OR REPLACE VIEW hp14 AS
@@ -130,6 +129,7 @@ WHERE pair='usd_jpy'AND dhr='5_16'
 /
 
 -- Add columns for date 1 week in future.
+-- Other columns too.
 CREATE OR REPLACE VIEW hp18 AS
 SELECT
 pair
@@ -143,6 +143,8 @@ pair
 ,LEAD(avg_npg1,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_avg_npg1
 ,LEAD(std_npg1,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_std_npg1
 ,LEAD(sratio1,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_sratio1
+,COUNT(dhr)OVER(PARTITION BY pair,dhr ORDER BY trunc_date  ROWS BETWEEN 3 PRECEDING AND CURRENT ROW)count4
+,AVG(sratio1)OVER(PARTITION BY pair,dhr ORDER BY trunc_date ROWS BETWEEN 3 PRECEDING AND CURRENT ROW)avg_sratio1
 FROM hp16
 ORDER BY 
 pair
@@ -155,8 +157,8 @@ pair
 
 SELECT
 pair
-,dhr
-,dyhr
+-- ,dhr
+-- ,dyhr
 ,trunc_date
 ,ld_tdate
 ,sratio1
@@ -165,24 +167,49 @@ pair
 -- ,ld_avg_npg1
 -- ,std_npg1
 -- ,ld_std_npg1
-,COUNT(dhr)OVER(PARTITION BY pair,dhr ORDER BY trunc_date  ROWS BETWEEN 3 PRECEDING AND CURRENT ROW)count10
-,AVG(sratio1)OVER(PARTITION BY pair,dhr ORDER BY trunc_date ROWS BETWEEN 3 PRECEDING AND CURRENT ROW)avg_sratio1
+,count4
+,avg_sratio1
 FROM hp18
 WHERE pair='usd_jpy'AND dhr='5_16'
 /
 
-exit
-
+-- Refine it.
+CREATE OR REPLACE VIEW hp20 AS
 SELECT
 pair
-,AVG(sratio1)
-,AVG(ld_sratio1)
-,AVG(avg_npg1)
-,AVG(ld_avg_npg1)
+,dhr
+,dyhr
+,trunc_date
+,avg_npg1
+,std_npg1
+,sratio1
+,ld_tdate
+,ld_avg_npg1
+,ld_std_npg1
+,ld_sratio1
+,count4
+,avg_sratio1
 FROM hp18
+WHERE count4 = 4
+AND ABS(avg_sratio1) > 1.0
+ORDER BY 
+pair
+,dhr
+,trunc_date
+/
+
+-- rpt
+SELECT
+pair
+,dhr
+,trunc_date
+,sratio1
+,ld_tdate
+,ld_sratio1
+,count4
+,avg_sratio1
+FROM hp20
 WHERE pair='usd_jpy'AND dhr='5_16'
-GROUP BY pair
-ORDER BY pair
 /
 
 
