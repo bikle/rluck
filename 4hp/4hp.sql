@@ -141,7 +141,7 @@ FROM hp16
 WHERE pair='usd_jpy'AND dhr='5_16'
 /
 
--- Add column with date 1 week in future.
+-- Add columns for date 1 week in future.
 CREATE OR REPLACE VIEW hp18 AS
 SELECT
 pair
@@ -151,6 +151,8 @@ pair
 ,avg_npg
 ,std_npg
 ,LEAD(trunc_date,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_tdate
+,LEAD(avg_npg,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_avg_npg
+,LEAD(std_npg,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_std_npg
 FROM hp16
 ORDER BY 
 pair
@@ -168,7 +170,9 @@ pair
 ,dyhr
 ,ld_tdate
 ,avg_npg
+,ld_avg_npg
 ,std_npg
+,ld_std_npg
 FROM hp18
 WHERE pair='usd_jpy'AND dhr='5_16'
 /
