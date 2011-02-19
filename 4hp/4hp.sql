@@ -57,24 +57,6 @@ ORDER BY pair,ydate
 SELECT COUNT(ydate)FROM hp10;
 SELECT COUNT(ydate)FROM hp12;
 
--- rpt aggregate:
-SELECT
-pair,dhr,dyhr
-,MIN(ydate)min_date
-,COUNT(npg)count_npg
-,MAX(ydate)max_date
--- ,ROUND(MIN(npg),4)min_npg
-,ROUND(AVG(npg),4)avg_npg
-,ROUND(STDDEV(npg),4)stddev_npg
-,ROUND(AVG(npg)/STDDEV(npg),2)sharpe_ratio
--- ,ROUND(MAX(npg),4)max_npg
--- ,ROUND(SUM(npg),4)sum_npg
-FROM hp12
-GROUP BY pair,dhr,dyhr
--- I want a Sharpe Ratio > 0.5
-HAVING ABS(AVG(npg)/STDDEV(npg)) > 0.5
-ORDER BY pair,dhr,dyhr
-
 -- I derive more attributes:
 CREATE OR REPLACE VIEW hp14 AS
 SELECT
@@ -107,6 +89,8 @@ pair
 ,dhr
 ,trunc_date
 ,dyhr
+-- Prevent divide by 0:
+HAVING STDDEV(npg) > 0.0001
 ORDER BY 
 pair
 ,dhr
@@ -212,5 +196,37 @@ FROM hp20
 WHERE pair='usd_jpy'AND dhr='5_16'
 /
 
+SELECT
+CORR(sratio1,ld_sratio1)
+,AVG(sratio1)
+,AVG(ld_sratio1)
+FROM hp20
+WHERE pair='usd_jpy'AND dhr='5_16'
+/
+
+SELECT
+pair
+,SIGN(sratio1)
+,CORR(sratio1,ld_sratio1)
+,AVG(sratio1)
+,AVG(ld_sratio1)
+,COUNT(pair)
+FROM hp20
+WHERE pair='usd_jpy'AND dhr='5_16'
+GROUP BY pair,SIGN(sratio1)
+ORDER BY pair,SIGN(sratio1)
+/
+
+SELECT
+pair
+,SIGN(sratio1)
+,CORR(sratio1,ld_sratio1)
+,AVG(sratio1)
+,AVG(ld_sratio1)
+,COUNT(pair)
+FROM hp20
+GROUP BY pair,SIGN(sratio1)
+ORDER BY pair,SIGN(sratio1)
+/
 
 exit

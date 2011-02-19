@@ -1,0 +1,415 @@
+/pt/s/rluck/4hp/results2011_0218.txt
+
+
+oracle@z2:/pt/s/rluck/4hp$ sqt @4hp
+
+SQL*Plus: Release 11.2.0.1.0 Production on Fri Feb 18 11:06:39 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+11:06:39 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+11:06:39 SQL> --
+11:06:39 SQL> -- 4hp.sql
+11:06:39 SQL> --
+11:06:39 SQL> 
+11:06:39 SQL> SET LINES 66
+11:06:39 SQL> DESC di5min
+ Name                             Null?    Type
+ -------------------------------- -------- -----------------------
+ PRDATE                                    VARCHAR2(26)
+ PAIR                                      VARCHAR2(7)
+ YDATE                                     DATE
+ CLSE                                      NUMBER
+
+11:06:39 SQL> SET LINES 166
+11:06:39 SQL> 
+11:06:39 SQL> CREATE OR REPLACE VIEW hp10 AS
+11:06:39   2  SELECT
+11:06:39   3  pair
+11:06:39   4  -- ydate is granular down to 5 minutes:
+11:06:39   5  ,ydate
+11:06:39   6  ,clse
+11:06:39   7  -- Derive an attribute I call "day_hour":
+11:06:39   8  ,TO_CHAR(ydate,'D')||'_'||TO_CHAR(ROUND(ydate,'HH24'),'HH24')dhr
+11:06:39   9  ,TO_CHAR(ydate,'Dy')||'_'||TO_CHAR(ROUND(ydate,'HH24'),'HH24')dyhr
+11:06:39  10  -- Get ydate 4 hours in the future:
+11:06:39  11  ,LEAD(ydate,4*12,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) ydate4
+11:06:39  12  -- Get closing price 4 hours in the future:
+11:06:39  13  ,LEAD(clse,4*12,NULL)OVER(PARTITION BY pair ORDER BY pair,ydate) clse4
+11:06:39  14  FROM di5min
+11:06:39  15  WHERE ydate > '2009-01-01'
+11:06:39  16  ORDER BY pair,ydate
+11:06:39  17  /
+
+View created.
+
+Elapsed: 00:00:00.04
+11:06:39 SQL> 
+11:06:39 SQL> -- rpt
+11:06:39 SQL> SELECT
+11:06:39   2  pair,dhr,dyhr
+11:06:39   3  ,MIN(ydate)min_date
+11:06:39   4  ,COUNT(ydate)count_npg
+11:06:39   5  ,MAX(ydate)max_date
+11:06:39   6  FROM hp10
+11:06:39   7  WHERE (ydate4 - ydate)BETWEEN 4/24 AND 4.29/24
+11:06:39   8  AND dhr='3_11'
+11:06:39   9  GROUP BY pair,dhr,dyhr
+11:06:39  10  ORDER BY pair,dhr,dyhr
+11:06:39  11  /
+
+PAIR    DHR  DYHR   MIN_DATE             COUNT_NPG MAX_DATE
+------- ---- ------ ------------------- ---------- -------------------
+aud_jpy 3_11 Tue_11 2010-11-16 10:30:00        168 2011-02-15 11:25:00
+aud_usd 3_11 Tue_11 2010-11-16 10:30:00        168 2011-02-15 11:25:00
+eur_aud 3_11 Tue_11 2010-11-16 10:30:00        168 2011-02-15 11:25:00
+eur_chf 3_11 Tue_11 2010-11-16 10:30:00        168 2011-02-15 11:25:00
+eur_gbp 3_11 Tue_11 2010-11-16 10:30:00        168 2011-02-15 11:25:00
+eur_jpy 3_11 Tue_11 2010-11-16 10:30:00        168 2011-02-15 11:25:00
+eur_usd 3_11 Tue_11 2010-11-16 10:30:00        168 2011-02-15 11:25:00
+gbp_usd 3_11 Tue_11 2010-11-16 10:30:00        168 2011-02-15 11:25:00
+usd_cad 3_11 Tue_11 2010-11-16 10:30:00        168 2011-02-15 11:25:00
+usd_chf 3_11 Tue_11 2010-11-16 10:30:00        168 2011-02-15 11:25:00
+usd_jpy 3_11 Tue_11 2010-11-16 10:30:00        168 2011-02-15 11:25:00
+
+11 rows selected.
+
+Elapsed: 00:00:01.23
+11:06:40 SQL> 
+11:06:40 SQL> -- I derive more attributes:
+11:06:40 SQL> CREATE OR REPLACE VIEW hp12 AS
+11:06:40   2  SELECT
+11:06:40   3  pair
+11:06:40   4  ,ydate
+11:06:40   5  ,clse
+11:06:40   6  ,dhr
+11:06:40   7  ,dyhr
+11:06:40   8  ,ydate4
+11:06:40   9  ,clse4
+11:06:40  10  ,(clse4 - clse)/clse npg
+11:06:40  11  FROM hp10
+11:06:40  12  WHERE (ydate4 - ydate)BETWEEN 4/24 AND 4.29/24
+11:06:40  13  ORDER BY pair,ydate
+11:06:40  14  /
+
+View created.
+
+Elapsed: 00:00:00.11
+11:06:40 SQL> 
+11:06:40 SQL> --rpt
+11:06:40 SQL> SELECT COUNT(ydate)FROM hp10;
+
+COUNT(YDATE)
+------------
+      225681
+
+Elapsed: 00:00:00.47
+11:06:41 SQL> SELECT COUNT(ydate)FROM hp12;
+
+COUNT(YDATE)
+------------
+      211801
+
+Elapsed: 00:00:00.78
+11:06:41 SQL> 
+11:06:41 SQL> -- I derive more attributes:
+11:06:41 SQL> CREATE OR REPLACE VIEW hp14 AS
+11:06:41   2  SELECT
+11:06:41   3  pair
+11:06:41   4  ,ydate
+11:06:41   5  ,clse
+11:06:41   6  ,dhr
+11:06:41   7  ,dyhr
+11:06:41   8  ,ydate4
+11:06:41   9  ,clse4
+11:06:41  10  ,npg
+11:06:41  11  ,TRUNC(ydate)trunc_date
+11:06:41  12  FROM hp12
+11:06:41  13  ORDER BY pair,dhr,ydate
+11:06:41  14  /
+
+View created.
+
+Elapsed: 00:00:00.06
+11:06:41 SQL> 
+11:06:41 SQL> -- I aggregate now.
+11:06:41 SQL> CREATE OR REPLACE VIEW hp16 AS
+11:06:41   2  SELECT
+11:06:41   3  pair
+11:06:41   4  ,dhr
+11:06:41   5  ,trunc_date
+11:06:41   6  ,dyhr
+11:06:41   7  ,AVG(npg)            avg_npg1
+11:06:41   8  ,STDDEV(npg)         std_npg1
+11:06:41   9  ,AVG(npg)/STDDEV(npg)sratio1
+11:06:41  10  FROM hp14
+11:06:41  11  GROUP BY
+11:06:41  12  pair
+11:06:41  13  ,dhr
+11:06:41  14  ,trunc_date
+11:06:41  15  ,dyhr
+11:06:41  16  -- Prevent divide by 0:
+11:06:41  17  HAVING STDDEV(npg) > 0.0001
+11:06:41  18  ORDER BY
+11:06:41  19  pair
+11:06:41  20  ,dhr
+11:06:41  21  ,trunc_date
+11:06:41  22  ,dyhr
+11:06:41  23  /
+
+View created.
+
+Elapsed: 00:00:00.04
+11:06:42 SQL> 
+11:06:42 SQL> -- rpt
+11:06:42 SQL> 
+11:06:42 SQL> SELECT
+11:06:42   2  pair
+11:06:42   3  ,dhr
+11:06:42   4  ,trunc_date
+11:06:42   5  ,dyhr
+11:06:42   6  ,avg_npg1
+11:06:42   7  ,std_npg1
+11:06:42   8  ,sratio1
+11:06:42   9  FROM hp16
+11:06:42  10  WHERE pair='usd_jpy'AND dhr='5_16'
+11:06:42  11  /
+
+PAIR    DHR  TRUNC_DATE          DYHR     AVG_NPG1   STD_NPG1    SRATIO1
+------- ---- ------------------- ------ ---------- ---------- ----------
+usd_jpy 5_16 2010-11-11 00:00:00 Thu_16  -.0005455 .000432348 -1.2617066
+usd_jpy 5_16 2010-11-18 00:00:00 Thu_16  -.0026889 .000739392 -3.6366309
+usd_jpy 5_16 2010-11-25 00:00:00 Thu_16 -.00031392 .000318589 -.98534209
+usd_jpy 5_16 2010-12-02 00:00:00 Thu_16 -.00040916 .001921458 -.21294037
+usd_jpy 5_16 2010-12-09 00:00:00 Thu_16 -.00330384 .000695387 -4.7510768
+usd_jpy 5_16 2010-12-16 00:00:00 Thu_16 -.00271652  .00072283 -3.7581805
+usd_jpy 5_16 2010-12-23 00:00:00 Thu_16 -.00124648 .000687708 -1.8125155
+usd_jpy 5_16 2010-12-30 00:00:00 Thu_16  -.0025375 .000670488 -3.7845526
+usd_jpy 5_16 2011-01-06 00:00:00 Thu_16   .0015869 .000910532 1.74282771
+usd_jpy 5_16 2011-01-13 00:00:00 Thu_16  -.0007947 .000584128 -1.3604907
+usd_jpy 5_16 2011-01-20 00:00:00 Thu_16 .000077972 .000537975 .144936663
+usd_jpy 5_16 2011-01-27 00:00:00 Thu_16 -.00111123 .000831647 -1.3361802
+usd_jpy 5_16 2011-02-03 00:00:00 Thu_16 -.00103568 .001385163 -.74769272
+usd_jpy 5_16 2011-02-10 00:00:00 Thu_16 .001329902 .000574073 2.31660788
+usd_jpy 5_16 2011-02-17 00:00:00 Thu_16  .00089107 .000640711 1.39075163
+
+15 rows selected.
+
+Elapsed: 00:00:00.13
+11:06:42 SQL> 
+11:06:42 SQL> -- Add columns for date 1 week in future.
+11:06:42 SQL> -- Other columns too.
+11:06:42 SQL> CREATE OR REPLACE VIEW hp18 AS
+11:06:42   2  SELECT
+11:06:42   3  pair
+11:06:42   4  ,dhr
+11:06:42   5  ,dyhr
+11:06:42   6  ,trunc_date
+11:06:42   7  ,avg_npg1
+11:06:42   8  ,std_npg1
+11:06:42   9  ,sratio1
+11:06:42  10  ,LEAD(trunc_date,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_tdate
+11:06:42  11  ,LEAD(avg_npg1,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_avg_npg1
+11:06:42  12  ,LEAD(std_npg1,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_std_npg1
+11:06:42  13  ,LEAD(sratio1,1,NULL)OVER(PARTITION BY pair,dhr ORDER BY trunc_date)ld_sratio1
+11:06:42  14  ,COUNT(dhr)OVER(PARTITION BY pair,dhr ORDER BY trunc_date  ROWS BETWEEN 3 PRECEDING AND CURRENT ROW)count4
+11:06:42  15  ,AVG(sratio1)OVER(PARTITION BY pair,dhr ORDER BY trunc_date ROWS BETWEEN 3 PRECEDING AND CURRENT ROW)avg_sratio1
+11:06:42  16  FROM hp16
+11:06:42  17  ORDER BY
+11:06:42  18  pair
+11:06:42  19  ,dhr
+11:06:42  20  ,trunc_date
+11:06:42  21  ,dyhr
+11:06:42  22  /
+
+View created.
+
+Elapsed: 00:00:00.06
+11:06:42 SQL> 
+11:06:42 SQL> -- rpt
+11:06:42 SQL> 
+11:06:42 SQL> SELECT
+11:06:42   2  pair
+11:06:42   3  -- ,dhr
+11:06:42   4  -- ,dyhr
+11:06:42   5  ,trunc_date
+11:06:42   6  ,ld_tdate
+11:06:42   7  ,sratio1
+11:06:42   8  ,ld_sratio1
+11:06:42   9  -- ,avg_npg1
+11:06:42  10  -- ,ld_avg_npg1
+11:06:42  11  -- ,std_npg1
+11:06:42  12  -- ,ld_std_npg1
+11:06:42  13  ,count4
+11:06:42  14  ,avg_sratio1
+11:06:42  15  FROM hp18
+11:06:42  16  WHERE pair='usd_jpy'AND dhr='5_16'
+11:06:42  17  /
+
+PAIR    TRUNC_DATE          LD_TDATE               SRATIO1 LD_SRATIO1     COUNT4 AVG_SRATIO1
+------- ------------------- ------------------- ---------- ---------- ---------- -----------
+usd_jpy 2010-11-11 00:00:00 2010-11-18 00:00:00 -1.2617066 -3.6366309          1  -1.2617066
+usd_jpy 2010-11-18 00:00:00 2010-11-25 00:00:00 -3.6366309 -.98534209          2  -2.4491687
+usd_jpy 2010-11-25 00:00:00 2010-12-02 00:00:00 -.98534209 -.21294037          3  -1.9612265
+usd_jpy 2010-12-02 00:00:00 2010-12-09 00:00:00 -.21294037 -4.7510768          4   -1.524155
+usd_jpy 2010-12-09 00:00:00 2010-12-16 00:00:00 -4.7510768 -3.7581805          4  -2.3964975
+usd_jpy 2010-12-16 00:00:00 2010-12-23 00:00:00 -3.7581805 -1.8125155          4  -2.4268849
+usd_jpy 2010-12-23 00:00:00 2010-12-30 00:00:00 -1.8125155 -3.7845526          4  -2.6336783
+usd_jpy 2010-12-30 00:00:00 2011-01-06 00:00:00 -3.7845526 1.74282771          4  -3.5265813
+usd_jpy 2011-01-06 00:00:00 2011-01-13 00:00:00 1.74282771 -1.3604907          4  -1.9031052
+usd_jpy 2011-01-13 00:00:00 2011-01-20 00:00:00 -1.3604907 .144936663          4  -1.3036828
+usd_jpy 2011-01-20 00:00:00 2011-01-27 00:00:00 .144936663 -1.3361802          4  -.81431972
+usd_jpy 2011-01-27 00:00:00 2011-02-03 00:00:00 -1.3361802 -.74769272          4  -.20222664
+usd_jpy 2011-02-03 00:00:00 2011-02-10 00:00:00 -.74769272 2.31660788          4  -.82485675
+usd_jpy 2011-02-10 00:00:00 2011-02-17 00:00:00 2.31660788 1.39075163          4  .094417894
+usd_jpy 2011-02-17 00:00:00                     1.39075163                     4  .405871636
+
+15 rows selected.
+
+Elapsed: 00:00:00.15
+11:06:42 SQL> 
+11:06:42 SQL> -- Refine it.
+11:06:42 SQL> CREATE OR REPLACE VIEW hp20 AS
+11:06:42   2  SELECT
+11:06:42   3  pair
+11:06:42   4  ,dhr
+11:06:42   5  ,dyhr
+11:06:42   6  ,trunc_date
+11:06:42   7  ,avg_npg1
+11:06:42   8  ,std_npg1
+11:06:42   9  ,sratio1
+11:06:42  10  ,ld_tdate
+11:06:42  11  ,ld_avg_npg1
+11:06:42  12  ,ld_std_npg1
+11:06:42  13  ,ld_sratio1
+11:06:42  14  ,count4
+11:06:42  15  ,avg_sratio1
+11:06:42  16  FROM hp18
+11:06:42  17  WHERE count4 = 4
+11:06:42  18  AND ABS(avg_sratio1) > 1.0
+11:06:42  19  ORDER BY
+11:06:42  20  pair
+11:06:42  21  ,dhr
+11:06:42  22  ,trunc_date
+11:06:42  23  /
+
+View created.
+
+Elapsed: 00:00:00.06
+11:06:42 SQL> 
+11:06:42 SQL> -- rpt
+11:06:42 SQL> SELECT
+11:06:42   2  pair
+11:06:42   3  ,dhr
+11:06:42   4  ,trunc_date
+11:06:42   5  ,sratio1
+11:06:42   6  ,ld_tdate
+11:06:42   7  ,ld_sratio1
+11:06:42   8  ,count4
+11:06:42   9  ,avg_sratio1
+11:06:42  10  FROM hp20
+11:06:42  11  WHERE pair='usd_jpy'AND dhr='5_16'
+11:06:42  12  /
+
+PAIR    DHR  TRUNC_DATE             SRATIO1 LD_TDATE            LD_SRATIO1     COUNT4 AVG_SRATIO1
+------- ---- ------------------- ---------- ------------------- ---------- ---------- -----------
+usd_jpy 5_16 2010-12-02 00:00:00 -.21294037 2010-12-09 00:00:00 -4.7510768          4   -1.524155
+usd_jpy 5_16 2010-12-09 00:00:00 -4.7510768 2010-12-16 00:00:00 -3.7581805          4  -2.3964975
+usd_jpy 5_16 2010-12-16 00:00:00 -3.7581805 2010-12-23 00:00:00 -1.8125155          4  -2.4268849
+usd_jpy 5_16 2010-12-23 00:00:00 -1.8125155 2010-12-30 00:00:00 -3.7845526          4  -2.6336783
+usd_jpy 5_16 2010-12-30 00:00:00 -3.7845526 2011-01-06 00:00:00 1.74282771          4  -3.5265813
+usd_jpy 5_16 2011-01-06 00:00:00 1.74282771 2011-01-13 00:00:00 -1.3604907          4  -1.9031052
+usd_jpy 5_16 2011-01-13 00:00:00 -1.3604907 2011-01-20 00:00:00 .144936663          4  -1.3036828
+
+7 rows selected.
+
+Elapsed: 00:00:00.15
+11:06:42 SQL> 
+11:06:42 SQL> SELECT
+11:06:42   2  CORR(sratio1,ld_sratio1)
+11:06:42   3  ,AVG(sratio1)
+11:06:42   4  ,AVG(ld_sratio1)
+11:06:42   5  FROM hp20
+11:06:42   6  WHERE pair='usd_jpy'AND dhr='5_16'
+11:06:42   7  /
+
+CORR(SRATIO1,LD_SRATIO1) AVG(SRATIO1) AVG(LD_SRATIO1)
+------------------------ ------------ ---------------
+               -.1138015   -1.9909898      -1.9398645
+
+Elapsed: 00:00:00.13
+11:06:42 SQL> 
+11:06:42 SQL> SELECT
+11:06:42   2  pair
+11:06:42   3  ,SIGN(sratio1)
+11:06:42   4  ,CORR(sratio1,ld_sratio1)
+11:06:42   5  ,AVG(sratio1)
+11:06:42   6  ,AVG(ld_sratio1)
+11:06:42   7  ,COUNT(pair)
+11:06:42   8  FROM hp20
+11:06:42   9  WHERE pair='usd_jpy'AND dhr='5_16'
+11:06:42  10  GROUP BY pair,SIGN(sratio1)
+11:06:42  11  ORDER BY pair,SIGN(sratio1)
+11:06:42  12  /
+
+PAIR    SIGN(SRATIO1) CORR(SRATIO1,LD_SRATIO1) AVG(SRATIO1) AVG(LD_SRATIO1) COUNT(PAIR)
+------- ------------- ------------------------ ------------ --------------- -----------
+usd_jpy            -1               -.27813943   -2.6132927      -2.0364268           6
+usd_jpy             1                            1.74282771      -1.3604907           1
+
+Elapsed: 00:00:00.15
+11:06:42 SQL> 
+11:06:42 SQL> SELECT
+11:06:42   2  pair
+11:06:42   3  ,SIGN(sratio1)
+11:06:42   4  ,CORR(sratio1,ld_sratio1)
+11:06:42   5  ,AVG(sratio1)
+11:06:42   6  ,AVG(ld_sratio1)
+11:06:42   7  ,COUNT(pair)
+11:06:42   8  FROM hp20
+11:06:42   9  GROUP BY pair,SIGN(sratio1)
+11:06:42  10  ORDER BY pair,SIGN(sratio1)
+11:06:42  11  /
+
+PAIR    SIGN(SRATIO1) CORR(SRATIO1,LD_SRATIO1) AVG(SRATIO1) AVG(LD_SRATIO1) COUNT(PAIR)
+------- ------------- ------------------------ ------------ --------------- -----------
+aud_jpy            -1               -.13103002   -3.0511256      .214363647         352
+aud_jpy             1               .091320822   3.18971515       .08070909         384
+aud_usd            -1               .001631924   -3.4387641      .405568204         374
+aud_usd             1               -.01351277   3.77684103      .297601304         440
+eur_aud            -1               .007951021   -4.2360956       .04740365         420
+eur_aud             1                .05466806   3.78009291      -.45901771         422
+eur_chf            -1                -.0916734   -3.4907432      .219033237         340
+eur_chf             1               .007185245   3.14420817      -.26074499         344
+eur_gbp            -1               -.01117972   -3.4338853      .008713258         361
+eur_gbp             1               -.03197066   3.74152715      -.48391296         316
+eur_jpy            -1               -.05069992    -3.445873      -.01143178         336
+eur_jpy             1               .083453691   3.39574043      -.00901669         408
+eur_usd            -1               .150850277   -3.6425019      .305870596         353
+eur_usd             1               -.00678058   3.63859859      .548481425         391
+gbp_usd            -1               -.01276615   -3.6834511      .376531324         334
+gbp_usd             1               .062143773   3.88691647      .773407887         418
+usd_cad            -1               -.06982314   -3.3367421      -.24402089         438
+usd_cad             1               -.01507674   3.37868157      -.18923756         338
+usd_chf            -1               -.09116298   -3.9060565      -.08346945         394
+usd_chf             1               -.06057143    3.9113754      -.00486498         309
+usd_jpy            -1               .023207936    -3.738864       -.2901362         422
+usd_jpy             1               .005022291   3.57777381      -.22883369         375
+
+22 rows selected.
+
+Elapsed: 00:00:02.25
+11:06:45 SQL> 
+11:06:45 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z2:/pt/s/rluck/4hp$ 
