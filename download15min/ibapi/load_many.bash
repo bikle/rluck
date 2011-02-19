@@ -22,11 +22,6 @@ date
 
 ./15min_data.bash DD
 
-./15min_data.bash SU
-./15min_data.bash CVE
-./15min_data.bash VLO
-./15min_data.bash TSO
-
 ./15min_data.bash AAPL
 ./15min_data.bash ABT
 ./15min_data.bash ABX
@@ -70,6 +65,7 @@ date
 ./15min_data.bash CRM
 ./15min_data.bash CSX
 ./15min_data.bash CTSH
+./15min_data.bash CVE
 ./15min_data.bash CVS
 ./15min_data.bash CVX
 ./15min_data.bash DE
@@ -158,6 +154,7 @@ date
 ./15min_data.bash SOHU
 ./15min_data.bash SPY
 ./15min_data.bash STT
+./15min_data.bash SU
 ./15min_data.bash SUN
 ./15min_data.bash SVM
 ./15min_data.bash SWC
@@ -165,12 +162,14 @@ date
 ./15min_data.bash TGT
 ./15min_data.bash TKR
 ./15min_data.bash TLT
+./15min_data.bash TSO
 ./15min_data.bash UNH
 ./15min_data.bash UNP
 ./15min_data.bash UPS
 ./15min_data.bash V
 ./15min_data.bash VALE
 ./15min_data.bash VECO
+./15min_data.bash VLO
 ./15min_data.bash VMW
 ./15min_data.bash WDC
 ./15min_data.bash WFMI

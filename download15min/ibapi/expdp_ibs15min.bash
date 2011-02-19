@@ -24,7 +24,7 @@ echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/ibs15min.${myts}.dpdmp lz3:/or
 echo "impdp trade/t table_exists_action=append dumpfile=ibs15min.${myts}.dpdmp"
 echo OR
 echo "impdp trade/t table_exists_action=replace dumpfile=ibs15min.${myts}.dpdmp"
-echo "impdp trade/t table_exists_action=replace dumpfile=ibs15min.${myts}.dpdmp tables=ibs15min"
+echo "impdp trade/t table_exists_action=append dumpfile=ibs15min.${myts}.dpdmp tables=ibs15min"
 
 exit
 
