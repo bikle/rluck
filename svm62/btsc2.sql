@@ -1,5 +1,5 @@
 --
--- btg2.sql
+-- btsc2.sql
 --
 
 -- I use this script to help me study relationship between scores, g2, and g6.
@@ -22,20 +22,6 @@ ORDER BY pair,ydate
 
 ANALYZE TABLE btg10 COMPUTE STATISTICS;
 
--- rpt
-SELECT
-pair
-,AVG(g2)
-,AVG(g6)
-,CORR(g2,g6)
-,MIN(ydate)
-,COUNT(ydate)
-,MAX(ydate)
-FROM btg10
-GROUP BY pair
-ORDER BY pair
-
-
 DROP TABLE btg12;
 CREATE TABLE btg12 COMPRESS AS
 SELECT
@@ -48,6 +34,7 @@ m.pair
 ,m.g2
 ,m.g6
 ,m.g6-m.g2 g4
+,CORR((l.score-s.score),g6)OVER(PARTITION BY l.pair ORDER BY l.ydate ROWS BETWEEN 12*24*3 PRECEDING AND CURRENT ROW)rnng_crr
 FROM svm62scores l,svm62scores s,btg10 m
 WHERE l.targ='gatt'
 AND   s.targ='gattn'
@@ -58,86 +45,44 @@ AND l.ydate > sysdate - 133
 AND s.ydate > sysdate - 133
 /
 
+ANALYZE TABLE btg12 COMPUTE STATISTICS;
 
-SELECT
-pair
-,rscore_diff1
-,CORR(score_diff,g6)
-,AVG(g2)
-,AVG(g6)
-,AVG(g4)
-,CORR(g2,g6)
-,CORR(g2,g4)
-,MIN(ydate)
-,COUNT(ydate)
-,MAX(ydate)
-FROM btg12
-WHERE ABS(rscore_diff1)IN(0.7,0.8)
-GROUP BY pair,rscore_diff1
-ORDER BY pair,rscore_diff1
-
-
-SELECT
-SIGN(g2) * SIGN(score_diff) sprod
-,rscore_diff1
-,CORR(score_diff,g6)
-,AVG(g2)
-,AVG(g6)
-,AVG(g4)
-,CORR(g2,g6)
-,CORR(g2,g4)
-,MIN(ydate)
-,COUNT(ydate)
-,MAX(ydate)
-FROM btg12
-WHERE ABS(rscore_diff1)IN(0.7,0.8)
-AND SIGN(g2) != 0
-AND ABS(g2) < 0.0006
-GROUP BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
-ORDER BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
-
-
+DROP TABLE btg14;
+CREATE TABLE btg14 COMPRESS AS
 SELECT
 SIGN(g2) * SIGN(score_diff) sprod
 ,rscore_diff1
 ,AVG(g4)avg_g4
-,CORR(score_diff,g6)
-,AVG(g2)
+,CORR(score_diff,g6)corr_sg6
+,AVG(g2)avg_g2
 ,AVG(g6)avg_g6
 -- ,CORR(g2,g6)
 ,CORR(g2,g4)corr_g2g4
 -- ,MIN(ydate)
 ,COUNT(ydate)ccount
 -- ,MAX(ydate)
+,AVG(rnng_crr)avg_rnng_crr
 FROM btg12
 -- WHERE ABS(rscore_diff1)IN(0.7,0.8,0.9)
 WHERE ABS(rscore_diff1)>0.6
 AND SIGN(g2) != 0
-AND ABS(g2) > 0.0006
 AND ydate > sysdate - 33
 GROUP BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
 ORDER BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
 /
 
 SELECT
-SIGN(g2) * SIGN(score_diff) sprod
+sprod
 ,rscore_diff1
-,AVG(g4)avg_g4
-,CORR(score_diff,g6)
-,AVG(g2)
-,AVG(g6)avg_g6
--- ,CORR(g2,g6)
-,CORR(g2,g4)corr_g2g4
+,avg_g4
+,corr_sg6
+,avg_g2
+,avg_g6
+,corr_g2g4
 -- ,MIN(ydate)
-,COUNT(ydate)ccount
--- ,MAX(ydate)
-FROM btg12
--- WHERE ABS(rscore_diff1)IN(0.7,0.8,0.9)
-WHERE ABS(rscore_diff1)>0.6
-AND SIGN(g2) != 0
-AND ydate > sysdate - 33
-GROUP BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
-ORDER BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
+,ccount
+,avg_rnng_crr
+FROM btg14
 /
 
 exit
