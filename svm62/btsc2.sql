@@ -34,7 +34,9 @@ m.pair
 ,m.g2
 ,m.g6
 ,m.g6-m.g2 g4
-,CORR((l.score-s.score),g6)OVER(PARTITION BY l.pair ORDER BY l.ydate ROWS BETWEEN 12*24*3 PRECEDING AND CURRENT ROW)rnng_crr
+,CORR(l.score-s.score,g6)OVER(PARTITION BY l.pair ORDER BY l.ydate ROWS BETWEEN 12*24*1 PRECEDING AND CURRENT ROW)rnng_crr1
+,CORR(l.score-s.score,g6)OVER(PARTITION BY l.pair ORDER BY l.ydate ROWS BETWEEN 12*24*2 PRECEDING AND CURRENT ROW)rnng_crr2
+,CORR(l.score-s.score,g6)OVER(PARTITION BY l.pair ORDER BY l.ydate ROWS BETWEEN 12*24*3 PRECEDING AND CURRENT ROW)rnng_crr3
 FROM svm62scores l,svm62scores s,btg10 m
 WHERE l.targ='gatt'
 AND   s.targ='gattn'
@@ -61,7 +63,9 @@ SIGN(g2) * SIGN(score_diff) sprod
 -- ,MIN(ydate)
 ,COUNT(ydate)ccount
 -- ,MAX(ydate)
-,AVG(rnng_crr)avg_rnng_crr
+,AVG(rnng_crr1)avg_rnng_crr1
+,AVG(rnng_crr2)avg_rnng_crr2
+,AVG(rnng_crr3)avg_rnng_crr3
 FROM btg12
 -- WHERE ABS(rscore_diff1)IN(0.7,0.8,0.9)
 WHERE ABS(rscore_diff1)>0.6
@@ -81,7 +85,9 @@ sprod
 ,corr_g2g4
 -- ,MIN(ydate)
 ,ccount
-,avg_rnng_crr
+,avg_rnng_crr1
+,avg_rnng_crr2
+,avg_rnng_crr3
 FROM btg14
 /
 
@@ -97,7 +103,9 @@ pair
 ,g2
 ,g6
 ,g4
-,rnng_crr
+,rnng_crr1
+,rnng_crr2
+,rnng_crr3
 ,SIGN(score_diff)sgn_score_diff
 FROM btg12
 /
@@ -110,14 +118,7 @@ SELECT
 sgn_score_diff
 ,rscore_diff1
 ,AVG(g4)avg_g4
--- ,CORR(score_diff,g6)corr_sg6
--- ,AVG(g2)avg_g2
--- ,AVG(g6)avg_g6
--- ,CORR(g2,g6)
--- ,CORR(g2,g4)corr_g2g4
--- ,MIN(ydate)
 ,COUNT(ydate)ccount
--- ,MAX(ydate)
 FROM btg16
 WHERE ABS(rscore_diff1)>0.6
 AND ydate > sysdate - 33
@@ -129,20 +130,69 @@ SELECT
 sgn_score_diff
 ,rscore_diff1
 ,AVG(g4)avg_g4
--- ,CORR(score_diff,g6)corr_sg6
--- ,AVG(g2)avg_g2
--- ,AVG(g6)avg_g6
--- ,CORR(g2,g6)
--- ,CORR(g2,g4)corr_g2g4
--- ,MIN(ydate)
 ,COUNT(ydate)ccount
--- ,MAX(ydate)
 FROM btg16
 WHERE ABS(rscore_diff1)>0.6
 AND ydate > sysdate - 33
-AND rnng_crr > 0.01
+AND rnng_crr1 > 0.01
 GROUP BY rscore_diff1,sgn_score_diff
 ORDER BY rscore_diff1,sgn_score_diff
+/
+
+SELECT
+sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+,COUNT(ydate)ccount
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 33
+AND rnng_crr2 > 0.01
+GROUP BY rscore_diff1,sgn_score_diff
+ORDER BY rscore_diff1,sgn_score_diff
+/
+
+SELECT
+sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+,COUNT(ydate)ccount
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 33
+AND rnng_crr3 > 0.01
+GROUP BY rscore_diff1,sgn_score_diff
+ORDER BY rscore_diff1,sgn_score_diff
+/
+
+SELECT
+sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+,COUNT(ydate)ccount
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 33
+AND rnng_crr1 > 0.01
+AND rnng_crr2 > 0.01
+AND rnng_crr3 > 0.01
+GROUP BY rscore_diff1,sgn_score_diff
+ORDER BY rscore_diff1,sgn_score_diff
+/
+
+
+SELECT
+pair
+,sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+,COUNT(ydate)ccount
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 33
+AND rnng_crr1 > 0.01
+GROUP BY pair,rscore_diff1,sgn_score_diff
+ORDER BY pair,rscore_diff1,sgn_score_diff
 /
 
 exit

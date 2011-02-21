@@ -12,7 +12,7 @@ cd /pt/s/rluck/svm62
 set -x
 export myts=`date +%Y_%m_%d_%H_%M`
 
-expdp trade/t dumpfile=svm62_p_s.${myts}.dpdmp tables=svm62scores,di5min,ibf5min_stage,dukas5min,op5min,ibf_old,ibf_dups_old,ibf_dups,ibf_stage
+expdp trade/t dumpfile=svm62_p_s.${myts}.dpdmp tables=svm62scores,di5min,dukas5min,op5min,ibf_old,ibf_dups_old,ibf_dups,ibf_stage
 
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/svm62_p_s.${myts}.dpdmp usr10@xp:dpdump/"
 echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/svm62_p_s.${myts}.dpdmp l:/oracle/app/oracle/admin/orcl/dpdump/"
