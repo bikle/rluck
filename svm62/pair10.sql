@@ -66,7 +66,7 @@ pair
 ,prdate
 ,clse
 -- g6 is important. I want to predict g6:
-,ld6 - clse g6
+,(ld6 - clse)/clse g6
 ,SIGN(avg6 - LAG(avg6,2,NULL)OVER(PARTITION BY pair ORDER BY ydate))trend
 -- I want more attributes from the ones I derived above:
 -- clse relation to moving-min
@@ -116,6 +116,7 @@ pair
 -- mph stands for minutes-past-hour:
 ,0+TO_CHAR(ydate,'MI')mph
 FROM svm6102
+WHERE clse > 0
 ORDER BY ydate
 /
 
