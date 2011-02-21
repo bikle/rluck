@@ -104,5 +104,46 @@ FROM btg12
 
 ANALYZE TABLE btg16 COMPUTE STATISTICS;
 
+-- rpt
+
+SELECT
+sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+-- ,CORR(score_diff,g6)corr_sg6
+-- ,AVG(g2)avg_g2
+-- ,AVG(g6)avg_g6
+-- ,CORR(g2,g6)
+-- ,CORR(g2,g4)corr_g2g4
+-- ,MIN(ydate)
+,COUNT(ydate)ccount
+-- ,MAX(ydate)
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 33
+GROUP BY rscore_diff1,sgn_score_diff
+ORDER BY rscore_diff1,sgn_score_diff
+/
+
+SELECT
+sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+-- ,CORR(score_diff,g6)corr_sg6
+-- ,AVG(g2)avg_g2
+-- ,AVG(g6)avg_g6
+-- ,CORR(g2,g6)
+-- ,CORR(g2,g4)corr_g2g4
+-- ,MIN(ydate)
+,COUNT(ydate)ccount
+-- ,MAX(ydate)
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 33
+AND rnng_crr > 0.01
+GROUP BY rscore_diff1,sgn_score_diff
+ORDER BY rscore_diff1,sgn_score_diff
+/
+
 exit
 
