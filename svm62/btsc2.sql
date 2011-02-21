@@ -85,5 +85,24 @@ sprod
 FROM btg14
 /
 
+DROP TABLE btg16;
+CREATE TABLE btg16 COMPRESS AS
+SELECT
+pair
+,ydate
+,prdate
+,score_diff
+,rscore_diff1
+,rscore_diff2
+,g2
+,g6
+,g4
+,rnng_crr
+,SIGN(score_diff)sgn_score_diff
+FROM btg12
+/
+
+ANALYZE TABLE btg16 COMPUTE STATISTICS;
+
 exit
 
