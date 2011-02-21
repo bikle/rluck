@@ -1,0 +1,443 @@
+/pt/s/rluck/svm62/results_2011_0221_2.txt
+
+It looks like "running correlation" is useful.
+
+
+oracle@z2:/pt/s/rluck/svm62$ sqt @btsc2
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Feb 21 14:11:27 2011
+
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+
+Connected to:
+Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+14:11:27 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+
+Session altered.
+
+Elapsed: 00:00:00.00
+14:11:27 SQL> --
+14:11:27 SQL> -- btsc2.sql
+14:11:27 SQL> --
+14:11:27 SQL> 
+14:11:27 SQL> -- I use this script to help me study relationship between scores, g2, and g6.
+14:11:27 SQL> 
+14:11:27 SQL> -- I start by getting the 6 hr gain (g6) and g2 for each prdate.
+14:11:27 SQL> DROP TABLE btg10;
+
+Table dropped.
+
+Elapsed: 00:00:00.06
+14:11:28 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.29
+14:11:28 SQL> CREATE TABLE btg10 COMPRESS AS
+14:11:28   2  SELECT
+14:11:28   3  prdate
+14:11:28   4  ,pair
+14:11:28   5  ,ydate
+14:11:28   6  ,(LEAD(clse,12*2,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g2
+14:11:28   7  ,(LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g6
+14:11:28   8  FROM di5min
+14:11:28   9  WHERE ydate > sysdate - 122
+14:11:28  10  AND clse > 0
+14:11:28  11  ORDER BY pair,ydate
+14:11:28  12  /
+
+Table created.
+
+Elapsed: 00:00:02.19
+14:11:30 SQL> 
+14:11:30 SQL> ANALYZE TABLE btg10 COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:05.00
+14:11:35 SQL> 
+14:11:35 SQL> DROP TABLE btg12;
+
+Table dropped.
+
+Elapsed: 00:00:00.22
+14:11:35 SQL> CREATE TABLE btg12 COMPRESS AS
+14:11:35   2  SELECT
+14:11:35   3  m.pair
+14:11:35   4  ,m.ydate
+14:11:35   5  ,m.prdate
+14:11:35   6  ,l.score-s.score          score_diff
+14:11:35   7  ,ROUND(l.score-s.score,1) rscore_diff1
+14:11:35   8  ,ROUND(l.score-s.score,2) rscore_diff2
+14:11:35   9  ,m.g2
+14:11:35  10  ,m.g6
+14:11:35  11  ,m.g6-m.g2 g4
+14:11:35  12  ,CORR(l.score-s.score,g6)OVER(PARTITION BY l.pair ORDER BY l.ydate ROWS BETWEEN 12*24*1 PRECEDING AND CURRENT ROW)rnng_crr1
+14:11:35  13  ,CORR(l.score-s.score,g6)OVER(PARTITION BY l.pair ORDER BY l.ydate ROWS BETWEEN 12*24*2 PRECEDING AND CURRENT ROW)rnng_crr2
+14:11:35  14  ,CORR(l.score-s.score,g6)OVER(PARTITION BY l.pair ORDER BY l.ydate ROWS BETWEEN 12*24*3 PRECEDING AND CURRENT ROW)rnng_crr3
+14:11:35  15  FROM svm62scores l,svm62scores s,btg10 m
+14:11:35  16  WHERE l.targ='gatt'
+14:11:35  17  AND   s.targ='gattn'
+14:11:35  18  AND l.prdate = s.prdate
+14:11:35  19  AND l.prdate = m.prdate
+14:11:35  20  -- Speed things up:
+14:11:35  21  AND l.ydate > sysdate - 133
+14:11:35  22  AND s.ydate > sysdate - 133
+14:11:35  23  /
+
+Table created.
+
+Elapsed: 00:00:08.72
+14:11:44 SQL> 
+14:11:44 SQL> ANALYZE TABLE btg12 COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:09.47
+14:11:53 SQL> 
+14:11:53 SQL> DROP TABLE btg14;
+
+Table dropped.
+
+Elapsed: 00:00:00.06
+14:11:54 SQL> CREATE TABLE btg14 COMPRESS AS
+14:11:54   2  SELECT
+14:11:54   3  SIGN(g2) * SIGN(score_diff) sprod
+14:11:54   4  ,rscore_diff1
+14:11:54   5  ,AVG(g4)avg_g4
+14:11:54   6  ,CORR(score_diff,g6)corr_sg6
+14:11:54   7  ,AVG(g2)avg_g2
+14:11:54   8  ,AVG(g6)avg_g6
+14:11:54   9  -- ,CORR(g2,g6)
+14:11:54  10  ,CORR(g2,g4)corr_g2g4
+14:11:54  11  -- ,MIN(ydate)
+14:11:54  12  ,COUNT(ydate)ccount
+14:11:54  13  -- ,MAX(ydate)
+14:11:54  14  ,AVG(rnng_crr1)avg_rnng_crr1
+14:11:54  15  ,AVG(rnng_crr2)avg_rnng_crr2
+14:11:54  16  ,AVG(rnng_crr3)avg_rnng_crr3
+14:11:54  17  FROM btg12
+14:11:54  18  -- WHERE ABS(rscore_diff1)IN(0.7,0.8,0.9)
+14:11:54  19  WHERE ABS(rscore_diff1)>0.6
+14:11:54  20  AND SIGN(g2) != 0
+14:11:54  21  AND ydate > sysdate - 33
+14:11:54  22  GROUP BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
+14:11:54  23  ORDER BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
+14:11:54  24  /
+
+Table created.
+
+Elapsed: 00:00:00.13
+14:11:54 SQL> 
+14:11:54 SQL> SELECT
+14:11:54   2  sprod
+14:11:54   3  ,rscore_diff1
+14:11:54   4  ,avg_g4
+14:11:54   5  ,corr_sg6
+14:11:54   6  ,avg_g2
+14:11:54   7  ,avg_g6
+14:11:54   8  ,corr_g2g4
+14:11:54   9  -- ,MIN(ydate)
+14:11:54  10  ,ccount
+14:11:54  11  ,avg_rnng_crr1
+14:11:54  12  ,avg_rnng_crr2
+14:11:54  13  ,avg_rnng_crr3
+14:11:54  14  FROM btg14
+14:11:54  15  /
+
+     SPROD RSCORE_DIFF1     AVG_G4   CORR_SG6     AVG_G2     AVG_G6  CORR_G2G4     CCOUNT AVG_RNNG_CRR1 AVG_RNNG_CRR2 AVG_RNNG_CRR3
+---------- ------------ ---------- ---------- ---------- ---------- ---------- ---------- ------------- ------------- -------------
+        -1           -1 .001984184         -1 .000166936  .00215112         -1          2    -.06677446    -.12858321    -.08941654
+         1           -1 -.00146375          1 -.00120718 -.00267094          1          2    .269650391    .148874304    .028721627
+        -1          -.9 .000592774  .16347081  .00103706 .001629833 -.29581435         49    -.03354784    -.01361928    -.01708148
+         1          -.9 .000143585 -.18958159 -.00114886 -.00100528 .162596075         74    .040789573     .00579668    .013867546
+        -1          -.8 .000538423 -.01959627 .001091451 .001632469 -.00359066        271    -.03647019    -.01597699    -.01909384
+         1          -.8 .000057869 -.02482446 -.00141386 -.00135841 .046074538        335    .020669212    .007393052    .008197118
+        -1          -.7 .000106991 .062298978  .00118493 .001295044 -.00309658        625    -.02321767    -.01096076    -.01085409
+         1          -.7 .000157774 .007862741 -.00133547 -.00118273 .054151162        741    .052703504    .013621339    .010134017
+        -1           .7 -.00004053 .052458946 -.00110458 -.00114564 -.00254071        854    .007010655    .002138286    .005449363
+         1           .7 .000097088 -.01368643 .001151619 .001253427 .064987696       1108    .091016685    .053823374    .028004013
+        -1           .8  -.0000614 -.02303006  -.0011061 -.00117038  -.0271146        380    .038244644    .024540569    .028536176
+         1           .8 .000018651 .045990851 .001194453 .001217854 .147713848        432    .096966243     .06423744    .045793863
+        -1           .9 .000270256 -.31102423 -.00087957 -.00060684 -.16592247         48    .042965085     -.0376074    .000800381
+         1           .9 -.00026508   .0962153 .001383577 .001118495 .007367091         87    .096292768    .074886683    .058740024
+         1            1 .001303214             .00463495 .005938165                     1    .435383574    .187173907    -.02959692
+
+15 rows selected.
+
+Elapsed: 00:00:00.01
+14:11:54 SQL> 
+14:11:54 SQL> DROP TABLE btg16;
+
+Table dropped.
+
+Elapsed: 00:00:00.05
+14:11:54 SQL> CREATE TABLE btg16 COMPRESS AS
+14:11:54   2  SELECT
+14:11:54   3  pair
+14:11:54   4  ,ydate
+14:11:54   5  ,prdate
+14:11:54   6  ,score_diff
+14:11:54   7  ,rscore_diff1
+14:11:54   8  ,rscore_diff2
+14:11:54   9  ,g2
+14:11:54  10  ,g6
+14:11:54  11  ,g4
+14:11:54  12  ,rnng_crr1
+14:11:54  13  ,rnng_crr2
+14:11:54  14  ,rnng_crr3
+14:11:54  15  ,SIGN(score_diff)sgn_score_diff
+14:11:54  16  FROM btg12
+14:11:54  17  /
+
+Table created.
+
+Elapsed: 00:00:00.96
+14:11:55 SQL> 
+14:11:55 SQL> ANALYZE TABLE btg16 COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:08.22
+14:12:03 SQL> 
+14:12:03 SQL> -- rpt
+14:12:03 SQL> 
+14:12:03 SQL> SELECT
+14:12:03   2  sgn_score_diff
+14:12:03   3  ,rscore_diff1
+14:12:03   4  ,AVG(g4)avg_g4
+14:12:03   5  ,COUNT(ydate)ccount
+14:12:03   6  FROM btg16
+14:12:03   7  WHERE ABS(rscore_diff1)>0.6
+14:12:03   8  AND ydate > sysdate - 33
+14:12:03   9  GROUP BY rscore_diff1,sgn_score_diff
+14:12:03  10  ORDER BY rscore_diff1,sgn_score_diff
+14:12:03  11  /
+
+SGN_SCORE_DIFF RSCORE_DIFF1     AVG_G4     CCOUNT
+-------------- ------------ ---------- ----------
+            -1           -1 .000260216          4
+            -1          -.9  .00032253        126
+            -1          -.8 .000282228        613
+            -1          -.7 .000133607       1376
+             1           .7 .000036644       1972
+             1           .8 -.00002281        820
+             1           .9 -.00007731        135
+             1            1 .001303214          1
+
+8 rows selected.
+
+Elapsed: 00:00:00.08
+14:12:03 SQL> 
+14:12:03 SQL> SELECT
+14:12:03   2  sgn_score_diff
+14:12:03   3  ,rscore_diff1
+14:12:03   4  ,AVG(g4)avg_g4
+14:12:03   5  ,COUNT(ydate)ccount
+14:12:03   6  FROM btg16
+14:12:03   7  WHERE ABS(rscore_diff1)>0.6
+14:12:03   8  AND ydate > sysdate - 33
+14:12:03   9  AND rnng_crr1 > 0.01
+14:12:03  10  GROUP BY rscore_diff1,sgn_score_diff
+14:12:03  11  ORDER BY rscore_diff1,sgn_score_diff
+14:12:03  12  /
+
+SGN_SCORE_DIFF RSCORE_DIFF1     AVG_G4     CCOUNT
+-------------- ------------ ---------- ----------
+            -1           -1 -.00034938          3
+            -1          -.9 .000074041         61
+            -1          -.8 -.00013887        286
+            -1          -.7 -.00019983        714
+             1           .7 .000429707       1096
+             1           .8 .000520857        464
+             1           .9 .000534888         69
+             1            1 .001303214          1
+
+8 rows selected.
+
+Elapsed: 00:00:00.09
+14:12:03 SQL> 
+14:12:03 SQL> SELECT
+14:12:03   2  sgn_score_diff
+14:12:03   3  ,rscore_diff1
+14:12:03   4  ,AVG(g4)avg_g4
+14:12:03   5  ,COUNT(ydate)ccount
+14:12:03   6  FROM btg16
+14:12:03   7  WHERE ABS(rscore_diff1)>0.6
+14:12:03   8  AND ydate > sysdate - 33
+14:12:03   9  AND rnng_crr2 > 0.01
+14:12:03  10  GROUP BY rscore_diff1,sgn_score_diff
+14:12:03  11  ORDER BY rscore_diff1,sgn_score_diff
+14:12:03  12  /
+
+SGN_SCORE_DIFF RSCORE_DIFF1     AVG_G4     CCOUNT
+-------------- ------------ ---------- ----------
+            -1           -1 -.00444149          1
+            -1          -.9 .000379981         57
+            -1          -.8 .000131037        299
+            -1          -.7 -.00011162        712
+             1           .7 .000310972       1098
+             1           .8 .000469633        480
+             1           .9 .000605445         69
+             1            1 .001303214          1
+
+8 rows selected.
+
+Elapsed: 00:00:00.11
+14:12:03 SQL> 
+14:12:03 SQL> SELECT
+14:12:03   2  sgn_score_diff
+14:12:03   3  ,rscore_diff1
+14:12:03   4  ,AVG(g4)avg_g4
+14:12:03   5  ,COUNT(ydate)ccount
+14:12:03   6  FROM btg16
+14:12:03   7  WHERE ABS(rscore_diff1)>0.6
+14:12:03   8  AND ydate > sysdate - 33
+14:12:03   9  AND rnng_crr3 > 0.01
+14:12:03  10  GROUP BY rscore_diff1,sgn_score_diff
+14:12:03  11  ORDER BY rscore_diff1,sgn_score_diff
+14:12:03  12  /
+
+SGN_SCORE_DIFF RSCORE_DIFF1     AVG_G4     CCOUNT
+-------------- ------------ ---------- ----------
+            -1           -1 -.00444149          1
+            -1          -.9 -9.139E-06         57
+            -1          -.8 .000105565        282
+            -1          -.7 -.00007771        667
+             1           .7 .000264132       1071
+             1           .8 .000185002        458
+             1           .9 -.00016363         79
+
+7 rows selected.
+
+Elapsed: 00:00:00.10
+14:12:03 SQL> 
+14:12:03 SQL> SELECT
+14:12:03   2  sgn_score_diff
+14:12:03   3  ,rscore_diff1
+14:12:03   4  ,AVG(g4)avg_g4
+14:12:03   5  ,COUNT(ydate)ccount
+14:12:03   6  FROM btg16
+14:12:03   7  WHERE ABS(rscore_diff1)>0.6
+14:12:03   8  AND ydate > sysdate - 33
+14:12:03   9  AND rnng_crr1 > 0.01
+14:12:03  10  AND rnng_crr2 > 0.01
+14:12:03  11  AND rnng_crr3 > 0.01
+14:12:03  12  GROUP BY rscore_diff1,sgn_score_diff
+14:12:03  13  ORDER BY rscore_diff1,sgn_score_diff
+14:12:03  14  /
+
+SGN_SCORE_DIFF RSCORE_DIFF1     AVG_G4     CCOUNT
+-------------- ------------ ---------- ----------
+            -1           -1 -.00444149          1
+            -1          -.9 -.00056111         37
+            -1          -.8 -.00028493        191
+            -1          -.7 -.00035036        440
+             1           .7 .000433589        724
+             1           .8 .000544247        292
+             1           .9 -.00023444         42
+
+7 rows selected.
+
+Elapsed: 00:00:00.13
+14:12:03 SQL> 
+14:12:03 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+16:00:06 SQL> 
+16:00:06 SQL> SELECT
+16:00:06   2  pair
+16:00:06   3  ,sgn_score_diff
+16:00:06   4  ,rscore_diff1
+16:00:06   5  ,AVG(g4)avg_g4
+16:00:06   6  ,COUNT(ydate)ccount
+16:00:06   7  FROM btg16
+16:00:06   8  WHERE ABS(rscore_diff1)>0.6
+16:00:06   9  AND ydate > sysdate - 33
+16:00:06  10  AND rnng_crr1 > 0.01
+16:00:06  11  GROUP BY pair,rscore_diff1,sgn_score_diff
+16:00:06  12  ORDER BY pair,rscore_diff1,sgn_score_diff
+16:00:06  13  /
+
+PAIR    SGN_SCORE_DIFF RSCORE_DIFF1     AVG_G4     CCOUNT
+------- -------------- ------------ ---------- ----------
+aud_jpy             -1          -.9 -.00231599          3
+aud_jpy             -1          -.8 -.00122118         27
+aud_jpy             -1          -.7 -.00146337         63
+aud_jpy              1           .7 .000304338        182
+aud_jpy              1           .8 .001125372         82
+aud_jpy              1           .9 .001855342          9
+aud_usd             -1          -.9   .0013546          7
+aud_usd             -1          -.8 .000252877         41
+aud_usd             -1          -.7 .000253776        107
+aud_usd              1           .7 .000284226        102
+aud_usd              1           .8 .000322289         44
+aud_usd              1           .9 -.00074304         10
+eur_aud             -1          -.9 -.00448511          1
+eur_aud             -1          -.8 -.00288417         17
+eur_aud             -1          -.7 -.00215262         65
+eur_aud              1           .7 .000290133         62
+eur_aud              1           .8 .000115567         19
+eur_aud              1           .9 -.00259113          1
+eur_chf             -1           -1  .00169667          2
+eur_chf             -1          -.9 .000908785          9
+eur_chf             -1          -.8 .000664464         13
+eur_chf             -1          -.7 .000178909         37
+eur_chf              1           .7 .000984603         68
+eur_chf              1           .8 .001019003         48
+eur_chf              1           .9 .002308455         12
+eur_chf              1            1 .001303214          1
+eur_gbp             -1          -.9 .000486542          9
+eur_gbp             -1          -.8 .000025261         33
+eur_gbp             -1          -.7 .000389202         64
+eur_gbp              1           .7 .000889854         45
+eur_gbp              1           .8 .000067509         14
+eur_gbp              1           .9 -.00033986          1
+eur_jpy             -1          -.9  .00129439          2
+eur_jpy             -1          -.8 .000319847          8
+eur_jpy             -1          -.7 .001333656         28
+eur_jpy              1           .7 .000795237        146
+eur_jpy              1           .8 .000733099         66
+eur_jpy              1           .9 -.00029267          9
+eur_usd             -1          -.9 -.00284774          2
+eur_usd             -1          -.8 -.00169471         23
+eur_usd             -1          -.7 -.00091243         52
+eur_usd              1           .7 .000524964         98
+eur_usd              1           .8 -.00026754         31
+gbp_usd             -1           -1 -.00444149          1
+gbp_usd             -1          -.9 -.00252861          8
+gbp_usd             -1          -.8 .000616745         41
+gbp_usd             -1          -.7 .000324924         70
+gbp_usd              1           .7 .000380709        124
+gbp_usd              1           .8 .001023294         42
+gbp_usd              1           .9 .000085749          4
+usd_cad             -1          -.9 -.00027517          9
+usd_cad             -1          -.8 -.00003079         29
+usd_cad             -1          -.7   .0000244         78
+usd_cad              1           .7 .000334156        107
+usd_cad              1           .8 .000601752         35
+usd_cad              1           .9 .002061598          3
+usd_chf             -1          -.9 .000396479          3
+usd_chf             -1          -.8 -.00077281         20
+usd_chf             -1          -.7 -.00039133         60
+usd_chf              1           .7 -.00110044         77
+usd_chf              1           .8 -.00067483         52
+usd_chf              1           .9 -.00120519         10
+usd_jpy             -1          -.9 .002316509          8
+usd_jpy             -1          -.8 .001366296         36
+usd_jpy             -1          -.7 .000493936         88
+usd_jpy              1           .7 .001085655         85
+usd_jpy              1           .8 .000366646         33
+usd_jpy              1           .9 .001165815          9
+
+68 rows selected.
+
+Elapsed: 00:00:00.06
+16:00:06 SQL> 
+16:00:06 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+oracle@z2:/pt/s/rluck/svm62$ 
