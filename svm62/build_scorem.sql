@@ -22,7 +22,7 @@ WHERE ydate NOT IN
 AND ydate > sysdate - 95
 AND pair = '&1'
 )
-WHERE ydate > sysdate - 3/24
+WHERE ydate > sysdate - 1
 -- ORDER BY DBMS_RANDOM.VALUE
 ORDER BY ydate DESC,cmd
 /
