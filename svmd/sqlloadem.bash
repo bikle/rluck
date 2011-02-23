@@ -12,6 +12,8 @@ cd /pt/s/rluck/svmd/cf/
 cat TLT.csv | awk  '{print "TLT,"$0}' | grep 0 > ystk_stage.csv
 
 cat HL.csv | awk  '{print "HL,"$0}' | grep 0 >>ystk_stage.csv
+cat HOC.csv | awk  '{print "HOC,"$0}' | grep 0 >>ystk_stage.csv
+
 cat TKR.csv | awk  '{print "TKR,"$0}' | grep 0 >>ystk_stage.csv
 
 cat SU.csv | awk  '{print "SU,"$0}' | grep 0 >>ystk_stage.csv

@@ -8,6 +8,7 @@ set -x
 
 ./svmtkr.bash DD
 
+./svmtkr.bash HOC
 ./svmtkr.bash TKR
 
 ./svmtkr.bash AAPL

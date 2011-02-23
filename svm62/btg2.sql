@@ -15,7 +15,7 @@ prdate
 ,(LEAD(clse,12*2,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g2
 ,(LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g6
 FROM di5min
-WHERE ydate > sysdate - 122
+WHERE ydate > sysdate - 0.5
 AND clse > 0
 ORDER BY pair,ydate
 /
@@ -34,7 +34,7 @@ pair
 FROM btg10
 GROUP BY pair
 ORDER BY pair
-
+/
 
 DROP TABLE btg12;
 CREATE TABLE btg12 COMPRESS AS
@@ -54,8 +54,8 @@ AND   s.targ='gattn'
 AND l.prdate = s.prdate
 AND l.prdate = m.prdate
 -- Speed things up:
-AND l.ydate > sysdate - 133
-AND s.ydate > sysdate - 133
+AND l.ydate > sysdate - 1
+AND s.ydate > sysdate - 1
 /
 
 
@@ -75,7 +75,7 @@ FROM btg12
 WHERE ABS(rscore_diff1)IN(0.7,0.8)
 GROUP BY pair,rscore_diff1
 ORDER BY pair,rscore_diff1
-
+/
 
 SELECT
 SIGN(g2) * SIGN(score_diff) sprod
@@ -95,7 +95,7 @@ AND SIGN(g2) != 0
 AND ABS(g2) < 0.0006
 GROUP BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
 ORDER BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
-
+/
 
 SELECT
 SIGN(g2) * SIGN(score_diff) sprod
@@ -135,7 +135,7 @@ FROM btg12
 -- WHERE ABS(rscore_diff1)IN(0.7,0.8,0.9)
 WHERE ABS(rscore_diff1)>0.6
 AND SIGN(g2) != 0
-AND ydate > sysdate - 33
+AND ydate > sysdate - 1
 GROUP BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
 ORDER BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
 /

@@ -15,7 +15,7 @@ prdate
 ,(LEAD(clse,12*2,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g2
 ,(LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g6
 FROM di5min
-WHERE ydate > sysdate - 122
+WHERE ydate > sysdate - 1
 AND clse > 0
 ORDER BY pair,ydate
 /
@@ -43,8 +43,8 @@ AND   s.targ='gattn'
 AND l.prdate = s.prdate
 AND l.prdate = m.prdate
 -- Speed things up:
-AND l.ydate > sysdate - 133
-AND s.ydate > sysdate - 133
+AND l.ydate > sysdate - 1
+AND s.ydate > sysdate - 1
 /
 
 ANALYZE TABLE btg12 COMPUTE STATISTICS;
@@ -70,7 +70,7 @@ FROM btg12
 -- WHERE ABS(rscore_diff1)IN(0.7,0.8,0.9)
 WHERE ABS(rscore_diff1)>0.6
 AND SIGN(g2) != 0
-AND ydate > sysdate - 33
+AND ydate > sysdate - 1
 GROUP BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
 ORDER BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
 /
@@ -133,7 +133,7 @@ sgn_score_diff
 ,COUNT(ydate)ccount
 FROM btg16
 WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 33
+AND ydate > sysdate - 1
 AND rnng_crr1 > 0.01
 GROUP BY rscore_diff1,sgn_score_diff
 ORDER BY rscore_diff1,sgn_score_diff
@@ -146,7 +146,49 @@ sgn_score_diff
 ,COUNT(ydate)ccount
 FROM btg16
 WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 33
+AND ydate > sysdate - 1
+AND rnng_crr1 > 0.1
+GROUP BY rscore_diff1,sgn_score_diff
+ORDER BY rscore_diff1,sgn_score_diff
+/
+
+SELECT
+sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+,COUNT(ydate)ccount
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 1
+AND rnng_crr1 > 0.4
+GROUP BY rscore_diff1,sgn_score_diff
+ORDER BY rscore_diff1,sgn_score_diff
+/
+
+SELECT
+pair
+,sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+,COUNT(ydate)ccount
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 1
+AND rnng_crr1 > 0.1
+GROUP BY pair,rscore_diff1,sgn_score_diff
+ORDER BY pair,rscore_diff1,sgn_score_diff
+/
+
+exit
+
+SELECT
+sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+,COUNT(ydate)ccount
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 1
 AND rnng_crr2 > 0.01
 GROUP BY rscore_diff1,sgn_score_diff
 ORDER BY rscore_diff1,sgn_score_diff
@@ -159,7 +201,7 @@ sgn_score_diff
 ,COUNT(ydate)ccount
 FROM btg16
 WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 33
+AND ydate > sysdate - 1
 AND rnng_crr3 > 0.01
 GROUP BY rscore_diff1,sgn_score_diff
 ORDER BY rscore_diff1,sgn_score_diff
@@ -172,7 +214,7 @@ sgn_score_diff
 ,COUNT(ydate)ccount
 FROM btg16
 WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 33
+AND ydate > sysdate - 1
 AND rnng_crr1 > 0.01
 AND rnng_crr2 > 0.01
 AND rnng_crr3 > 0.01
@@ -189,7 +231,7 @@ pair
 ,COUNT(ydate)ccount
 FROM btg16
 WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 33
+AND ydate > sysdate - 1
 AND rnng_crr1 > 0.01
 AND pair = 'usd_jpy'
 GROUP BY pair,rscore_diff1,sgn_score_diff
@@ -204,7 +246,7 @@ pair
 ,COUNT(ydate)ccount
 FROM btg16
 WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 33
+AND ydate > sysdate - 1
 AND rnng_crr2 > 0.01
 AND pair = 'usd_jpy'
 GROUP BY pair,rscore_diff1,sgn_score_diff
@@ -219,7 +261,7 @@ pair
 ,COUNT(ydate)ccount
 FROM btg16
 WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 33
+AND ydate > sysdate - 1
 AND rnng_crr3 > 0.01
 AND pair = 'usd_jpy'
 GROUP BY pair,rscore_diff1,sgn_score_diff
