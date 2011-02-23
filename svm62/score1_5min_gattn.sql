@@ -112,6 +112,8 @@ FROM modsrc
 WHERE gattn IN('nup','up')
 -- Use only rows which are older than 1 day:
 AND 1+ydate < '&1'||' '||'&2'
+-- Use only rows which are newer than 34 days:
+AND 34+ydate > '&1'||' '||'&2'
 AND pair = '&3'
 /
 

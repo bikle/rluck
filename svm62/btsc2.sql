@@ -191,6 +191,37 @@ FROM btg16
 WHERE ABS(rscore_diff1)>0.6
 AND ydate > sysdate - 33
 AND rnng_crr1 > 0.01
+AND pair = 'usd_jpy'
+GROUP BY pair,rscore_diff1,sgn_score_diff
+ORDER BY pair,rscore_diff1,sgn_score_diff
+/
+
+SELECT
+pair
+,sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+,COUNT(ydate)ccount
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 33
+AND rnng_crr2 > 0.01
+AND pair = 'usd_jpy'
+GROUP BY pair,rscore_diff1,sgn_score_diff
+ORDER BY pair,rscore_diff1,sgn_score_diff
+/
+
+SELECT
+pair
+,sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+,COUNT(ydate)ccount
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 33
+AND rnng_crr3 > 0.01
+AND pair = 'usd_jpy'
 GROUP BY pair,rscore_diff1,sgn_score_diff
 ORDER BY pair,rscore_diff1,sgn_score_diff
 /
