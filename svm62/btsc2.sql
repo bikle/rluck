@@ -115,54 +115,16 @@ ANALYZE TABLE btg16 COMPUTE STATISTICS;
 -- rpt
 
 SELECT
-sgn_score_diff
-,rscore_diff1
-,AVG(g4)avg_g4
-,COUNT(ydate)ccount
-FROM btg16
-WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 33
-GROUP BY rscore_diff1,sgn_score_diff
-ORDER BY rscore_diff1,sgn_score_diff
-/
-
-SELECT
-sgn_score_diff
+pair
+,sgn_score_diff
 ,rscore_diff1
 ,AVG(g4)avg_g4
 ,COUNT(ydate)ccount
 FROM btg16
 WHERE ABS(rscore_diff1)>0.6
 AND ydate > sysdate - 1
-AND rnng_crr1 > 0.01
-GROUP BY rscore_diff1,sgn_score_diff
-ORDER BY rscore_diff1,sgn_score_diff
-/
-
-SELECT
-sgn_score_diff
-,rscore_diff1
-,AVG(g4)avg_g4
-,COUNT(ydate)ccount
-FROM btg16
-WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 1
-AND rnng_crr1 > 0.1
-GROUP BY rscore_diff1,sgn_score_diff
-ORDER BY rscore_diff1,sgn_score_diff
-/
-
-SELECT
-sgn_score_diff
-,rscore_diff1
-,AVG(g4)avg_g4
-,COUNT(ydate)ccount
-FROM btg16
-WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 1
-AND rnng_crr1 > 0.4
-GROUP BY rscore_diff1,sgn_score_diff
-ORDER BY rscore_diff1,sgn_score_diff
+GROUP BY pair,rscore_diff1,sgn_score_diff
+ORDER BY pair,rscore_diff1,sgn_score_diff
 /
 
 SELECT
@@ -177,6 +139,91 @@ AND ydate > sysdate - 1
 AND rnng_crr1 > 0.1
 GROUP BY pair,rscore_diff1,sgn_score_diff
 ORDER BY pair,rscore_diff1,sgn_score_diff
+/
+
+-- aggregate:
+
+SELECT
+sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+,COUNT(ydate)ccount
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 1
+GROUP BY rscore_diff1,sgn_score_diff
+ORDER BY rscore_diff1,sgn_score_diff
+/
+
+SELECT
+sgn_score_diff
+,rscore_diff1
+,AVG(g4)avg_g4
+,COUNT(ydate)ccount
+FROM btg16
+WHERE ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 1
+AND rnng_crr1 > 0.1
+GROUP BY rscore_diff1,sgn_score_diff
+ORDER BY rscore_diff1,sgn_score_diff
+/
+
+-- look at aud_usd:
+
+CREATE OR REPLACE VIEW btsc100 AS
+SELECT
+pair
+,CASE WHEN rscore_diff1 >0.6 THEN 'buy'
+      WHEN rscore_diff1 <-0.6 THEN 'sell'
+ELSE NULL
+END bors
+,sgn_score_diff
+,rscore_diff1
+,g4
+,ydate
+FROM btg16
+-- WHERE ABS(rscore_diff1)>0.6
+-- AND ydate > sysdate - 1
+WHERE ydate > sysdate - 1
+AND rnng_crr1 > 0.1
+AND pair = 'aud_usd'
+ORDER BY ydate
+/
+
+SELECT count(*) FROM btsc100;
+
+
+CREATE OR REPLACE VIEW btsc102 AS
+SELECT
+pair
+,sgn_score_diff
+,rscore_diff1
+,g4
+,ydate
+,LAG(bors,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)lag_bors
+,bors
+,LEAD(bors,1,NULL)OVER(PARTITION BY pair ORDER BY ydate)ld_bors
+FROM btsc100
+/
+
+SELECT count(*) FROM btsc102;
+
+SELECT * FROM btsc102;
+
+SELECT * FROM btsc102 WHERE lag_bors = bors AND bors = ld_bors;
+
+-- aggregate:
+
+SELECT
+pair
+,sgn_score_diff
+,AVG(g4)avg_g4
+,COUNT(ydate)ccount
+FROM btsc102 WHERE lag_bors = bors AND bors = ld_bors
+AND ABS(rscore_diff1)>0.6
+AND ydate > sysdate - 1
+GROUP BY pair,sgn_score_diff
+ORDER BY pair,sgn_score_diff
 /
 
 exit
