@@ -30,13 +30,10 @@ m.pair
 ,m.prdate
 ,l.score-s.score          score_diff
 ,ROUND(l.score-s.score,1) rscore_diff1
-,ROUND(l.score-s.score,2) rscore_diff2
 ,m.g2
 ,m.g6
 ,m.g6-m.g2 g4
 ,CORR(l.score-s.score,g6)OVER(PARTITION BY l.pair ORDER BY l.ydate ROWS BETWEEN 12*24*1 PRECEDING AND CURRENT ROW)rnng_crr1
-,CORR(l.score-s.score,g6)OVER(PARTITION BY l.pair ORDER BY l.ydate ROWS BETWEEN 12*24*2 PRECEDING AND CURRENT ROW)rnng_crr2
-,CORR(l.score-s.score,g6)OVER(PARTITION BY l.pair ORDER BY l.ydate ROWS BETWEEN 12*24*3 PRECEDING AND CURRENT ROW)rnng_crr3
 FROM svm62scores l,svm62scores s,btg10 m
 WHERE l.targ='gatt'
 AND   s.targ='gattn'
@@ -49,10 +46,14 @@ AND s.ydate > sysdate - 1
 
 ANALYZE TABLE btg12 COMPUTE STATISTICS;
 
+-- Question:
+-- How does g2 affect g4?
+
 DROP TABLE btg14;
 CREATE TABLE btg14 COMPRESS AS
 SELECT
-SIGN(g2) * SIGN(score_diff) sprod
+-- See if g2 is going right way or wrong way.
+CASE WHEN SIGN(g2)*SIGN(score_diff)=1 THEN'g2_right_way'ELSE'g2_wrong_way'END sprod
 ,rscore_diff1
 ,AVG(g4)avg_g4
 ,CORR(score_diff,g6)corr_sg6
@@ -64,13 +65,12 @@ SIGN(g2) * SIGN(score_diff) sprod
 ,COUNT(ydate)ccount
 -- ,MAX(ydate)
 ,AVG(rnng_crr1)avg_rnng_crr1
-,AVG(rnng_crr2)avg_rnng_crr2
-,AVG(rnng_crr3)avg_rnng_crr3
 FROM btg12
 -- WHERE ABS(rscore_diff1)IN(0.7,0.8,0.9)
 WHERE ABS(rscore_diff1)>0.6
 AND SIGN(g2) != 0
 AND ydate > sysdate - 1
+AND rnng_crr1 > 0.1
 GROUP BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
 ORDER BY rscore_diff1,(SIGN(g2) * SIGN(score_diff))
 /
@@ -86,10 +86,10 @@ sprod
 -- ,MIN(ydate)
 ,ccount
 ,avg_rnng_crr1
-,avg_rnng_crr2
-,avg_rnng_crr3
 FROM btg14
 /
+
+-- Start on looking at clumps of score_diff signals:
 
 DROP TABLE btg16;
 CREATE TABLE btg16 COMPRESS AS
@@ -99,15 +99,13 @@ pair
 ,prdate
 ,score_diff
 ,rscore_diff1
-,rscore_diff2
 ,g2
 ,g6
 ,g4
 ,rnng_crr1
-,rnng_crr2
-,rnng_crr3
 ,SIGN(score_diff)sgn_score_diff
 FROM btg12
+WHERE rnng_crr1 > 0.1
 /
 
 ANALYZE TABLE btg16 COMPUTE STATISTICS;
@@ -127,20 +125,6 @@ GROUP BY pair,rscore_diff1,sgn_score_diff
 ORDER BY pair,rscore_diff1,sgn_score_diff
 /
 
-SELECT
-pair
-,sgn_score_diff
-,rscore_diff1
-,AVG(g4)avg_g4
-,COUNT(ydate)ccount
-FROM btg16
-WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 1
-AND rnng_crr1 > 0.1
-GROUP BY pair,rscore_diff1,sgn_score_diff
-ORDER BY pair,rscore_diff1,sgn_score_diff
-/
-
 -- aggregate:
 
 SELECT
@@ -155,20 +139,7 @@ GROUP BY rscore_diff1,sgn_score_diff
 ORDER BY rscore_diff1,sgn_score_diff
 /
 
-SELECT
-sgn_score_diff
-,rscore_diff1
-,AVG(g4)avg_g4
-,COUNT(ydate)ccount
-FROM btg16
-WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 1
-AND rnng_crr1 > 0.1
-GROUP BY rscore_diff1,sgn_score_diff
-ORDER BY rscore_diff1,sgn_score_diff
-/
-
--- look at aud_usd:
+-- use aud_usd to help me see some clumping:
 
 CREATE OR REPLACE VIEW btsc100 AS
 SELECT
@@ -186,12 +157,13 @@ FROM btg16
 -- AND ydate > sysdate - 1
 WHERE ydate > sysdate - 1
 AND rnng_crr1 > 0.1
-AND pair = 'aud_usd'
-ORDER BY ydate
+-- AND pair = 'aud_usd'
+ORDER BY pair,ydate
 /
 
 SELECT count(*) FROM btsc100;
 
+-- Use LAG(),LEAD() to create the bors-clumps:
 
 CREATE OR REPLACE VIEW btsc102 AS
 SELECT
@@ -208,11 +180,13 @@ FROM btsc100
 
 SELECT count(*) FROM btsc102;
 
-SELECT * FROM btsc102;
+SELECT * FROM btsc102
+
+SELECT count(*) FROM btsc102 WHERE lag_bors = bors AND bors = ld_bors;
 
 SELECT * FROM btsc102 WHERE lag_bors = bors AND bors = ld_bors;
 
--- aggregate:
+-- aggregate around the clumps:
 
 SELECT
 pair
@@ -226,93 +200,16 @@ GROUP BY pair,sgn_score_diff
 ORDER BY pair,sgn_score_diff
 /
 
-exit
-
+-- roll-up:
 SELECT
 sgn_score_diff
-,rscore_diff1
 ,AVG(g4)avg_g4
 ,COUNT(ydate)ccount
-FROM btg16
-WHERE ABS(rscore_diff1)>0.6
+FROM btsc102 WHERE lag_bors = bors AND bors = ld_bors
+AND ABS(rscore_diff1)>0.6
 AND ydate > sysdate - 1
-AND rnng_crr2 > 0.01
-GROUP BY rscore_diff1,sgn_score_diff
-ORDER BY rscore_diff1,sgn_score_diff
-/
-
-SELECT
-sgn_score_diff
-,rscore_diff1
-,AVG(g4)avg_g4
-,COUNT(ydate)ccount
-FROM btg16
-WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 1
-AND rnng_crr3 > 0.01
-GROUP BY rscore_diff1,sgn_score_diff
-ORDER BY rscore_diff1,sgn_score_diff
-/
-
-SELECT
-sgn_score_diff
-,rscore_diff1
-,AVG(g4)avg_g4
-,COUNT(ydate)ccount
-FROM btg16
-WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 1
-AND rnng_crr1 > 0.01
-AND rnng_crr2 > 0.01
-AND rnng_crr3 > 0.01
-GROUP BY rscore_diff1,sgn_score_diff
-ORDER BY rscore_diff1,sgn_score_diff
-/
-
-
-SELECT
-pair
-,sgn_score_diff
-,rscore_diff1
-,AVG(g4)avg_g4
-,COUNT(ydate)ccount
-FROM btg16
-WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 1
-AND rnng_crr1 > 0.01
-AND pair = 'usd_jpy'
-GROUP BY pair,rscore_diff1,sgn_score_diff
-ORDER BY pair,rscore_diff1,sgn_score_diff
-/
-
-SELECT
-pair
-,sgn_score_diff
-,rscore_diff1
-,AVG(g4)avg_g4
-,COUNT(ydate)ccount
-FROM btg16
-WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 1
-AND rnng_crr2 > 0.01
-AND pair = 'usd_jpy'
-GROUP BY pair,rscore_diff1,sgn_score_diff
-ORDER BY pair,rscore_diff1,sgn_score_diff
-/
-
-SELECT
-pair
-,sgn_score_diff
-,rscore_diff1
-,AVG(g4)avg_g4
-,COUNT(ydate)ccount
-FROM btg16
-WHERE ABS(rscore_diff1)>0.6
-AND ydate > sysdate - 1
-AND rnng_crr3 > 0.01
-AND pair = 'usd_jpy'
-GROUP BY pair,rscore_diff1,sgn_score_diff
-ORDER BY pair,rscore_diff1,sgn_score_diff
+GROUP BY sgn_score_diff
+ORDER BY sgn_score_diff
 /
 
 exit
