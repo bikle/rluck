@@ -17,18 +17,6 @@ date
 
 cd $SVMSPY/ibapi
 
-./5min_data.bash GD
-
-./5min_data.bash SU
-./5min_data.bash CVE
-./5min_data.bash VLO
-./5min_data.bash TSO
-
-./5min_data.bash RTN
-./5min_data.bash NOC
-./5min_data.bash LMT
-./5min_data.bash GFI
-
 ./5min_data.bash AAPL
 ./5min_data.bash ABT
 ./5min_data.bash ABX
@@ -72,6 +60,7 @@ cd $SVMSPY/ibapi
 ./5min_data.bash CRM
 ./5min_data.bash CSX
 ./5min_data.bash CTSH
+./5min_data.bash CVE
 ./5min_data.bash CVS
 ./5min_data.bash CVX
 ./5min_data.bash DD
@@ -92,7 +81,9 @@ cd $SVMSPY/ibapi
 ./5min_data.bash FFIV
 ./5min_data.bash FLS
 ./5min_data.bash FSLR
+./5min_data.bash GD
 ./5min_data.bash GDX
+./5min_data.bash GFI
 ./5min_data.bash GG
 ./5min_data.bash GILD
 ./5min_data.bash GLD
@@ -101,6 +92,7 @@ cd $SVMSPY/ibapi
 ./5min_data.bash HD
 ./5min_data.bash HES
 ./5min_data.bash HL
+./5min_data.bash HOC
 ./5min_data.bash HON
 ./5min_data.bash HPQ
 ./5min_data.bash IBM
@@ -112,6 +104,7 @@ cd $SVMSPY/ibapi
 ./5min_data.bash JWN
 ./5min_data.bash KO
 ./5min_data.bash LFT
+./5min_data.bash LMT
 ./5min_data.bash MAR
 ./5min_data.bash MCD
 ./5min_data.bash MDT
@@ -127,6 +120,7 @@ cd $SVMSPY/ibapi
 ./5min_data.bash MVG
 ./5min_data.bash NEM
 ./5min_data.bash NFLX
+./5min_data.bash NOC
 ./5min_data.bash NUE
 ./5min_data.bash OIH
 ./5min_data.bash OXY
@@ -145,6 +139,7 @@ cd $SVMSPY/ibapi
 ./5min_data.bash RDY
 ./5min_data.bash RIG
 ./5min_data.bash RIMM
+./5min_data.bash RTN
 ./5min_data.bash SCCO
 ./5min_data.bash SINA
 ./5min_data.bash SJM
@@ -156,20 +151,22 @@ cd $SVMSPY/ibapi
 ./5min_data.bash SOHU
 ./5min_data.bash SPY
 ./5min_data.bash STT
+./5min_data.bash SU
 ./5min_data.bash SUN
 ./5min_data.bash SVM
 ./5min_data.bash SWC
 ./5min_data.bash TEVA
 ./5min_data.bash TGT
 ./5min_data.bash TKR
-./5min_data.bash TKR
 ./5min_data.bash TLT
+./5min_data.bash TSO
 ./5min_data.bash UNH
 ./5min_data.bash UNP
 ./5min_data.bash UPS
 ./5min_data.bash V
 ./5min_data.bash VALE
 ./5min_data.bash VECO
+./5min_data.bash VLO
 ./5min_data.bash VMW
 ./5min_data.bash WDC
 ./5min_data.bash WFMI
