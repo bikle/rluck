@@ -20,8 +20,6 @@ set -x
 
 date
 
-./15min_data.bash DD
-
 ./15min_data.bash AAPL
 ./15min_data.bash ABT
 ./15min_data.bash ABX
@@ -68,6 +66,7 @@ date
 ./15min_data.bash CVE
 ./15min_data.bash CVS
 ./15min_data.bash CVX
+./15min_data.bash DD
 ./15min_data.bash DE
 ./15min_data.bash DIA
 ./15min_data.bash DIS
@@ -96,6 +95,7 @@ date
 ./15min_data.bash HD
 ./15min_data.bash HES
 ./15min_data.bash HL
+./15min_data.bash HOC
 ./15min_data.bash HON
 ./15min_data.bash HPQ
 ./15min_data.bash IBM
