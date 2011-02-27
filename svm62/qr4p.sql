@@ -147,6 +147,39 @@ action
 FROM w16
 /
 
+-- Aggregate by pair:
+CREATE OR REPLACE VIEW w18 AS
+SELECT
+pair
+,action
+,SUM(pct_gain)                  sum_pct_gain
+,COUNT(pct_gain)                ccount
+,AVG(pct_gain)                  avg_pct_gain
+,STDDEV(pct_gain)               stddev_pct_gain
+,AVG(pct_gain)/STDDEV(pct_gain) sharpe_ratio
+FROM w14
+-- WHERE ydate > (SELECT MAX(ydate)-8/24 FROM w14)
+GROUP BY pair,action
+HAVING STDDEV(pct_gain) > 0.0
+ORDER BY pair,action
+/
+
+SELECT
+pair
+,action
+,sum_pct_gain
+,ccount
+,avg_pct_gain
+,stddev_pct_gain
+,sharpe_ratio
+,CASE WHEN(action='buy'AND sum_pct_gain>0.0)THEN 'good   '
+      WHEN(action='sell  'AND sum_pct_gain<0.0)THEN 'good   '
+      WHEN(action='sell  'AND sum_pct_gain>0.0)THEN 'bad    '
+      WHEN(action='buy'   AND sum_pct_gain<0.0)THEN 'bad    '
+      ELSE NULL END goodbad
+FROM w18
+/
+
 exit
 
 -- Aggregate above query results.
