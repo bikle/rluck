@@ -4,6 +4,8 @@
 
 -- I use this script to gather past data for exposure to the web.
 
+SET TIMING off
+
 -- Get prices and gains first.
 
 CREATE OR REPLACE VIEW w10 AS
@@ -40,7 +42,7 @@ ORDER BY l.prdate
 
 -- rpt
 
-SELECT pair,COUNT(pair)FROM w12 WHERE ydate > sysdate - 7 GROUP BY pair;
+SELECT pair,COUNT(pair)FROM w12 WHERE ydate > sysdate - 7 GROUP BY pair
 
 SELECT
 TO_CHAR(ydate,'D')daynum,TO_CHAR(ydate,'Dy')day_name
@@ -49,7 +51,6 @@ FROM w12
 WHERE ydate > sysdate - 7
 GROUP BY TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
 ORDER BY TO_CHAR(ydate,'D')
-/
 
 -- Join em:
 CREATE OR REPLACE VIEW w14 AS
@@ -75,7 +76,7 @@ FROM w10 p, w12 s
 WHERE p.prdate = s.prdate
 -- Is Not NULL:
 AND ydate6 > p.ydate
-AND p.ydate > sysdate - 8
+AND p.ydate > sysdate - 4
 ORDER BY p.prdate
 /
 
@@ -93,6 +94,8 @@ COLUMN sum_pct_gain FORMAT 9999.9999
 COLUMN avg_pct_gain FORMAT  999.9999
 COLUMN avg_pct_gainx100 FORMAT  999.9999
 COLUMN sharpe_ratio     FORMAT  999.9999
+
+SPOOL qr4p10.html
 
 select count(score)from(
 SELECT
@@ -115,16 +118,18 @@ FROM w14
 )
 /
 
+SPOOL off
+
 -- Aggregate above query results.
 -- Aggregate by action:
 CREATE OR REPLACE VIEW w16 AS
 SELECT
 action
-,SUM(pct_gain)                  sum_pct_gain
-,COUNT(pct_gain)                ccount
-,AVG(pct_gain)                  avg_pct_gain
-,STDDEV(pct_gain)               stddev_pct_gain
-,AVG(pct_gain)/STDDEV(pct_gain) sharpe_ratio
+,ROUND(SUM(pct_gain),4)         sum_pct_gain
+,COUNT(pct_gain)                pair_count
+,ROUND(AVG(pct_gain),4)         avg_pct_gain
+,ROUND(STDDEV(pct_gain),4)      stddev_pct_gain
+,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2) sharpe_ratio
 FROM w14
 -- WHERE ydate > (SELECT MAX(ydate)-8/24 FROM w14)
 GROUP BY action
@@ -132,10 +137,12 @@ HAVING STDDEV(pct_gain) > 0.0
 ORDER BY action
 /
 
+SPOOL qr4p12.html
+
 SELECT
 action
 ,sum_pct_gain
-,ccount
+,pair_count
 ,avg_pct_gain
 ,stddev_pct_gain
 ,sharpe_ratio
@@ -147,16 +154,18 @@ action
 FROM w16
 /
 
+SPOOL off
+
 -- Aggregate by pair:
 CREATE OR REPLACE VIEW w18 AS
 SELECT
 pair
 ,action
-,SUM(pct_gain)                  sum_pct_gain
-,COUNT(pct_gain)                ccount
-,AVG(pct_gain)                  avg_pct_gain
-,STDDEV(pct_gain)               stddev_pct_gain
-,AVG(pct_gain)/STDDEV(pct_gain) sharpe_ratio
+,ROUND(SUM(pct_gain),4)         sum_pct_gain
+,COUNT(pct_gain)                pair_count
+,ROUND(AVG(pct_gain),4)         avg_pct_gain
+,ROUND(STDDEV(pct_gain),4)      stddev_pct_gain
+,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2) sharpe_ratio
 FROM w14
 -- WHERE ydate > (SELECT MAX(ydate)-8/24 FROM w14)
 GROUP BY pair,action
@@ -164,11 +173,13 @@ HAVING STDDEV(pct_gain) > 0.0
 ORDER BY pair,action
 /
 
+SPOOL qr4p14.html
+
 SELECT
 pair
 ,action
 ,sum_pct_gain
-,ccount
+,pair_count
 ,avg_pct_gain
 ,stddev_pct_gain
 ,sharpe_ratio
@@ -182,121 +193,3 @@ FROM w18
 
 exit
 
--- Aggregate above query results.
--- Aggregate by pair:
-SELECT
-action
-,pair
-,SUM(pct_gain)                  sum_pct_gain
-,COUNT(pct_gain)                ccount
-,AVG(pct_gain)
-,STDDEV(pct_gain)
-,AVG(pct_gain)/STDDEV(pct_gain) sharpe_ratio
-FROM w14
--- WHERE ydate > (SELECT MAX(ydate)-8/24 FROM w14)
-GROUP BY action,pair
-HAVING STDDEV(pct_gain) > 0.0
-ORDER BY action,pair
-/
-
-exit
-
--- Show 30 hr before max(ydate):
-
-SELECT
-action
-,SUM(pct_gain)                          sum_pct_gain
-,COUNT(pct_gain)                        ccount
-,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_ratio
-FROM w14
-WHERE ydate>(SELECT MAX(ydate)-30/24 FROM w14)
-GROUP BY action
-ORDER BY action
-/
-
--- rpt on prediction aggregations
-
-CREATE OR REPLACE VIEW w16 AS
-SELECT
-pair
-,ydate
-,action
-,pct_gain
-,pct_gainx100
-,score
-,ROUND(score,1)          rscore
-,TO_CHAR(ydate,'YYYY_MM')mnth
-,TO_CHAR(ydate,'W')      wk_num
-FROM w14
-WHERE ABS(pct_gainx100)>0
-/
-
--- Aggregate by pair
-
-SELECT
-pair
-,COUNT(pct_gain)               ccount
-,action
-,ROUND(AVG(pct_gainx100),2)    avg_pct_gainx100
-,ROUND(SUM(pct_gain),2)        sum_pct_gain
-,ROUND(AVG(score),2)           avg_score
-,ROUND(CORR(score,pct_gain),2) score_corr
-,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_ratio
-FROM w16
-GROUP BY action,pair
-ORDER BY action,pair
-/
-
--- Aggregate by day:
-
-SELECT
-TO_CHAR(ydate,'D')Dn
-,TO_CHAR(ydate,'Dy')Dday
-,COUNT(pct_gain)              ccount
-,action
-,ROUND(AVG(pct_gainx100),2)   avg_pct_gainx100
-,ROUND(SUM(pct_gain),2)       sum_pct_gain
-,ROUND(AVG(score),2)          avg_score
-,ROUND(CORR(score,pct_gain),2)score_corr
-,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_ratio
-FROM w16
-GROUP BY action,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
-ORDER BY action,TO_CHAR(ydate,'D'),TO_CHAR(ydate,'Dy')
-/
-
--- Aggregate by month:
-
-SELECT
-mnth
-,COUNT(pct_gain)              ccount
-,action
-,ROUND(AVG(pct_gainx100),2)   avg_pct_gainx100
-,ROUND(SUM(pct_gain),2)       sum_pct_gain
-,ROUND(AVG(score),2)          avg_score
-,ROUND(CORR(score,pct_gain),2)score_corr
-,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_ratio
-FROM w16
-GROUP BY action,mnth
-ORDER BY action,mnth
-/
-
--- Aggregate by week:
-
-SELECT
-mnth
-,wk_num
-,COUNT(pct_gain)              ccount
-,action
-,ROUND(AVG(pct_gainx100),2)   avg_pct_gainx100
-,ROUND(SUM(pct_gain),2)       sum_pct_gain
-,ROUND(AVG(score),2)          avg_score
-,ROUND(CORR(score,pct_gain),2)score_corr
-,ROUND(AVG(pct_gain)/STDDEV(pct_gain),2)sharpe_ratio
-FROM w16
-GROUP BY action,mnth,wk_num
-HAVING COUNT(pct_gain) > 22
-ORDER BY action,mnth,wk_num
-/
-
-
-exit
