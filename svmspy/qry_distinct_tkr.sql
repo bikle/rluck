@@ -4,6 +4,8 @@
 
 -- I use this to give me a list of distinct tkrs.
 
+SET HEAD OFF PAGES 444
+
 SELECT tkr FROM
 (
 SELECT DISTINCT tkr FROM ystk
@@ -12,7 +14,7 @@ SELECT DISTINCT tkr FROM di5min_stk_c2
 UNION
 SELECT DISTINCT tkr FROM ibs15min
 )
-ORDER BY tkr
+ORDER BY tkr DESC
 /
 
 SELECT DISTINCT tkr FROM ystk
