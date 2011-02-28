@@ -110,8 +110,8 @@ ROUND(score,2) score
 ,six_hr_gain
 ,CASE WHEN(action='buy'AND pct_gain>0.0)THEN 'good'
       WHEN(action='sell  'AND pct_gain<0.0)THEN 'good'
-      WHEN(action='buy'AND pct_gain<0.0)THEN 'bad'
-      WHEN(action='sell  'AND pct_gain>0.0)THEN 'bad'
+      WHEN(action='buy'AND pct_gain<=0.0)THEN 'bad'
+      WHEN(action='sell  'AND pct_gain>=0.0)THEN 'bad'
       ELSE NULL END goodbad
 FROM w14
 -- WHERE ydate > (SELECT MAX(ydate)-8/24 FROM w14)
@@ -185,8 +185,8 @@ pair
 ,sharpe_ratio
 ,CASE WHEN(action='buy'AND sum_pct_gain>0.0)THEN 'good   '
       WHEN(action='sell  'AND sum_pct_gain<0.0)THEN 'good   '
-      WHEN(action='sell  'AND sum_pct_gain>0.0)THEN 'bad    '
-      WHEN(action='buy'   AND sum_pct_gain<0.0)THEN 'bad    '
+      WHEN(action='sell  'AND sum_pct_gain>=0.0)THEN 'bad    '
+      WHEN(action='buy'   AND sum_pct_gain<=0.0)THEN 'bad    '
       ELSE NULL END goodbad
 FROM w18
 /
