@@ -18,7 +18,7 @@ pair
 ,(LEAD(clse,12*2,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g2
 ,(LEAD(clse,12*6,NULL)OVER(PARTITION BY pair ORDER BY ydate)-clse)/clse g6
 FROM di5min
-WHERE ydate > sysdate - 5
+WHERE ydate > sysdate - 9
 AND clse > 0
 ORDER BY pair,ydate
 /
@@ -43,8 +43,8 @@ AND   s.targ='gattn'
 AND l.prdate = s.prdate
 AND l.prdate = m.prdate
 -- Speed things up:
-AND l.ydate > sysdate - 1
-AND s.ydate > sysdate - 1
+AND l.ydate > sysdate - 5
+AND s.ydate > sysdate - 5
 /
 
 ANALYZE TABLE qrs12 COMPUTE STATISTICS;

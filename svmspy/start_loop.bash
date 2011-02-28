@@ -10,3 +10,5 @@ mv dl_then_svm.x dl_then_svm.bash
 mv score1_5min.x score1_5min.sql
 mv score1_5min_gattn.x score1_5min_gattn.sql
 mv svmtkr.x svmtkr.bash
+mv loop_once.x loop_once.bash
+mv loop_til_sat.x loop_til_sat.bash
