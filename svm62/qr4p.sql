@@ -95,8 +95,8 @@ COLUMN avg_pct_gain FORMAT  999.9999
 COLUMN avg_pct_gainx100 FORMAT  999.9999
 COLUMN sharpe_ratio     FORMAT  999.9999
 
+SET MARKUP HTML ON table "class='sql_table' id='qr4p10' "
 SPOOL qr4p10.html
-
 select count(score)from(
 SELECT
 ROUND(score,2) score
@@ -117,7 +117,6 @@ FROM w14
 -- WHERE ydate > (SELECT MAX(ydate)-8/24 FROM w14)
 )
 /
-
 SPOOL off
 
 -- Aggregate above query results.
@@ -137,8 +136,8 @@ HAVING STDDEV(pct_gain) > 0.0
 ORDER BY action
 /
 
+SET MARKUP HTML ON table "class='sql_table' id='qr4p12' "
 SPOOL qr4p12.html
-
 SELECT
 action
 ,sum_pct_gain
@@ -153,7 +152,6 @@ action
       ELSE NULL END goodbad
 FROM w16
 /
-
 SPOOL off
 
 -- Aggregate by pair:
@@ -173,8 +171,8 @@ HAVING STDDEV(pct_gain) > 0.0
 ORDER BY pair,action
 /
 
+SET MARKUP HTML ON table "class='sql_table' id='qr4p14' "
 SPOOL qr4p14.html
-
 SELECT
 pair
 ,action
@@ -190,6 +188,7 @@ pair
       ELSE NULL END goodbad
 FROM w18
 /
+SPOOL off
 
 exit
 
