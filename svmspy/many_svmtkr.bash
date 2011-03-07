@@ -79,6 +79,7 @@ date
 ./svmtkr.bash HD
 ./svmtkr.bash HES
 ./svmtkr.bash HL
+./svmtkr.bash HOC
 ./svmtkr.bash HON
 ./svmtkr.bash HPQ
 ./svmtkr.bash IBM
