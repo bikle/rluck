@@ -8,9 +8,9 @@ sleep 1
 exit
 # This script takes too long
 
-echo $0 called
-cd /pt/s/rluck/svm24/
-./svm24.bash > /pt/s/cron/out/svm24.txt 2>&1
-echo $0 finished
+## echo $0 called
+## cd /pt/s/rluck/svm24/
+## ./svm24.bash > /pt/s/cron/out/svm24.txt 2>&1
+## echo $0 finished
 
 exit 0
