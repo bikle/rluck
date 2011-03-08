@@ -4,6 +4,7 @@ set -x
 
 date
 
+./svmtkr.bash ORCL
 ./svmtkr.bash XOM
 ./svmtkr.bash XLU
 ./svmtkr.bash XLE

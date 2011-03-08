@@ -4,6 +4,7 @@ set -x
 
 date
 
+./svmtkr.bash ORCL
 ./svmtkr.bash AAPL
 ./svmtkr.bash ABT
 ./svmtkr.bash ABX

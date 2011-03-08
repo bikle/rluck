@@ -20,6 +20,7 @@ set -x
 
 date
 
+./15min_data.bash ORCL
 ./15min_data.bash AAPL
 ./15min_data.bash ABT
 ./15min_data.bash ABX

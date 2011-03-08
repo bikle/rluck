@@ -8,6 +8,8 @@ set -x
 
 ./svmtkr.bash DD
 
+./svmtkr.bash ORCL
+
 ./svmtkr.bash HOC
 ./svmtkr.bash TKR
 
