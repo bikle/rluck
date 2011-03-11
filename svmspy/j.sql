@@ -46,7 +46,7 @@ tkrdate
         ('mon','tue','wed','thu')   THEN ydate + 1
       ELSE NULL END clse_date
 FROM ocj_stk1
-WHERE ydate > sysdate - 6
+WHERE ydate > sysdate - 1
 ORDER BY tkr,ydate
 /
 
@@ -59,7 +59,7 @@ tkr
 ,clse_date
 FROM ocj_stk2
 WHERE ydate > sysdate - 1/24
-
+/
 
 
 CREATE OR REPLACE VIEW ocj_stk AS
@@ -78,7 +78,7 @@ tkrdate
 ,ccount
 ,max_date
 FROM ocj_stk2 o, score_corr_svmspy s
-WHERE ydate > sysdate - 6
+WHERE ydate > sysdate - 1
 AND o.tkr = s.tkr
 ORDER BY tkr,ydate
 /
@@ -93,21 +93,7 @@ CASE WHEN score_diff > 0.6 THEN'Buy'
 ,clse_date
 ,score_corr
 FROM ocj_stk
-WHERE ydate > '2011-03-04 20:33:00'
-ORDER BY tkr,ydate
-
-SELECT
-CASE WHEN score_diff > 0.6 THEN'Buy'
-     WHEN score_diff < -0.6 THEN'Sell  '
-     ELSE NULL END action
-,tkr
-,score_diff
-,clse
-,clse_date
-,score_corr
-FROM ocj_stk
-WHERE ydate > '2011-03-04 20:33:00'
-AND ABS(score_diff)> 0.6
+WHERE ydate > '2011-03-09 20:29:00'
 AND score_corr > 0.1
 ORDER BY tkr,ydate
 /

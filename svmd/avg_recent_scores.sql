@@ -74,7 +74,7 @@ tkr
 ,clse_date
 ,sc_corr
 FROM ars10
-WHERE ydate > sysdate -4
+WHERE ydate > sysdate -2
 AND sc_corr > 0.2
 AND ABS(score_diff) > 0.6
 ORDER BY clse_date,score_diff
@@ -90,7 +90,7 @@ CASE WHEN score_diff > 0.5 THEN'Buy'
 ,clse_date
 ,sc_corr
 FROM ars10
-WHERE ydate > sysdate -4
+WHERE ydate > sysdate -2
 AND sc_corr > 0.1
 AND ABS(score_diff) > 0.5
 ORDER BY clse_date,score_diff
@@ -107,7 +107,7 @@ tkr
 ,clse_date
 ,sc_corr
 FROM ars10
-WHERE ydate > sysdate -4
+WHERE ydate > sysdate -2
 ORDER BY tkr,clse_date
 /
 

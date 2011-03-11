@@ -49,4 +49,27 @@ GROUP BY tkr,TO_CHAR(ydate,'dy hh24')
 ORDER BY tkr,TO_CHAR(ydate,'dy hh24')
 /
 
+SELECT
+tkr
+,TO_CHAR(ydate,'dy hh24')hnum
+,AVG(g1)
+,MIN(ydate)
+,COUNT(g1)
+,MAX(ydate)
+FROM
+(
+  SELECT
+  tkr
+  ,ydate
+  ,gain1day g1
+  FROM di5min_stk_c2
+  WHERE tkr = 'SPY'
+)
+WHERE tkr = 'SPY'
+AND TO_CHAR(ydate,'dy') = 'thu'
+AND 0+TO_CHAR(ydate,'HH24')BETWEEN 15 AND 20
+GROUP BY tkr,TO_CHAR(ydate,'dy hh24')
+ORDER BY tkr,TO_CHAR(ydate,'dy hh24')
+/
+
 exit
