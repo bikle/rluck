@@ -93,7 +93,7 @@ CASE WHEN score_diff > 0.6 THEN'Buy'
 ,clse_date
 ,score_corr
 FROM ocj_stk
-WHERE ydate > '2011-03-09 20:29:00'
+WHERE ydate > '2011-03-10 20:29:00'
 AND score_corr > 0.1
 ORDER BY tkr,ydate
 /
