@@ -20,7 +20,7 @@
 
 -- Now, I fill up svmc_apply_prep.
 -- I use same model_name used in score.sql
-DEFINE model_name = 'svmfx102'
+DEFINE model_name = 'svmfx103'
 DEFINE bldtable   = 'bme'
 DEFINE scoretable = 'sme'
 DEFINE case_id    = 'prdate'

@@ -22,9 +22,9 @@ WHERE ydate NOT IN
 AND ydate > sysdate - 9
 AND pair = '&1'
 )
-WHERE ydate > sysdate - 1
+WHERE ydate > sysdate - 2
 -- ORDER BY DBMS_RANDOM.VALUE
-ORDER BY ydate DESC,cmd
+ORDER BY ydate,cmd
 /
 
 
