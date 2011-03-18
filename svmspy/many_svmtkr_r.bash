@@ -4,8 +4,6 @@ set -x
 
 date
 
-./svmtkr.bash T
-./svmtkr.bash ORCL
 ./svmtkr.bash XOM
 ./svmtkr.bash XLU
 ./svmtkr.bash XLE
@@ -167,3 +165,5 @@ date
 ./svmtkr.bash ABX
 ./svmtkr.bash ABT
 ./svmtkr.bash AAPL
+./svmtkr.bash T
+./svmtkr.bash ORCL
