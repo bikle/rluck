@@ -46,6 +46,7 @@ tkr
 ,MAX(ydate)FROM
 ibs15min
 GROUP BY tkr
+ORDER BY tkr
 /
 
 exit
