@@ -20,7 +20,7 @@ TRUNC(ydate)trunc_ydate
 ,TO_CHAR(TRUNC(ydate),'Dy')dday
 ,COUNT(ydate)ccount
 FROM ibf5min
-WHERE ydate > sysdate - 33
+WHERE ydate > sysdate - 99
 GROUP BY TRUNC(ydate)
 )
 ORDER BY trunc_ydate
