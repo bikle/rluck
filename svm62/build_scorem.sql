@@ -13,16 +13,16 @@ SELECT cmd,ydate,'&1' pair FROM
 SELECT '@score1_5min.sql 'cmd,ydate FROM modsrc
 WHERE ydate NOT IN
   (SELECT ydate FROM svm62scores WHERE targ='gatt'AND pair='&1')
-AND ydate > '2011-02-01'
+AND ydate > '2011-01-30'
 AND pair = '&1'
 UNION
 SELECT '@score1_5min_gattn.sql 'cmd,ydate FROM modsrc
 WHERE ydate NOT IN
   (SELECT ydate FROM svm62scores WHERE targ='gattn'AND pair='&1')
-AND ydate > '2011-02-01'
+AND ydate > '2011-01-30'
 AND pair = '&1'
 )
-WHERE ydate > '2011-03-17 22:00:00'
+WHERE ydate > '2011-01-30'
 -- ORDER BY DBMS_RANDOM.VALUE
 ORDER BY ydate,cmd
 /
