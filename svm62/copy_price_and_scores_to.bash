@@ -23,5 +23,7 @@ echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/svm62_p_s.${myts}.dpdmp z3:/or
 
 echo After scp, do ssh, then:
 
-echo "impdp trade/t table_exists_action=replace dumpfile=svm62_p_s.${myts}.dpdmp"
-
+echo "impdp trade/t table_exists_action=append dumpfile=svm62_p_s.${myts}.dpdmp tables=ibf5min,svm62scores"
+echo "impdp trade/t table_exists_action=replace dumpfile=svm62_p_s.${myts}.dpdmp tables=di5min,op5min"
+echo "sqt @de_dup_svm62scores"
+echo "sqt @ibapi/merge"
