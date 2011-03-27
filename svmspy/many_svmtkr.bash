@@ -124,7 +124,7 @@ date
 ./svmtkr.bash PPLT
 ./svmtkr.bash PRU
 ./svmtkr.bash QCOM
-./svmtkr.bash QQQQ
+./svmtkr.bash QQQ
 ./svmtkr.bash RDY
 ./svmtkr.bash RIG
 ./svmtkr.bash RIMM

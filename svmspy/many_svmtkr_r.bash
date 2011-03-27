@@ -46,7 +46,7 @@ date
 ./svmtkr.bash RIMM
 ./svmtkr.bash RIG
 ./svmtkr.bash RDY
-./svmtkr.bash QQQQ
+./svmtkr.bash QQQ
 ./svmtkr.bash QCOM
 ./svmtkr.bash PRU
 ./svmtkr.bash PPLT

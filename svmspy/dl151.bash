@@ -137,7 +137,7 @@ cd $SVMSPY/ibapi
 ./5min_data.bash PPLT
 ./5min_data.bash PRU
 ./5min_data.bash QCOM
-./5min_data.bash QQQQ
+./5min_data.bash QQQ
 ./5min_data.bash RDY
 ./5min_data.bash RIG
 ./5min_data.bash RIMM
