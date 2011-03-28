@@ -55,8 +55,11 @@ class ReqHdata
 
     mid= 10 # This id comes back as values in a column. They want me to use it to id the data.
     tn= Time.now
-    t60= tn+ 60
-    gm_time=t60.gmtime.strftime("%Y%m%d %H:%M:%S")+" GMT"
+    # t60= tn+ 60
+    # UOM for Time is seconds
+    t2hr = tn + 2*60*60
+    # gm_time=t60.gmtime.strftime("%Y%m%d %H:%M:%S")+" GMT"
+    gm_time=t2hr.gmtime.strftime("%Y%m%d %H:%M:%S")+" GMT"
     # m_backfillEndTime= jl_str "20100816 23:59:59 GMT"
     m_backfillEndTime= jl_str gm_time
     # invalid: m_backfillDuration= jl_str "1 W"
