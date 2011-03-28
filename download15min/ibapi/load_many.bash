@@ -140,7 +140,7 @@ date
 ./15min_data.bash PPLT
 ./15min_data.bash PRU
 ./15min_data.bash QCOM
-./15min_data.bash QQQQ
+./15min_data.bash QQQ
 ./15min_data.bash RDY
 ./15min_data.bash RIG
 ./15min_data.bash RIMM
