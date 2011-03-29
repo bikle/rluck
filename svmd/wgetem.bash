@@ -159,7 +159,7 @@ wget --output-document=PNC.csv http://ichart.finance.yahoo.com/table.csv?s=PNC
 wget --output-document=POT.csv http://ichart.finance.yahoo.com/table.csv?s=POT   
 wget --output-document=PRU.csv http://ichart.finance.yahoo.com/table.csv?s=PRU   
 wget --output-document=QCOM.csv http://ichart.finance.yahoo.com/table.csv?s=QCOM  
-wget --output-document=QQQQ.csv http://ichart.finance.yahoo.com/table.csv?s=QQQQ  
+wget --output-document=QQQ.csv http://ichart.finance.yahoo.com/table.csv?s=QQQ  
 wget --output-document=RIG.csv http://ichart.finance.yahoo.com/table.csv?s=RIG   
 wget --output-document=RIMM.csv http://ichart.finance.yahoo.com/table.csv?s=RIMM  
 wget --output-document=SINA.csv http://ichart.finance.yahoo.com/table.csv?s=SINA  

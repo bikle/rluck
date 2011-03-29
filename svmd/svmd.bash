@@ -19,7 +19,7 @@ cd $SVMD
 #./good_svmtkr.bash 
 exit
 # Run SVM against all the tkrs.
-./many_svmtkr.bash 
+./many_svmtkr.bash
 
 
 exit 0

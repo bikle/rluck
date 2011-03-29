@@ -152,7 +152,7 @@ cat PNC.csv    | awk  '{print "PNC,"$0}' | grep 0 >>ystk_stage.csv
 cat POT.csv    | awk  '{print "POT,"$0}' | grep 0 >>ystk_stage.csv
 cat PRU.csv    | awk  '{print "PRU,"$0}' | grep 0 >>ystk_stage.csv
 cat QCOM.csv   | awk  '{print "QCOM,"$0}' | grep 0 >>ystk_stage.csv
-cat QQQQ.csv   | awk  '{print "QQQQ,"$0}' | grep 0 >>ystk_stage.csv
+cat QQQ.csv   | awk  '{print "QQQ,"$0}' | grep 0 >>ystk_stage.csv
 cat RIG.csv    | awk  '{print "RIG,"$0}' | grep 0 >>ystk_stage.csv
 cat RIMM.csv   | awk  '{print "RIMM,"$0}' | grep 0 >>ystk_stage.csv
 cat SINA.csv   | awk  '{print "SINA,"$0}' | grep 0 >>ystk_stage.csv
