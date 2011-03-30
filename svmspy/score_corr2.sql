@@ -88,7 +88,7 @@ FROM scc14svmspy_t
 WHERE ydate > sysdate - 4
 AND ABS(score_diff) > 0.6
 AND mvg_sc_crr > 0.1
-ORDER BY ydate,tkr
+ORDER BY sign(rscore_diff),tkr,ydate
 /
 
 SELECT DISTINCT tkr FROM
