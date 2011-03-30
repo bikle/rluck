@@ -95,7 +95,7 @@ signsd
 FROM qrs2svmd
 WHERE ABS(score_diff) > 0.6
 AND sc_corr > 0.1
-AND ydate > '2011-03-20'
+AND ydate > '2011-03-28'
 ORDER BY signsd,ydate,tkr
 /
 
