@@ -25,6 +25,14 @@ SELECT COUNT(*)FROM ibs5min;
 SELECT COUNT(*)FROM ibs5min WHERE TO_CHAR(ydate,'SS')='00';
 SELECT COUNT(*)FROM ibs5min WHERE TO_CHAR(ydate,'SS')='01';
 
+-- Remove data which is outside of RTH:
+DELETE ibs5min WHERE TO_CHAR(ydate,'HH24:MI') < '14:30'AND ydate < '2011-03-14';
+DELETE ibs5min WHERE TO_CHAR(ydate,'HH24:MI') > '20:55'AND ydate < '2011-03-14';
+-- Daylight savings time started on 2011-03-14:	                                                                        
+DELETE ibs5min WHERE TO_CHAR(ydate,'HH24:MI') < '13:30'AND ydate > '2011-03-14';
+DELETE ibs5min WHERE TO_CHAR(ydate,'HH24:MI') > '19:55'AND ydate > '2011-03-14';
+
+
 -- Copy in data from ibs5min:
 
 INSERT INTO di5min_stk0(tkrdate,tkr,ydate,clse)
