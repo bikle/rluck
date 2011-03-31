@@ -25,6 +25,14 @@ SELECT tkr,ydate,clse
 FROM ibs_old
 /
 
+-- ibs_stage may have data outside of RTH.
+-- Remove data which is outside of RTH:
+DELETE ibs_dups WHERE TO_CHAR(ydate,'HH24:MI') < '14:30'AND ydate < '2011-03-14';
+DELETE ibs_dups WHERE TO_CHAR(ydate,'HH24:MI') > '20:55'AND ydate < '2011-03-14';
+-- Daylight savings time started on 2011-03-14:	                                                                        
+DELETE ibs_dups WHERE TO_CHAR(ydate,'HH24:MI') < '13:30'AND ydate > '2011-03-14';
+DELETE ibs_dups WHERE TO_CHAR(ydate,'HH24:MI') > '19:55'AND ydate > '2011-03-14';
+
 CREATE TABLE ibs5min COMPRESS AS
 SELECT
 tkr
