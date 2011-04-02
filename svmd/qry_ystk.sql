@@ -9,7 +9,7 @@ tkr
 ,MAX(ydate)
 FROM ystk
 GROUP BY tkr
-ORDER BY MAX(ydate)
+ORDER BY MAX(ydate),tkr
 /
 
 exit

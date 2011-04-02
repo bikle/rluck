@@ -5,8 +5,6 @@
 -- I use this script to look at recent scores.
 -- Inspiration comes from qrs.sql and btsc2.sql
 
-
-
 DROP TABLE qrs10;
 PURGE RECYCLEBIN;
 CREATE TABLE qrs10 COMPRESS AS

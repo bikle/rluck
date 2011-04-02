@@ -29,3 +29,8 @@ cd $SVMSPY
 ./dl_then_svm.bash SKX
 ./dl_then_svm.bash SVM
 ./dl_then_svm.bash VMW
+./dl_then_svm.bash IBM
+./dl_then_svm.bash TLT
+./dl_then_svm.bash XLE
+./dl_then_svm.bash XOM
+

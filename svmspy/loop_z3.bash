@@ -1,54 +1,31 @@
 #!/bin/bash
 
-# loop_z3.bash
+# loop_some.bash
 
-# dukas tkrs 1st:
+. /pt/s/rluck/svmspy/.orcl
+. /pt/s/rluck/svmspy/.jruby
 
-./svmtkr.bash DIA      
-./svmtkr.bash DIS      
-./svmtkr.bash EBAY     
-./svmtkr.bash GOOG     
-./svmtkr.bash HPQ      
-./svmtkr.bash IBM      
-./svmtkr.bash QQQQ     
-./svmtkr.bash SPY      
-./svmtkr.bash WMT      
-./svmtkr.bash XOM      
+set -x
 
-# high-score-core tkrs next:
+date
 
-./svmtkr.bash TLT     
-./svmtkr.bash VALE    
-./svmtkr.bash SWC     
-./svmtkr.bash SJM     
-./svmtkr.bash OXY     
-./svmtkr.bash HL      
-./svmtkr.bash PM      
-./svmtkr.bash AAPL    
-./svmtkr.bash MVG     
-./svmtkr.bash PAAS    
-./svmtkr.bash PBR     
-./svmtkr.bash MET     
-./svmtkr.bash AGU     
-./svmtkr.bash XLB     
-./svmtkr.bash EXK     
-./svmtkr.bash MT      
-./svmtkr.bash MAR     
-./svmtkr.bash SLW     
-./svmtkr.bash SCCO    
-./svmtkr.bash ALL     
-./svmtkr.bash WHR     
-./svmtkr.bash SOHU    
-./svmtkr.bash PALL    
-./svmtkr.bash SVM     
-./svmtkr.bash MDT     
-./svmtkr.bash FLS     
-./svmtkr.bash CEO     
-./svmtkr.bash V       
-./svmtkr.bash PPLT    
-./svmtkr.bash RDY     
-./svmtkr.bash CDE     
-./svmtkr.bash ADBE    
-./svmtkr.bash UNP     
-./svmtkr.bash TEVA    
-./svmtkr.bash SLV     
+cd $SVMSPY
+
+# ./dl_then_svm.bash AXU
+./dl_then_svm.bash CVE
+# ./dl_then_svm.bash DIA
+# ./dl_then_svm.bash DIS
+# ./dl_then_svm.bash DTV
+# ./dl_then_svm.bash EBAY
+# ./dl_then_svm.bash EFA
+# ./dl_then_svm.bash EXK
+./dl_then_svm.bash GDX
+./dl_then_svm.bash GFI
+./dl_then_svm.bash LFT
+./dl_then_svm.bash MOS
+./dl_then_svm.bash MVG
+./dl_then_svm.bash PBR
+./dl_then_svm.bash PM
+./dl_then_svm.bash SKX
+./dl_then_svm.bash SVM
+./dl_then_svm.bash VMW

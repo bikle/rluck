@@ -15,7 +15,7 @@ tkr
 ,selldate
 ,gain1day g1
 FROM di5min_stk_c2
-WHERE ydate > sysdate - 9
+WHERE ydate > sysdate - 123
 ORDER BY tkr,ydate
 /
 
@@ -38,8 +38,8 @@ AND   s.targ='gattn'
 AND l.tkrdate = s.tkrdate
 AND l.tkrdate = m.tkrdate
 -- Speed things up:
-AND l.ydate > sysdate - 9
-AND s.ydate > sysdate - 9
+AND l.ydate > sysdate - 123
+AND s.ydate > sysdate - 123
 /
 
 ANALYZE TABLE us_stk_pst12 ESTIMATE STATISTICS SAMPLE 9 PERCENT;
@@ -54,7 +54,7 @@ tkr
 ,g1
 ,rnng_crr1
 FROM us_stk_pst12
-WHERE ydate > sysdate - 1
+WHERE ydate > sysdate - 123
 )
 /
 
@@ -74,6 +74,33 @@ AND ABS(rscore_diff2) > 0.6
 )
 /
 
+-- See aggregation:
+
+COLUMN avg_g1       FORMAT 999.99
+COLUMN stddev_g1    FORMAT 999.99
+COLUMN sharpe_ratio FORMAT 99.99
+COLUMN sum_g1       FORMAT 9999.99
+
+SELECT
+SIGN(score_diff) sign_score_diff
+,tkr
+,AVG(g1)    avg_g1
+,STDDEV(g1) stddev_g1
+,AVG(g1)/STDDEV(g1) sharpe_ratio
+,SUM(g1)    sum_g1
+,MIN(ydate) min_ydate
+,COUNT(g1)  count_g1
+,MAX(ydate) max_ydate
+FROM us_stk_pst12
+WHERE ydate > sysdate - 123
+AND rnng_crr1 > 0.1
+AND ABS(rscore_diff2) > 0.6
+GROUP BY SIGN(score_diff),tkr
+HAVING STDDEV(g1) > 0
+ORDER BY SIGN(score_diff),tkr
+/
+
+-- See recent details:
 
 SELECT
 tkr
