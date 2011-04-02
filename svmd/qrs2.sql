@@ -68,14 +68,37 @@ ORDER BY tkr,ydate
 
 -- backtest rpt:
 
+COLUMN avg_g1day    FORMAT 999.99
+COLUMN stddev_g1day FORMAT 999.99
+COLUMN sharpe_ratio FORMAT 99.99
+COLUMN sum_g1day    FORMAT 9999.99
+
 SELECT
 signsd
 ,mnth
 ,AVG(g1)   avg_g1day
 ,SUM(g1)   sum_g1day
 ,COUNT(g1) position_count
+,STDDEV(g1)        stddev_g1day
+,AVG(g1)/STDDEV(g1)sharpe_ratio
 FROM qrs2svmd
 WHERE ABS(score_diff) > 0.6
+AND sc_corr > 0.1
+AND ydate > '2010-01-01'
+GROUP BY signsd,mnth
+ORDER BY signsd,mnth
+/
+
+SELECT
+signsd
+,mnth
+,AVG(g1)   avg_g1day
+,SUM(g1)   sum_g1day
+,COUNT(g1) position_count
+,STDDEV(g1)        stddev_g1day
+,AVG(g1)/STDDEV(g1)sharpe_ratio
+FROM qrs2svmd
+WHERE ABS(score_diff) > 0.5
 AND sc_corr > 0.1
 AND ydate > '2010-01-01'
 GROUP BY signsd,mnth

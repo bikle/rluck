@@ -100,6 +100,25 @@ HAVING STDDEV(g1) > 0
 ORDER BY SIGN(score_diff),tkr
 /
 
+SELECT
+SIGN(score_diff) sign_score_diff
+,tkr
+,AVG(g1)    avg_g1
+,STDDEV(g1) stddev_g1
+,AVG(g1)/STDDEV(g1) sharpe_ratio
+,SUM(g1)    sum_g1
+,MIN(ydate) min_ydate
+,COUNT(g1)  count_g1
+,MAX(ydate) max_ydate
+FROM us_stk_pst12
+WHERE ydate > sysdate - 123
+AND rnng_crr1 > 0.1
+AND ABS(rscore_diff2) > 0.5
+GROUP BY SIGN(score_diff),tkr
+HAVING STDDEV(g1) > 0
+ORDER BY SIGN(score_diff),tkr
+/
+
 -- See recent details:
 
 SELECT

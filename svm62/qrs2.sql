@@ -79,6 +79,47 @@ ORDER BY pair,ydate
 )
 /
 
+COLUMN avg_g6       FORMAT 9.9999
+COLUMN sum_g6       FORMAT 9.9999
+COLUMN stddev_g6    FORMAT 9.9999
+COLUMN sharpe_ratio FORMAT 99.9999
+
+SELECT
+SIGN(rscore_diff2)sign_score_diff
+,pair
+,COUNT(pair)count_pair
+,AVG(g6)            avg_g6
+,STDDEV(g6)         stddev_g6
+,AVG(g6)/STDDEV(g6) sharpe_ratio
+,SUM(g6)            sum_g6
+FROM qrs12
+WHERE rnng_crr1 > 0.1
+AND ABS(rscore_diff2) > 0.6
+AND ydate > sysdate - 15
+GROUP BY SIGN(rscore_diff2),pair
+HAVING STDDEV(g6) > 0
+ORDER BY SIGN(rscore_diff2),pair
+/
+
+SELECT
+SIGN(rscore_diff2)sign_score_diff
+,pair
+,COUNT(pair)count_pair
+,AVG(g6)            avg_g6
+,STDDEV(g6)         stddev_g6
+,AVG(g6)/STDDEV(g6) sharpe_ratio
+,SUM(g6)            sum_g6
+FROM qrs12
+WHERE rnng_crr1 > 0.1
+AND ABS(rscore_diff2) > 0.5
+AND ydate > sysdate - 15
+GROUP BY SIGN(rscore_diff2),pair
+HAVING STDDEV(g6) > 0
+ORDER BY SIGN(rscore_diff2),pair
+/
+
+exit
+
 SELECT
 pair
 ,CASE WHEN rscore_diff2<0 THEN'sell'ELSE'buy'END bors
