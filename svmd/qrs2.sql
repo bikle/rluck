@@ -86,6 +86,7 @@ WHERE ABS(score_diff) > 0.6
 AND sc_corr > 0.1
 AND ydate > '2010-01-01'
 GROUP BY signsd,mnth
+HAVING STDDEV(g1) > 0
 ORDER BY signsd,mnth
 /
 
@@ -102,7 +103,66 @@ WHERE ABS(score_diff) > 0.5
 AND sc_corr > 0.1
 AND ydate > '2010-01-01'
 GROUP BY signsd,mnth
+HAVING STDDEV(g1) > 0
 ORDER BY signsd,mnth
+/
+
+-- Group by tkr instead of month:
+
+SELECT
+signsd
+,tkr
+,AVG(g1)   avg_g1day
+,SUM(g1)   sum_g1day
+,COUNT(g1) position_count
+,STDDEV(g1)        stddev_g1day
+,AVG(g1)/STDDEV(g1)sharpe_ratio
+FROM qrs2svmd
+WHERE ABS(score_diff) > 0.5
+AND sc_corr > 0.1
+AND ydate > '2010-01-01'
+GROUP BY signsd,tkr
+HAVING STDDEV(g1)>0 AND COUNT(g1)>9
+ORDER BY signsd,tkr
+/
+
+-- Order by count so I can see active tkrs
+
+SELECT
+signsd
+,tkr
+,AVG(g1)   avg_g1day
+,SUM(g1)   sum_g1day
+,COUNT(g1) position_count
+,STDDEV(g1)        stddev_g1day
+,AVG(g1)/STDDEV(g1)sharpe_ratio
+FROM qrs2svmd
+WHERE ABS(score_diff) > 0.5
+AND sc_corr > 0.1
+AND ydate > '2010-01-01'
+GROUP BY signsd,tkr
+HAVING STDDEV(g1)>0 AND COUNT(g1)>9
+ORDER BY signsd,COUNT(g1)
+/
+
+
+-- Order by tkr so I can see balanced tkrs:
+
+SELECT
+signsd
+,tkr
+,AVG(g1)   avg_g1day
+,SUM(g1)   sum_g1day
+,COUNT(g1) position_count
+,STDDEV(g1)        stddev_g1day
+,AVG(g1)/STDDEV(g1)sharpe_ratio
+FROM qrs2svmd
+WHERE ABS(score_diff) > 0.5
+AND sc_corr > 0.1
+AND ydate > '2010-01-01'
+GROUP BY signsd,tkr
+HAVING STDDEV(g1)>0 AND COUNT(g1)>9
+ORDER BY tkr,signsd
 /
 
 -- Info for future positions:
@@ -116,7 +176,7 @@ signsd
 ,g1
 ,clse_date
 FROM qrs2svmd
-WHERE ABS(score_diff) > 0.6
+WHERE ABS(score_diff) > 0.5
 AND sc_corr > 0.1
 AND ydate > '2011-03-28'
 ORDER BY signsd,ydate,tkr
