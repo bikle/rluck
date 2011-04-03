@@ -79,7 +79,6 @@ signsd
 ,AVG(g1)   avg_g1day
 ,SUM(g1)   sum_g1day
 ,COUNT(g1) position_count
-,STDDEV(g1)        stddev_g1day
 ,AVG(g1)/STDDEV(g1)sharpe_ratio
 FROM qrs2svmd
 WHERE ABS(score_diff) > 0.6
@@ -96,7 +95,6 @@ signsd
 ,AVG(g1)   avg_g1day
 ,SUM(g1)   sum_g1day
 ,COUNT(g1) position_count
-,STDDEV(g1)        stddev_g1day
 ,AVG(g1)/STDDEV(g1)sharpe_ratio
 FROM qrs2svmd
 WHERE ABS(score_diff) > 0.5
@@ -115,7 +113,6 @@ signsd
 ,AVG(g1)   avg_g1day
 ,SUM(g1)   sum_g1day
 ,COUNT(g1) position_count
-,STDDEV(g1)        stddev_g1day
 ,AVG(g1)/STDDEV(g1)sharpe_ratio
 FROM qrs2svmd
 WHERE ABS(score_diff) > 0.5
@@ -134,7 +131,6 @@ signsd
 ,AVG(g1)   avg_g1day
 ,SUM(g1)   sum_g1day
 ,COUNT(g1) position_count
-,STDDEV(g1)        stddev_g1day
 ,AVG(g1)/STDDEV(g1)sharpe_ratio
 FROM qrs2svmd
 WHERE ABS(score_diff) > 0.5
@@ -154,7 +150,6 @@ signsd
 ,AVG(g1)   avg_g1day
 ,SUM(g1)   sum_g1day
 ,COUNT(g1) position_count
-,STDDEV(g1)        stddev_g1day
 ,AVG(g1)/STDDEV(g1)sharpe_ratio
 FROM qrs2svmd
 WHERE ABS(score_diff) > 0.5

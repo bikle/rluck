@@ -76,6 +76,7 @@ AND ABS(rscore_diff2) > 0.6
 
 -- See aggregation:
 
+COLUMN avg_clse     FORMAT 999.99
 COLUMN avg_g1       FORMAT 999.99
 COLUMN stddev_g1    FORMAT 999.99
 COLUMN sharpe_ratio FORMAT 99.99
@@ -84,8 +85,8 @@ COLUMN sum_g1       FORMAT 9999.99
 SELECT
 SIGN(score_diff) sign_score_diff
 ,tkr
+,AVG(clse)  avg_clse
 ,AVG(g1)    avg_g1
-,STDDEV(g1) stddev_g1
 ,AVG(g1)/STDDEV(g1) sharpe_ratio
 ,SUM(g1)    sum_g1
 ,MIN(ydate) min_ydate
@@ -96,15 +97,15 @@ WHERE ydate > sysdate - 123
 AND rnng_crr1 > 0.1
 AND ABS(rscore_diff2) > 0.6
 GROUP BY SIGN(score_diff),tkr
-HAVING STDDEV(g1) > 0
+HAVING STDDEV(g1)>0 AND COUNT(g1)>9
 ORDER BY SIGN(score_diff),tkr
 /
 
 SELECT
 SIGN(score_diff) sign_score_diff
 ,tkr
+,AVG(clse)  avg_clse
 ,AVG(g1)    avg_g1
-,STDDEV(g1) stddev_g1
 ,AVG(g1)/STDDEV(g1) sharpe_ratio
 ,SUM(g1)    sum_g1
 ,MIN(ydate) min_ydate
@@ -115,7 +116,7 @@ WHERE ydate > sysdate - 123
 AND rnng_crr1 > 0.1
 AND ABS(rscore_diff2) > 0.5
 GROUP BY SIGN(score_diff),tkr
-HAVING STDDEV(g1) > 0
+HAVING STDDEV(g1)>0 AND COUNT(g1)>9
 ORDER BY SIGN(score_diff),tkr
 /
 
