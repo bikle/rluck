@@ -20,7 +20,6 @@ cd $SVMSPY
 ./dl_then_svm.bash EBAY
 ./dl_then_svm.bash EFA
 ./dl_then_svm.bash EXK
-./dl_then_svm.bash FCX
 ./dl_then_svm.bash FFIV
 ./dl_then_svm.bash FSLR
 ./dl_then_svm.bash GDX

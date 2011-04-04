@@ -132,7 +132,7 @@ tkr
 FROM us_stk_pst12
 WHERE ydate > sysdate - 1
 AND rnng_crr1 > 0.1
-AND ABS(rscore_diff2) > 0.6
+AND ABS(rscore_diff2) > 0.5
 ORDER BY
 tkr
 ,ydate
