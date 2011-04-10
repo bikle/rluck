@@ -14,7 +14,7 @@ tkr
 ,COUNT(tkr)
 ,MAX(ydate)
 FROM ibs5min
-WHERE tkr='X'
+WHERE tkr='AAPL'
 GROUP BY tkr
 ORDER BY MAX(ydate)
 /
@@ -47,7 +47,7 @@ tkr
 ,(clse - LAG(clse,1,NULL)OVER(PARTITION BY tkr ORDER BY ydate))/clse lag_diff
 FROM ibs5min
 WHERE clse>0
-AND tkr = 'X'
+AND tkr = 'AAPL'
 ORDER BY tkr, ydate
 /
 

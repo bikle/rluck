@@ -9,6 +9,16 @@ date
 
 cd $SVMSPY
 
+# aapl has bad data: ./dl_then_svm.bash AAPL
+./dl_then_svm.bash ABT
+./dl_then_svm.bash ABX
+./dl_then_svm.bash BA
+./dl_then_svm.bash BBT
+./dl_then_svm.bash BBY
+./dl_then_svm.bash BHP
+./dl_then_svm.bash BUCY
+./dl_then_svm.bash BTU
+
 ./dl_then_svm.bash AMZN
 ./dl_then_svm.bash AXU
 ./dl_then_svm.bash BRCM

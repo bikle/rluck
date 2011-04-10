@@ -120,6 +120,25 @@ HAVING STDDEV(g1)>0 AND COUNT(g1)>9
 ORDER BY SIGN(score_diff),tkr
 /
 
+SELECT
+SIGN(score_diff) sign_score_diff
+,TO_CHAR(ydate,'WW')wk
+,AVG(clse)  avg_clse
+,AVG(g1)    avg_g1
+,AVG(g1)/STDDEV(g1) sharpe_ratio
+,SUM(g1)    sum_g1
+,MIN(ydate) min_ydate
+,COUNT(g1)  count_g1
+,MAX(ydate) max_ydate
+FROM us_stk_pst12
+WHERE ydate > sysdate - 123
+AND rnng_crr1 > 0.1
+AND ABS(rscore_diff2) > 0.5
+GROUP BY SIGN(score_diff),TO_CHAR(ydate,'WW')
+HAVING STDDEV(g1)>0 AND COUNT(g1)>9
+ORDER BY SIGN(score_diff),TO_CHAR(ydate,'WW')
+/
+
 -- See recent details:
 
 SELECT
@@ -130,7 +149,8 @@ tkr
 ,g1
 ,rnng_crr1
 FROM us_stk_pst12
-WHERE ydate > sysdate - 1
+WHERE ydate > sysdate - 3/24
+-- WHERE ydate > '2011-04-06 18:33'
 AND rnng_crr1 > 0.1
 AND ABS(rscore_diff2) > 0.5
 ORDER BY

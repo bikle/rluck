@@ -4,6 +4,6 @@
 
 -- I use this script to see which tkrdates have been scored recently.
 
-SELECT * FROM stkscores WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
+SELECT * FROM stkscores WHERE rundate> sysdate -1/24 ORDER BY rundate;
 
 exit
