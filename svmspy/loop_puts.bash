@@ -1,13 +1,6 @@
 #!/bin/bash
 
-. /pt/s/rluck/svmspy/.orcl
-. /pt/s/rluck/svmspy/.jruby
-
-set -x
-
-date
-
-cd $SVMSPY
+# loop_puts.bash
 
 ./dl_then_svm.bash AAPL
 ./dl_then_svm.bash ABX
@@ -48,9 +41,6 @@ cd $SVMSPY
 ./dl_then_svm.bash HD
 ./dl_then_svm.bash HES
 ./dl_then_svm.bash HON
-
-exit
-
 ./dl_then_svm.bash HPQ
 ./dl_then_svm.bash IBM
 ./dl_then_svm.bash IWM
@@ -89,4 +79,3 @@ exit
 ./dl_then_svm.bash XLB
 ./dl_then_svm.bash XLE
 ./dl_then_svm.bash XOM
-

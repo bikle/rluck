@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# loop_some.bash
-
 . /pt/s/rluck/svmspy/.orcl
 . /pt/s/rluck/svmspy/.jruby
 
@@ -11,57 +9,84 @@ date
 
 cd $SVMSPY
 
-## ./svmtkr.bash MJN
-## ./svmtkr.bash LFT
-## ./svmtkr.bash V
-## ./svmtkr.bash XLB
-## ./svmtkr.bash VMW
-## ./svmtkr.bash TLT
-## ./svmtkr.bash QQQQ
-## ./svmtkr.bash PM
-## ./svmtkr.bash IOC
-## ./svmtkr.bash SJM
-## ./svmtkr.bash NEM
-## ./svmtkr.bash GDX
-## ./svmtkr.bash AMT
-## ./svmtkr.bash DIA
-## ./svmtkr.bash SKX
-## ./svmtkr.bash BRCM
-## ./svmtkr.bash GLD
-## ./svmtkr.bash VECO
-## ./svmtkr.bash ALL
-## ./svmtkr.bash WDC
-## ./svmtkr.bash KO
+./svmtkr.bash  AAPL
+./svmtkr.bash  ABX
+./svmtkr.bash  ADBE
+./svmtkr.bash  AEM
+./svmtkr.bash  AKAM
+./svmtkr.bash  ALL
+./svmtkr.bash  AMGN
+./svmtkr.bash  AMZN
+./svmtkr.bash  AXP
+./svmtkr.bash  BA
+./svmtkr.bash  BIDU
+./svmtkr.bash  BP
+./svmtkr.bash  BRCM
+./svmtkr.bash  BTU
+./svmtkr.bash  CELG
+./svmtkr.bash  CHK
+./svmtkr.bash  CLF
+./svmtkr.bash  COP
+./svmtkr.bash  CREE
+./svmtkr.bash  CRM
+./svmtkr.bash  CSX
+./svmtkr.bash  CVS
+./svmtkr.bash  CVX
+./svmtkr.bash  DD
+./svmtkr.bash  DE
+./svmtkr.bash  DIA
+./svmtkr.bash  DIS
+./svmtkr.bash  EBAY
+./svmtkr.bash  EFA
+./svmtkr.bash  EWZ
+./svmtkr.bash  FCX
+./svmtkr.bash  FSLR
+./svmtkr.bash  GDX
+./svmtkr.bash  GLD
+./svmtkr.bash  GOOG
+./svmtkr.bash  GS
+./svmtkr.bash  HD
+./svmtkr.bash  HES
+./svmtkr.bash  HON
 
-# Run this on z3 after import of svmspy_di5.${myts}.dpdmp:
+exit
 
-./svmtkr.bash SLV
-./svmtkr.bash AKAM
-./svmtkr.bash QCOM
-./svmtkr.bash PEP
-./svmtkr.bash GOOG
-./svmtkr.bash IBM
-./svmtkr.bash DD
-./svmtkr.bash CREE
-./svmtkr.bash MRK
-./svmtkr.bash SNDK
-./svmtkr.bash COF
-./svmtkr.bash WMT
-./svmtkr.bash WYNN
-./svmtkr.bash IWM
-./svmtkr.bash AMZN
-./svmtkr.bash MCD
-./svmtkr.bash GS
-./svmtkr.bash SPY
-./svmtkr.bash EFA
-./svmtkr.bash CRM
-./svmtkr.bash XLE
-./svmtkr.bash XLU
-./svmtkr.bash OIH
-./svmtkr.bash DIS
-./svmtkr.bash ABX
-./svmtkr.bash PG
-./svmtkr.bash MAR
-./svmtkr.bash FSLR
-./svmtkr.bash BIDU
-./svmtkr.bash MET
+./svmtkr.bash  HPQ
+./svmtkr.bash  IBM
+./svmtkr.bash  IWM
+./svmtkr.bash  JNJ
+./svmtkr.bash  JPM
+./svmtkr.bash  KO
+./svmtkr.bash  MCD
+./svmtkr.bash  MET
+./svmtkr.bash  MON
+./svmtkr.bash  MRK
+./svmtkr.bash  NEM
+./svmtkr.bash  NFLX
+./svmtkr.bash  PBR
+./svmtkr.bash  PEP
+./svmtkr.bash  PG
+./svmtkr.bash  PM
+./svmtkr.bash  POT
+./svmtkr.bash  PRU
+./svmtkr.bash  QCOM
+./svmtkr.bash  QQQ
+./svmtkr.bash  RIMM
+./svmtkr.bash  SLB
+./svmtkr.bash  SLV
+./svmtkr.bash  SLW
+./svmtkr.bash  SNDK
+./svmtkr.bash  SPY
+./svmtkr.bash  SU
+./svmtkr.bash  SWC
+./svmtkr.bash  TLT
+./svmtkr.bash  TSO
+./svmtkr.bash  UNH
+./svmtkr.bash  VALE
+./svmtkr.bash  VLO
+./svmtkr.bash  WYNN
+./svmtkr.bash  X
+./svmtkr.bash  XLB
+./svmtkr.bash  XLE
+./svmtkr.bash  XOM
+
