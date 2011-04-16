@@ -21,6 +21,8 @@ set -x
 date
 
 ./15min_data.bash T
+./15min_data.bash HAL
+./15min_data.bash FXI
 ./15min_data.bash ORCL
 ./15min_data.bash AAPL
 ./15min_data.bash ABT

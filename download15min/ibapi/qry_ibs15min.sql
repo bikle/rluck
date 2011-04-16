@@ -17,7 +17,7 @@ tkr
 ,MAX(ydate)
 FROM ibs15min
 GROUP BY tkr
-ORDER BY MAX(ydate)
+ORDER BY MAX(ydate),tkr
 /
 
 -- Look for dups

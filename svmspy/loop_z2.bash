@@ -45,6 +45,7 @@ cd $SVMSPY
 ./dl_then_svm.bash GLD
 ./dl_then_svm.bash GOOG
 ./dl_then_svm.bash GS
+./dl_then_svm.bash HAL
 ./dl_then_svm.bash HD
 ./dl_then_svm.bash HES
 ./dl_then_svm.bash HON
