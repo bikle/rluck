@@ -1,18 +1,39 @@
 #!/bin/bash
 
+. /pt/s/rluck/svmspy/.orcl
+. /pt/s/rluck/svmspy/.jruby
+
 set -x
 
-./svmtkr.bash WDC
+date
 
-./svmtkr.bash WFMI
-./svmtkr.bash WHR
-./svmtkr.bash WMT
+cd $SVMSPY
 
-./svmtkr.bash WYNN
-./svmtkr.bash X
-./svmtkr.bash XLB
+./svmtkr.bash  T      
+./svmtkr.bash  COF    
+./svmtkr.bash  CVE    
+./svmtkr.bash  TKR    
 
-./svmtkr.bash XLE
-./svmtkr.bash XLU
-./svmtkr.bash XOM
+./svmtkr.bash  DTV    
+./svmtkr.bash  UNP    
+./svmtkr.bash  V      
+
+./svmtkr.bash  UPS    
+./svmtkr.bash  EXK    
+./svmtkr.bash  FFIV   
+
+exit
+
+./svmtkr.bash  VECO   
+./svmtkr.bash  WDC    
+./svmtkr.bash  GFI    
+./svmtkr.bash  VMW    
+
+./svmtkr.bash  WFMI   
+./svmtkr.bash  WHR    
+./svmtkr.bash  WMT    
+
+./svmtkr.bash  IOC    
+./svmtkr.bash  XLU    
+./svmtkr.bash  MJN    
 

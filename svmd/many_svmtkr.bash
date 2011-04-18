@@ -8,6 +8,7 @@ set -x
 
 ./svmtkr.bash DD
 
+./svmtkr.bash TXN
 ./svmtkr.bash HAL
 ./svmtkr.bash FXI
 ./svmtkr.bash T

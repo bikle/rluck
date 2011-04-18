@@ -5,6 +5,7 @@ set -x
 date
 
 ./svmtkr.bash T
+./svmtkr.bash TXN
 ./svmtkr.bash HAL
 ./svmtkr.bash FXI
 ./svmtkr.bash ORCL
