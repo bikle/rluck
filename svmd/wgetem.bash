@@ -19,6 +19,10 @@ wget --output-document=HL.csv http://ichart.finance.yahoo.com/table.csv?s=HL
 
 wget --output-document=TXN.csv http://ichart.finance.yahoo.com/table.csv?s=TXN
 
+wget --output-document=LVS.csv http://ichart.finance.yahoo.com/table.csv?s=LVS
+
+wget --output-document=YUM.csv http://ichart.finance.yahoo.com/table.csv?s=YUM
+
 wget --output-document=T.csv http://ichart.finance.yahoo.com/table.csv?s=T
 
 wget --output-document=HAL.csv http://ichart.finance.yahoo.com/table.csv?s=HAL

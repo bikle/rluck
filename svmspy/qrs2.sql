@@ -120,6 +120,48 @@ HAVING STDDEV(g1)>0 AND COUNT(g1)>9
 ORDER BY SIGN(score_diff),tkr
 /
 
+-- relax rnng_crr1:
+
+SELECT
+SIGN(score_diff) sign_score_diff
+,TO_CHAR(ydate,'WW')wk
+,AVG(clse)  avg_clse
+,AVG(g1)    avg_g1
+,AVG(g1)/STDDEV(g1) sharpe_ratio
+,SUM(g1)    sum_g1
+,MIN(ydate) min_ydate
+,COUNT(g1)  count_g1
+,MAX(ydate) max_ydate
+FROM us_stk_pst12
+WHERE ydate > sysdate - 123
+AND rnng_crr1 > -1
+AND ABS(rscore_diff2) > 0.5
+GROUP BY SIGN(score_diff),TO_CHAR(ydate,'WW')
+HAVING STDDEV(g1)>0 AND COUNT(g1)>9
+ORDER BY SIGN(score_diff),TO_CHAR(ydate,'WW')
+/
+
+-- constrain rnng_crr1:
+
+SELECT
+SIGN(score_diff) sign_score_diff
+,TO_CHAR(ydate,'WW')wk
+,AVG(clse)  avg_clse
+,AVG(g1)    avg_g1
+,AVG(g1)/STDDEV(g1) sharpe_ratio
+,SUM(g1)    sum_g1
+,MIN(ydate) min_ydate
+,COUNT(g1)  count_g1
+,MAX(ydate) max_ydate
+FROM us_stk_pst12
+WHERE ydate > sysdate - 123
+AND rnng_crr1 > 0.0
+AND ABS(rscore_diff2) > 0.5
+GROUP BY SIGN(score_diff),TO_CHAR(ydate,'WW')
+HAVING STDDEV(g1)>0 AND COUNT(g1)>9
+ORDER BY SIGN(score_diff),TO_CHAR(ydate,'WW')
+/
+
 SELECT
 SIGN(score_diff) sign_score_diff
 ,TO_CHAR(ydate,'WW')wk
@@ -151,7 +193,7 @@ tkr
 FROM us_stk_pst12
 WHERE ydate > sysdate - 3/24
 -- WHERE ydate > '2011-04-06 18:33'
-AND rnng_crr1 > 0.1
+AND rnng_crr1 > 0.0
 AND ABS(rscore_diff2) > 0.5
 ORDER BY
 tkr

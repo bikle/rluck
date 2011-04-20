@@ -9,47 +9,6 @@ date
 
 cd $SVMSPY
 
-./svmtkr.bash HPQ
-./svmtkr.bash IBM
-./svmtkr.bash IWM
-./svmtkr.bash JNJ
-./svmtkr.bash JPM
-./svmtkr.bash KO
-./svmtkr.bash MCD
-./svmtkr.bash MET
-./svmtkr.bash MON
-./svmtkr.bash MRK
-./svmtkr.bash NEM
-./svmtkr.bash NFLX
-./svmtkr.bash PBR
-./svmtkr.bash PEP
-./svmtkr.bash PG
-./svmtkr.bash PM
-./svmtkr.bash POT
-./svmtkr.bash PRU
-./svmtkr.bash QCOM
-./svmtkr.bash QQQ
-./svmtkr.bash RIMM
-./svmtkr.bash SLB
-./svmtkr.bash SLV
-./svmtkr.bash SLW
-./svmtkr.bash SNDK
-./svmtkr.bash SPY
-./svmtkr.bash SU
-./svmtkr.bash SWC
-./svmtkr.bash TLT
-./svmtkr.bash TSO
-./svmtkr.bash UNH
-./svmtkr.bash VALE
-./svmtkr.bash VLO
-./svmtkr.bash WYNN
-./svmtkr.bash X
-./svmtkr.bash XLB
-./svmtkr.bash XLE
-./svmtkr.bash XOM
-
-exit
-
 ./svmtkr.bash AAPL
 ./svmtkr.bash ABX
 ./svmtkr.bash ADBE
@@ -92,4 +51,43 @@ exit
 ./svmtkr.bash HON
 
 exit
+
+./svmtkr.bash HPQ
+./svmtkr.bash IBM
+./svmtkr.bash IWM
+./svmtkr.bash JNJ
+./svmtkr.bash JPM
+./svmtkr.bash KO
+./svmtkr.bash MCD
+./svmtkr.bash MET
+./svmtkr.bash MON
+./svmtkr.bash MRK
+./svmtkr.bash NEM
+./svmtkr.bash NFLX
+./svmtkr.bash PBR
+./svmtkr.bash PEP
+./svmtkr.bash PG
+./svmtkr.bash PM
+./svmtkr.bash POT
+./svmtkr.bash PRU
+./svmtkr.bash QCOM
+./svmtkr.bash QQQ
+./svmtkr.bash RIMM
+./svmtkr.bash SLB
+./svmtkr.bash SLV
+./svmtkr.bash SLW
+./svmtkr.bash SNDK
+./svmtkr.bash SPY
+./svmtkr.bash SU
+./svmtkr.bash SWC
+./svmtkr.bash TLT
+./svmtkr.bash TSO
+./svmtkr.bash UNH
+./svmtkr.bash VALE
+./svmtkr.bash VLO
+./svmtkr.bash WYNN
+./svmtkr.bash X
+./svmtkr.bash XLB
+./svmtkr.bash XLE
+./svmtkr.bash XOM
 

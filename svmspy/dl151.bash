@@ -18,7 +18,9 @@ date
 cd $SVMSPY/ibapi
 
 ./5min_data.bash T
+./5min_data.bash LVS
 ./5min_data.bash TXN
+./5min_data.bash YUM
 ./5min_data.bash HAL
 ./5min_data.bash FXI
 ./5min_data.bash ORCL

@@ -9,6 +9,11 @@ set -x
 ./svmtkr.bash DD
 
 ./svmtkr.bash TXN
+
+./svmtkr.bash LVS
+
+./svmtkr.bash YUM
+
 ./svmtkr.bash HAL
 ./svmtkr.bash FXI
 ./svmtkr.bash T

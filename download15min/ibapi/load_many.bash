@@ -22,6 +22,8 @@ date
 
 ./15min_data.bash T
 ./15min_data.bash TXN
+./15min_data.bash LVS
+./15min_data.bash YUM
 ./15min_data.bash HAL
 ./15min_data.bash FXI
 ./15min_data.bash ORCL
