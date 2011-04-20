@@ -9,7 +9,7 @@ tkr
 FROM us_stk_pst12
 WHERE ydate > sysdate - 3/24
 -- WHERE ydate > '2011-04-19 18:33'
-AND rnng_crr1 > 0.1
+AND rnng_crr1 > 0.0
 AND ABS(rscore_diff2) > 0.1
 ORDER BY
 tkr
