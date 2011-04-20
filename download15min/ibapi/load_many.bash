@@ -21,6 +21,7 @@ set -x
 date
 
 ./15min_data.bash T
+./15min_data.bash WFC
 ./15min_data.bash TXN
 ./15min_data.bash LVS
 ./15min_data.bash YUM
