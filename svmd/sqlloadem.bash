@@ -11,7 +11,10 @@ cd /pt/s/rluck/svmd/cf/
 
 cat TLT.csv | awk  '{print "TLT,"$0}' | grep 0 > ystk_stage.csv
 
+cat MSFT.csv | awk  '{print "MSFT,"$0}' | grep 0 >>ystk_stage.csv
+
 cat TXN.csv | awk  '{print "TXN,"$0}' | grep 0 >>ystk_stage.csv
+
 cat WFC.csv | awk  '{print "WFC,"$0}' | grep 0 >>ystk_stage.csv
 
 cat LVS.csv | awk  '{print "LVS,"$0}' | grep 0 >>ystk_stage.csv

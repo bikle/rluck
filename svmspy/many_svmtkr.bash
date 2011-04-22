@@ -5,6 +5,7 @@ set -x
 date
 
 ./svmtkr.bash T
+./svmtkr.bash MSFT
 ./svmtkr.bash LVS
 ./svmtkr.bash TXN
 ./svmtkr.bash YUM

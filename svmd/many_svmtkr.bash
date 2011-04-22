@@ -8,7 +8,10 @@ set -x
 
 ./svmtkr.bash DD
 
+./svmtkr.bash MSFT
+
 ./svmtkr.bash WFC
+
 ./svmtkr.bash TXN
 
 ./svmtkr.bash LVS

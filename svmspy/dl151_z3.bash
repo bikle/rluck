@@ -17,6 +17,17 @@ date
 
 cd $SVMSPY/ibapi
 
+./5min_data.bash MSFT
+./5min_data.bash IBM
+./5min_data.bash IOC
+./5min_data.bash IWM
+./5min_data.bash JNJ
+./5min_data.bash JOYG
+./5min_data.bash JPM
+./5min_data.bash JWN
+./5min_data.bash KO
+./5min_data.bash LFT
+./5min_data.bash LMT
 ./5min_data.bash MAR
 ./5min_data.bash MCD
 ./5min_data.bash MDT
@@ -189,13 +200,4 @@ exit
 ./5min_data.bash HOC
 ./5min_data.bash HON
 ./5min_data.bash HPQ
-./5min_data.bash IBM
-./5min_data.bash IOC
-./5min_data.bash IWM
-./5min_data.bash JNJ
-./5min_data.bash JOYG
-./5min_data.bash JPM
-./5min_data.bash JWN
-./5min_data.bash KO
-./5min_data.bash LFT
-./5min_data.bash LMT
+
