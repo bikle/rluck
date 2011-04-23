@@ -5,23 +5,20 @@
 
 # I use this script to copy prices and scores from point-a to point-b
 
-set -x
-
 cd /pt/s/rluck/svmd/
 
-set -x
 export myts=`date +%Y_%m_%d_%H_%M`
 
-expdp trade/t dumpfile=svmd.${myts}.dpdmp tables=ystk,ystk_stage,ystk21,ystkscores
+expdp trade/t dumpfile=SVMD.${myts}.DPDMP tables=ystk,ystk_stage,ystk21,ystkscores
 
-echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/svmd.${myts}.dpdmp usr10@xp:dpdump/"
-echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/svmd.${myts}.dpdmp l:/oracle/app/oracle/admin/orcl/dpdump/"
-echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/svmd.${myts}.dpdmp h:/oracle/app/oracle/admin/orcl/dpdump/"
-echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/svmd.${myts}.dpdmp z:/oracle/app/oracle/admin/orcl/dpdump/"
-echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/svmd.${myts}.dpdmp z2:/oracle/app/oracle/admin/orcl/dpdump/"
-echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/svmd.${myts}.dpdmp z3:/oracle/app/oracle/admin/orcl/dpdump/"
+echo "scp -p ~/dpdump/SVMD.${myts}.DPDMP usr10@xp:dpdump/"
+echo "scp -p ~/dpdump/SVMD.${myts}.DPDMP h:~/dpdump/"
+echo "scp -p ~/dpdump/SVMD.${myts}.DPDMP h2:~/dpdump/"
+echo "scp -p ~/dpdump/SVMD.${myts}.DPDMP z:~/dpdump/"
+echo "scp -p ~/dpdump/SVMD.${myts}.DPDMP z2:~/dpdump/"
+echo "scp -p ~/dpdump/SVMD.${myts}.DPDMP z3:~/dpdump/"
 
 echo After scp, do ssh, then:
 
-echo "impdp trade/t table_exists_action=replace dumpfile=svmd.${myts}.dpdmp"
+echo "impdp trade/t table_exists_action=replace dumpfile=SVMD.${myts}.DPDMP"
 
