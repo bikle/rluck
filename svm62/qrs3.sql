@@ -74,7 +74,7 @@ pair
 FROM qrs12
 WHERE rnng_crr1 > 0.1
 AND ydate > sysdate - 4/24
-AND ABS(rscore_diff2) > 0.6
+AND ABS(rscore_diff2) > 0.5
 ORDER BY pair,ydate
 /
 
@@ -91,7 +91,7 @@ pair
 FROM qrs12
 WHERE rnng_crr1 > 0.1
 AND ydate > sysdate - 4/24
-AND ABS(rscore_diff2) > 0.6
+AND ABS(rscore_diff2) > 0.5
 ORDER BY pair,ydate
 /
 
