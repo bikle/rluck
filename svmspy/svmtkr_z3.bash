@@ -9,7 +9,6 @@ date
 
 cd $SVMSPY
 
-./svmtkr.bash MSFT
 ./svmtkr.bash YUM
 ./svmtkr.bash XOM
 ./svmtkr.bash XLU
@@ -99,10 +98,6 @@ cd $SVMSPY
 ./svmtkr.bash IWM
 ./svmtkr.bash IOC
 ./svmtkr.bash IBM
-
-
-exit
-
 ./svmtkr.bash HPQ
 ./svmtkr.bash HON
 ./svmtkr.bash HOC
@@ -183,3 +178,5 @@ exit
 ./svmtkr.bash ABX
 ./svmtkr.bash ABT
 ./svmtkr.bash AAPL
+
+

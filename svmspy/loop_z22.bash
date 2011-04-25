@@ -7,6 +7,7 @@ set -x
 
 date
 
+cd $SVMSPY/ibapi
 ./5min_data.bash  AAPL
 ./5min_data.bash  ABT
 ./5min_data.bash  ABX
