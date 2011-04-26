@@ -19,6 +19,8 @@ cd $SVMSPY/ibapi
 
 ./5min_data.bash T
 ./5min_data.bash MSFT
+./5min_data.bash ACI
+./5min_data.bash MRO
 ./5min_data.bash WFC
 ./5min_data.bash LVS
 ./5min_data.bash TXN
