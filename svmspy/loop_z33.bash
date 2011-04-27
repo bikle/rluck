@@ -22,8 +22,8 @@ cd $SVMSPY/ibapi
 sqt>update_di5min_stk.txt<<EOF
 @update_di5min_stk.sql
 EOF
-cd ..
 (./5min_data.bash MAR;./5min_data.bash  MCD;./5min_data.bash MDT;./5min_data.bash MDY)&
+cd ..
 ./svmtkr.bash  IBM
 ./svmtkr.bash  IOC
 ./svmtkr.bash  IWM
