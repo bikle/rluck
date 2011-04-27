@@ -12,6 +12,7 @@ cd $SVMSPY
 ./svmtkr.bash AAPL
 ./svmtkr.bash ABT
 ./svmtkr.bash ABX
+./svmtkr.bash ACI
 ./svmtkr.bash ADBE
 ./svmtkr.bash AEM
 ./svmtkr.bash AFL
@@ -89,6 +90,8 @@ cd $SVMSPY
 ./svmtkr.bash HOC
 ./svmtkr.bash HON
 ./svmtkr.bash HPQ
+exit
+
 ./svmtkr.bash IBM
 ./svmtkr.bash IOC
 ./svmtkr.bash IWM
@@ -111,6 +114,7 @@ cd $SVMSPY
 ./svmtkr.bash MON
 ./svmtkr.bash MOS
 ./svmtkr.bash MRK
+./svmtkr.bash MSFT
 ./svmtkr.bash MT
 ./svmtkr.bash MVG
 ./svmtkr.bash NEM
