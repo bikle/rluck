@@ -11,6 +11,7 @@ cd $SVMSPY/ibapi
 ./5min_data.bash  AAPL
 ./5min_data.bash  ABT
 ./5min_data.bash  ABX
+./5min_data.bash  ACI
 ./5min_data.bash  ADBE
 ./5min_data.bash  AEM
 ./5min_data.bash  AFL
@@ -34,6 +35,7 @@ cd ..
 ./svmtkr.bash  AAPL
 ./svmtkr.bash  ABT
 ./svmtkr.bash  ABX
+./svmtkr.bash  ACI
 ./svmtkr.bash  ADBE
 ./svmtkr.bash  AEM
 ./svmtkr.bash  AFL

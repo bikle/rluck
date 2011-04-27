@@ -23,6 +23,7 @@ sqt>update_di5min_stk.txt<<EOF
 @update_di5min_stk.sql
 EOF
 cd ..
+(./5min_data.bash MAR;./5min_data.bash  MCD;./5min_data.bash MDT;./5min_data.bash MDY)&
 ./svmtkr.bash  IBM
 ./svmtkr.bash  IOC
 ./svmtkr.bash  IWM
@@ -36,10 +37,10 @@ cd ..
 ./svmtkr.bash  LVS
 
 cd $SVMSPY/ibapi
-./5min_data.bash  MAR
-./5min_data.bash  MCD
-./5min_data.bash  MDT
-./5min_data.bash  MDY
+# ./5min_data.bash  MAR
+# ./5min_data.bash  MCD
+# ./5min_data.bash  MDT
+# ./5min_data.bash  MDY
 ./5min_data.bash  MEE
 ./5min_data.bash  MET
 ./5min_data.bash  MJN
@@ -47,6 +48,7 @@ cd $SVMSPY/ibapi
 ./5min_data.bash  MON
 ./5min_data.bash  MOS
 ./5min_data.bash  MRK
+./5min_data.bash  MRO
 ./5min_data.bash  MSFT
 ./5min_data.bash  MT
 ./5min_data.bash  MVG
@@ -65,6 +67,7 @@ cd ..
 ./svmtkr.bash  MON
 ./svmtkr.bash  MOS
 ./svmtkr.bash  MRK
+./svmtkr.bash  MRO
 ./svmtkr.bash  MSFT
 ./svmtkr.bash  MT
 ./svmtkr.bash  MVG
