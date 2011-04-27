@@ -4,15 +4,15 @@
 
 . /pt/s/rluck/svmd/.orcl
 
-
 export myts=`date +%Y_%m_%d_%H_%M`
 
-expdp trade/t dumpfile=ystkscores.${myts}.dpdmp tables=ystkscores
+expdp trade/t dumpfile=YSTKSCORES.${myts}.DPDMP tables=YSTKSCORES
 
-echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/ystkscores.${myts}.dpdmp z:/oracle/app/oracle/admin/orcl/dpdump/"
-echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/ystkscores.${myts}.dpdmp h:/oracle/app/oracle/admin/orcl/dpdump/"
-echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/ystkscores.${myts}.dpdmp z2:/oracle/app/oracle/admin/orcl/dpdump/"
-echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/ystkscores.${myts}.dpdmp z3:/oracle/app/oracle/admin/orcl/dpdump/"
-echo "scp -p /oracle/app/oracle/admin/orcl/dpdump/ystkscores.${myts}.dpdmp usr10@xp:dpdump/"
+echo "scp -p ~/dpdump/YSTKSCORES.${myts}.DPDMP h:dpdump/"
+echo "scp -p ~/dpdump/YSTKSCORES.${myts}.DPDMP h2:dpdump/"
+echo "scp -p ~/dpdump/YSTKSCORES.${myts}.DPDMP z:dpdump/"
+echo "scp -p ~/dpdump/YSTKSCORES.${myts}.DPDMP z2:dpdump/"
+echo "scp -p ~/dpdump/YSTKSCORES.${myts}.DPDMP z3:dpdump/"
+echo "scp -p ~/dpdump/YSTKSCORES.${myts}.DPDMP usr10@xp:dpdump/"
 
-echo "impdp trade/t table_exists_action=append dumpfile=ystkscores.${myts}.dpdmp"
+echo "impdp trade/t table_exists_action=append dumpfile=YSTKSCORES.${myts}.DPDMP"
