@@ -7,6 +7,8 @@ cd /pt/s/rluck/svmd/
 set -x
 
 ./svmtkr.bash DD
+./svmtkr.bash ACI
+./svmtkr.bash MRO
 
 ./svmtkr.bash MSFT
 
