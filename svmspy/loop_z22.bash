@@ -31,7 +31,7 @@ cd $SVMSPY/ibapi
 sqt>update_di5min_stk.txt<<EOF
 @update_di5min_stk.sql
 EOF
-(./5min_data.bash BA;./5min_data.bash BBT;./5min_data.bash BBY;./5min_data.bash BEN;./5min_data.bash BHP)&
+(./5min_data.bash BA;./5min_data.bash BBT;./5min_data.bash BBY;./5min_data.bash BEN;./5min_data.bash BHP;./5min_data.bash BIDU)&
 cd ..
 ./svmtkr.bash  AAPL
 ./svmtkr.bash  ABT
@@ -60,7 +60,7 @@ cd $SVMSPY/ibapi
 # ./5min_data.bash  BBY
 # ./5min_data.bash  BEN
 # ./5min_data.bash  BHP
-./5min_data.bash  BIDU
+# ./5min_data.bash  BIDU
 ./5min_data.bash  BP
 ./5min_data.bash  BRCM
 ./5min_data.bash  BTU
@@ -68,7 +68,7 @@ cd $SVMSPY/ibapi
 sqt>update_di5min_stk.txt<<EOF
 @update_di5min_stk.sql
 EOF
-(./5min_data.bash CAT;./5min_data.bash CDE;./5min_data.bash CELG;./5min_data.bash CEO;./5min_data.bash CHK)&
+(./5min_data.bash CAT;./5min_data.bash CDE;./5min_data.bash CELG;./5min_data.bash CEO;./5min_data.bash CHK; ./5min_data.bash CLF)&
 cd ..
 ./svmtkr.bash  BA
 ./svmtkr.bash  BBT
@@ -87,7 +87,7 @@ cd $SVMSPY/ibapi
 # ./5min_data.bash  CELG
 # ./5min_data.bash  CEO
 # ./5min_data.bash  CHK
-./5min_data.bash  CLF
+# ./5min_data.bash  CLF
 ./5min_data.bash  CMI
 ./5min_data.bash  COF
 ./5min_data.bash  COP
@@ -102,7 +102,7 @@ cd $SVMSPY/ibapi
 sqt>update_di5min_stk.txt<<EOF
 @update_di5min_stk.sql
 EOF
-(./5min_data.bash DD;./5min_data.bash DE;./5min_data.bash DIA;./5min_data.bash DIS;./5min_data.bash DNDN;)&
+(./5min_data.bash DD;./5min_data.bash DE;./5min_data.bash DIA;./5min_data.bash DIS;./5min_data.bash DNDN; ./5min_data.bash DTV)&
 cd ..
 ./svmtkr.bash  CAT
 ./svmtkr.bash  CDE
@@ -128,12 +128,12 @@ cd $SVMSPY/ibapi
 # ./5min_data.bash  DIA
 # ./5min_data.bash  DIS
 # ./5min_data.bash  DNDN
-./5min_data.bash  DTV
+# ./5min_data.bash  DTV
 ./5min_data.bash  DVN
 sqt>update_di5min_stk.txt<<EOF
 @update_di5min_stk.sql
 EOF
-(./5min_data.bash EBAY;./5min_data.bash EFA;./5min_data.bash EOG;./5min_data.bash ESRX;./5min_data.bash EWZ)&
+(./5min_data.bash EBAY;./5min_data.bash EFA;./5min_data.bash EOG;./5min_data.bash ESRX;./5min_data.bash EWZ; ./5min_data.bash EXK)&
 cd ..
 ./svmtkr.bash  DD
 ./svmtkr.bash  DE
@@ -150,7 +150,7 @@ cd $SVMSPY/ibapi
 # ./5min_data.bash  EOG
 # ./5min_data.bash  ESRX
 # ./5min_data.bash  EWZ
-./5min_data.bash  EXK
+# ./5min_data.bash  EXK
 ./5min_data.bash  FCX
 ./5min_data.bash  FDX
 ./5min_data.bash  FFIV
@@ -160,7 +160,7 @@ cd $SVMSPY/ibapi
 sqt>update_di5min_stk.txt<<EOF
 @update_di5min_stk.sql
 EOF
-(./5min_data.bash GD;./5min_data.bash GDX;./5min_data.bash GFI;./5min_data.bash GG;./5min_data.bash GILD)&
+(./5min_data.bash GD;./5min_data.bash GDX;./5min_data.bash GFI;./5min_data.bash GG;./5min_data.bash GILD; ./5min_data.bash GLD)&
 cd ..
 ./svmtkr.bash  EBAY
 ./svmtkr.bash  EFA
@@ -181,13 +181,13 @@ cd $SVMSPY/ibapi
 # ./5min_data.bash  GFI
 # ./5min_data.bash  GG
 # ./5min_data.bash  GILD
-./5min_data.bash  GLD
+# ./5min_data.bash  GLD
 ./5min_data.bash  GOOG
 ./5min_data.bash  GS
 sqt>update_di5min_stk.txt<<EOF
 @update_di5min_stk.sql
 EOF
-(./5min_data.bash HAL;./5min_data.bash HD;./5min_data.bash HES;./5min_data.bash HL;./5min_data.bash HOC)&
+(./5min_data.bash HAL;./5min_data.bash HD;./5min_data.bash HES;./5min_data.bash HL;./5min_data.bash HOC;./5min_data.bash HON)&
 cd ..
 ./svmtkr.bash  GD
 ./svmtkr.bash  GDX
@@ -204,7 +204,7 @@ cd $SVMSPY/ibapi
 # ./5min_data.bash  HES
 # ./5min_data.bash  HL
 # ./5min_data.bash  HOC
-./5min_data.bash  HON
+# ./5min_data.bash  HON
 ./5min_data.bash  HPQ
 sqt>update_di5min_stk.txt<<EOF
 @update_di5min_stk.sql
