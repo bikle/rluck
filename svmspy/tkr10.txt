@@ -1,5 +1,5 @@
 
-SQL*Plus: Release 11.2.0.1.0 Production on Wed Apr 27 21:17:23 2011
+SQL*Plus: Release 11.2.0.1.0 Production on Thu Apr 28 11:24:41 2011
 
 Copyright (c) 1982, 2009, Oracle.  All rights reserved.
 
@@ -8,78 +8,961 @@ Connected to:
 Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 
-21:17:23 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
+11:24:42 SQL> ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD hh24:mi:ss';
 
 Session altered.
 
 Elapsed: 00:00:00.00
-21:17:23 SQL> 
-21:17:23 SQL> 21:17:23 SQL> --
-21:17:23 SQL> -- stk10u.sql
-21:17:23 SQL> --
-21:17:23 SQL> 
-21:17:23 SQL> -- I use this script to mix data from stk_ms_svmspy and stk_ms
-21:17:23 SQL> 
-21:17:23 SQL> -- I need to run stk10.sql before I run stk10svmd.sql
-21:17:23 SQL> @stk10.sql     '&1'
-21:17:23 SQL> --
-21:17:23 SQL> -- stk10.sql
-21:17:23 SQL> --
-21:17:23 SQL> 
-21:17:23 SQL> -- Creates views and tables for demonstrating SVM.
-21:17:23 SQL> 
-21:17:23 SQL> DROP TABLE stk10svmspy;
+11:24:42 SQL> 
+11:24:42 SQL> 11:24:42 SQL> --
+11:24:42 SQL> -- stk10u.sql
+11:24:42 SQL> --
+11:24:42 SQL> 
+11:24:42 SQL> -- I use this script to mix data from stk_ms_svmspy and stk_ms
+11:24:42 SQL> 
+11:24:42 SQL> -- I need to run stk10.sql before I run stk10svmd.sql
+11:24:42 SQL> @stk10.sql     '&1'
+11:24:42 SQL> --
+11:24:42 SQL> -- stk10.sql
+11:24:42 SQL> --
+11:24:42 SQL> 
+11:24:42 SQL> -- Creates views and tables for demonstrating SVM.
+11:24:42 SQL> 
+11:24:42 SQL> DROP TABLE stk10svmspy;
 
 Table dropped.
 
-Elapsed: 00:00:00.31
-21:17:23 SQL> 
-21:17:23 SQL> PURGE RECYCLEBIN;
+Elapsed: 00:00:00.14
+11:24:42 SQL> 
+11:24:42 SQL> PURGE RECYCLEBIN;
 
 Recyclebin purged.
 
-Elapsed: 00:00:00.14
-21:17:24 SQL> 
-21:17:24 SQL> CREATE TABLE stk10svmspy COMPRESS AS
-21:17:24   2  SELECT
-21:17:24   3  tkr
-21:17:24   4  ,ydate
-21:17:24   5  ,tkr||ydate tkrdate
-21:17:24   6  ,clse
-21:17:24   7  ,clse2
-21:17:24   8  ,rownum rnum -- acts as t in my time-series
-21:17:24   9  -- g1 is important. I want to predict g1:
-21:17:24  10  ,gain1day g1
-21:17:24  11  -- Derive some attributes from clse.
-21:17:24  12  -- Each row spans 5 minutes.
-21:17:24  13  -- The number of rows in 1 day is 24*60/5.
-21:17:24  14  -- I want the aggregations to span from 3 days to 9 days:
-21:17:24  15  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 3*24*60/5 PRECEDING AND CURRENT ROW)min3
-21:17:24  16  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 4*24*60/5 PRECEDING AND CURRENT ROW)min4
-21:17:24  17  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 5*24*60/5 PRECEDING AND CURRENT ROW)min5
-21:17:24  18  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 6*24*60/5 PRECEDING AND CURRENT ROW)min6
-21:17:24  19  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 7*24*60/5 PRECEDING AND CURRENT ROW)min7
-21:17:24  20  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8*24*60/5 PRECEDING AND CURRENT ROW)min8
-21:17:24  21  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 9*24*60/5 PRECEDING AND CURRENT ROW)min9
-21:17:24  22  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 3*24*60/5 PRECEDING AND CURRENT ROW)avg3
-21:17:24  23  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 4*24*60/5 PRECEDING AND CURRENT ROW)avg4
-21:17:24  24  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 5*24*60/5 PRECEDING AND CURRENT ROW)avg5
-21:17:24  25  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 6*24*60/5 PRECEDING AND CURRENT ROW)avg6
-21:17:24  26  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 7*24*60/5 PRECEDING AND CURRENT ROW)avg7
-21:17:24  27  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8*24*60/5 PRECEDING AND CURRENT ROW)avg8
-21:17:24  28  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 9*24*60/5 PRECEDING AND CURRENT ROW)avg9
-21:17:24  29  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 3*24*60/5 PRECEDING AND CURRENT ROW)max3
-21:17:24  30  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 4*24*60/5 PRECEDING AND CURRENT ROW)max4
-21:17:24  31  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 5*24*60/5 PRECEDING AND CURRENT ROW)max5
-21:17:24  32  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 6*24*60/5 PRECEDING AND CURRENT ROW)max6
-21:17:24  33  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 7*24*60/5 PRECEDING AND CURRENT ROW)max7
-21:17:24  34  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8*24*60/5 PRECEDING AND CURRENT ROW)max8
-21:17:24  35  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 9*24*60/5 PRECEDING AND CURRENT ROW)max9
-21:17:24  36  FROM di5min_stk_c2
-21:17:24  37  WHERE UPPER(tkr)='&1'
-21:17:24  38  AND TO_CHAR(ydate,'dy')IN('mon','tue','wed','thu','fri')
-21:17:24  39  AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
-21:17:24  40  ORDER BY ydate
-21:17:24  41  /
+Elapsed: 00:00:00.07
+11:24:42 SQL> 
+11:24:42 SQL> CREATE TABLE stk10svmspy COMPRESS AS
+11:24:42   2  SELECT
+11:24:42   3  tkr
+11:24:42   4  ,ydate
+11:24:42   5  ,tkr||ydate tkrdate
+11:24:42   6  ,clse
+11:24:42   7  ,clse2
+11:24:42   8  ,rownum rnum -- acts as t in my time-series
+11:24:42   9  -- g1 is important. I want to predict g1:
+11:24:42  10  ,gain1day g1
+11:24:42  11  -- Derive some attributes from clse.
+11:24:42  12  -- Each row spans 5 minutes.
+11:24:42  13  -- The number of rows in 1 day is 24*60/5.
+11:24:42  14  -- I want the aggregations to span from 3 days to 9 days:
+11:24:42  15  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 3*24*60/5 PRECEDING AND CURRENT ROW)min3
+11:24:42  16  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 4*24*60/5 PRECEDING AND CURRENT ROW)min4
+11:24:42  17  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 5*24*60/5 PRECEDING AND CURRENT ROW)min5
+11:24:42  18  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 6*24*60/5 PRECEDING AND CURRENT ROW)min6
+11:24:42  19  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 7*24*60/5 PRECEDING AND CURRENT ROW)min7
+11:24:42  20  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8*24*60/5 PRECEDING AND CURRENT ROW)min8
+11:24:42  21  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 9*24*60/5 PRECEDING AND CURRENT ROW)min9
+11:24:42  22  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 3*24*60/5 PRECEDING AND CURRENT ROW)avg3
+11:24:42  23  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 4*24*60/5 PRECEDING AND CURRENT ROW)avg4
+11:24:42  24  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 5*24*60/5 PRECEDING AND CURRENT ROW)avg5
+11:24:42  25  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 6*24*60/5 PRECEDING AND CURRENT ROW)avg6
+11:24:42  26  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 7*24*60/5 PRECEDING AND CURRENT ROW)avg7
+11:24:42  27  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8*24*60/5 PRECEDING AND CURRENT ROW)avg8
+11:24:42  28  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 9*24*60/5 PRECEDING AND CURRENT ROW)avg9
+11:24:42  29  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 3*24*60/5 PRECEDING AND CURRENT ROW)max3
+11:24:42  30  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 4*24*60/5 PRECEDING AND CURRENT ROW)max4
+11:24:42  31  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 5*24*60/5 PRECEDING AND CURRENT ROW)max5
+11:24:42  32  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 6*24*60/5 PRECEDING AND CURRENT ROW)max6
+11:24:42  33  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 7*24*60/5 PRECEDING AND CURRENT ROW)max7
+11:24:42  34  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8*24*60/5 PRECEDING AND CURRENT ROW)max8
+11:24:42  35  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 9*24*60/5 PRECEDING AND CURRENT ROW)max9
+11:24:42  36  FROM di5min_stk_c2
+11:24:42  37  WHERE UPPER(tkr)='&1'
+11:24:42  38  AND TO_CHAR(ydate,'dy')IN('mon','tue','wed','thu','fri')
+11:24:42  39  AND 0+TO_CHAR(ydate,'HH24')BETWEEN 13 AND 20
+11:24:42  40  ORDER BY ydate
+11:24:42  41  /
 old  37: WHERE UPPER(tkr)='&1'
-new  37: WHERE UPPER(tkr)='AEM'
+new  37: WHERE UPPER(tkr)='GFI'
+
+Table created.
+
+Elapsed: 00:00:01.40
+11:24:43 SQL> 
+11:24:43 SQL> ANALYZE TABLE stk10svmspy COMPUTE STATISTICS;
+
+Table analyzed.
+
+Elapsed: 00:00:00.17
+11:24:43 SQL> 
+11:24:43 SQL> -- rpt
+11:24:43 SQL> 
+11:24:43 SQL> SELECT
+11:24:43   2  tkr
+11:24:43   3  ,COUNT(tkr)ccount
+11:24:43   4  ,MIN(clse)mnclse,MAX(clse)mxclse
+11:24:43   5  -- ,MIN(avg4),MAX(avg4)
+11:24:43   6  ,MIN(ydate),MAX(ydate)
+11:24:43   7  ,MIN(g1)
+11:24:43   8  ,MAX(g1)
+11:24:43   9  FROM stk10svmspy
+11:24:43  10  GROUP BY tkr
+11:24:43  11  /
+
+TKR	    CCOUNT     MNCLSE	  MXCLSE MIN(YDATE)	     MAX(YDATE) 	    MIN(G1)    MAX(G1)
+------- ---------- ---------- ---------- ------------------- ------------------- ---------- ----------
+GFI	      4602	15.67	   18.69 2011-01-28 14:30:00 2011-04-27 19:55:00       -.85	   .79
+
+Elapsed: 00:00:00.02
+11:24:43 SQL> 
+11:24:43 SQL> -- Derive trend, clse-relations, moving correlation of clse, and date related params:
+11:24:43 SQL> DROP TABLE stk12svmspy;
+
+Table dropped.
+
+Elapsed: 00:00:00.10
+11:24:43 SQL> CREATE TABLE stk12svmspy COMPRESS AS
+11:24:43   2  SELECT
+11:24:43   3  tkr
+11:24:43   4  ,ydate
+11:24:43   5  ,tkrdate
+11:24:43   6  ,clse
+11:24:43   7  ,rnum
+11:24:43   8  ,g1
+11:24:43   9  ,SIGN(avg4 - LAG(avg4,2,NULL)OVER(PARTITION BY tkr ORDER BY ydate))trend
+11:24:43  10  -- I want more attributes from the ones I derived above:
+11:24:43  11  -- clse relation to moving-min
+11:24:43  12  ,clse-min3  cm3
+11:24:43  13  ,clse-min4  cm4
+11:24:43  14  ,clse-min5  cm5
+11:24:43  15  ,clse-min6  cm6
+11:24:43  16  ,clse-min7  cm7
+11:24:43  17  ,clse-min8  cm8
+11:24:43  18  ,clse-min9  cm9
+11:24:43  19  -- clse relation to moving-avg
+11:24:43  20  ,clse-avg3  ca3
+11:24:43  21  ,clse-avg4  ca4
+11:24:43  22  ,clse-avg5  ca5
+11:24:43  23  ,clse-avg6  ca6
+11:24:43  24  ,clse-avg7  ca7
+11:24:43  25  ,clse-avg8  ca8
+11:24:43  26  ,clse-avg9  ca9
+11:24:43  27  -- clse relation to moving-max
+11:24:43  28  ,clse-max3  cx3
+11:24:43  29  ,clse-max4  cx4
+11:24:43  30  ,clse-max5  cx5
+11:24:43  31  ,clse-max6  cx6
+11:24:43  32  ,clse-max7  cx7
+11:24:43  33  ,clse-max8  cx8
+11:24:43  34  ,clse-max9  cx9
+11:24:43  35  -- Derive date related attributes:
+11:24:43  36  ,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
+11:24:43  37  ,0+TO_CHAR(ydate,'D')d
+11:24:43  38  ,0+TO_CHAR(ydate,'W')w
+11:24:43  39  -- mpm stands for minutes-past-midnight:
+11:24:43  40  ,ROUND( (ydate - trunc(ydate))*24*60 )mpm
+11:24:43  41  -- mph stands for minutes-past-hour:
+11:24:43  42  ,0+TO_CHAR(ydate,'MI')mph
+11:24:43  43  FROM stk10svmspy
+11:24:43  44  ORDER BY ydate
+11:24:43  45  /
+
+Table created.
+
+Elapsed: 00:00:00.14
+11:24:44 SQL> 
+11:24:44 SQL> -- rpt
+11:24:44 SQL> 
+11:24:44 SQL> SELECT
+11:24:44   2  tkr
+11:24:44   3  ,COUNT(tkr)ccount
+11:24:44   4  ,MIN(clse)mnclse,MAX(clse)mxclse
+11:24:44   5  -- ,MIN(avg4),MAX(avg4)
+11:24:44   6  ,MIN(ydate),MAX(ydate)
+11:24:44   7  ,MIN(g1)
+11:24:44   8  ,AVG(g1)
+11:24:44   9  ,MAX(g1)
+11:24:44  10  FROM stk12svmspy
+11:24:44  11  GROUP BY tkr
+11:24:44  12  /
+
+TKR	    CCOUNT     MNCLSE	  MXCLSE MIN(YDATE)	     MAX(YDATE) 	    MIN(G1)    AVG(G1)	  MAX(G1)
+------- ---------- ---------- ---------- ------------------- ------------------- ---------- ---------- ----------
+GFI	      4602	15.67	   18.69 2011-01-28 14:30:00 2011-04-27 19:55:00       -.85 .012573633	      .79
+
+Elapsed: 00:00:00.02
+11:24:44 SQL> 
+11:24:44 SQL> -- Prepare for derivation of NTILE based parameters.
+11:24:44 SQL> -- Also derive the "trend" parameter:
+11:24:44 SQL> 
+11:24:44 SQL> DROP TABLE stk14svmspy;
+
+Table dropped.
+
+Elapsed: 00:00:00.05
+11:24:44 SQL> CREATE TABLE stk14svmspy COMPRESS AS
+11:24:44   2  SELECT
+11:24:44   3  tkr
+11:24:44   4  ,ydate
+11:24:44   5  ,tkrdate
+11:24:44   6  ,clse
+11:24:44   7  ,g1
+11:24:44   8  ,CASE WHEN g1 IS NULL THEN NULL WHEN g1/clse >	0.30/100 THEN 'up' ELSE 'nup' END gatt
+11:24:44   9  ,CASE WHEN g1 IS NULL THEN NULL WHEN g1/clse < -0.30/100 THEN 'up' ELSE 'nup' END gattn
+11:24:44  10  ,CASE WHEN trend IS NULL THEN 1
+11:24:44  11  	    WHEN trend =0      THEN 1
+11:24:44  12  	    ELSE trend END trend
+11:24:44  13  ,cm3
+11:24:44  14  ,cm4
+11:24:44  15  ,cm5
+11:24:44  16  ,cm6
+11:24:44  17  ,cm7
+11:24:44  18  ,cm8
+11:24:44  19  ,cm9
+11:24:44  20  ,ca3
+11:24:44  21  ,ca4
+11:24:44  22  ,ca5
+11:24:44  23  ,ca6
+11:24:44  24  ,ca7
+11:24:44  25  ,ca8
+11:24:44  26  ,ca9
+11:24:44  27  ,cx3
+11:24:44  28  ,cx4
+11:24:44  29  ,cx5
+11:24:44  30  ,cx6
+11:24:44  31  ,cx7
+11:24:44  32  ,cx8
+11:24:44  33  ,cx9
+11:24:44  34  ,hh
+11:24:44  35  ,d
+11:24:44  36  ,w
+11:24:44  37  ,mpm
+11:24:44  38  ,mph
+11:24:44  39  FROM stk12svmspy
+11:24:44  40  -- Guard against divide by 0:
+11:24:44  41  WHERE clse > 0
+11:24:44  42  ORDER BY ydate
+11:24:44  43  /
+
+Table created.
+
+Elapsed: 00:00:00.11
+11:24:44 SQL> 
+11:24:44 SQL> -- rpt
+11:24:44 SQL> 
+11:24:44 SQL> SELECT
+11:24:44   2  tkr
+11:24:44   3  ,trend
+11:24:44   4  ,gatt
+11:24:44   5  ,COUNT(tkr)
+11:24:44   6  ,AVG(g1)
+11:24:44   7  FROM stk14svmspy
+11:24:44   8  GROUP BY tkr,trend,gatt
+11:24:44   9  ORDER BY tkr,trend,gatt
+11:24:44  10  /
+
+TKR	     TREND GAT COUNT(TKR)    AVG(G1)
+------- ---------- --- ---------- ----------
+GFI		-1 nup	      610 -.22403996
+GFI		-1 up	      665 .264960704
+GFI		-1	      162
+GFI		 1 nup	     1695 -.19846598
+GFI		 1 up	     1308 .268085127
+GFI		 1	      162
+
+6 rows selected.
+
+Elapsed: 00:00:00.01
+11:24:44 SQL> 
+11:24:44 SQL> -- Derive NTILE based params:
+11:24:44 SQL> 
+11:24:44 SQL> DROP TABLE stk16svmspy;
+
+Table dropped.
+
+Elapsed: 00:00:00.04
+11:24:44 SQL> CREATE TABLE stk16svmspy COMPRESS AS
+11:24:44   2  SELECT
+11:24:44   3  tkr
+11:24:44   4  ,ydate
+11:24:44   5  ,tkrdate
+11:24:44   6  ,clse
+11:24:44   7  ,g1
+11:24:44   8  ,gatt
+11:24:44   9  ,gattn
+11:24:44  10  ,trend
+11:24:44  11  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm3)att00
+11:24:44  12  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm4)att01
+11:24:44  13  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm5)att02
+11:24:44  14  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm6)att03
+11:24:44  15  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm7)att04
+11:24:44  16  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm8)att05
+11:24:44  17  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm9)att06
+11:24:44  18  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca3)att07
+11:24:44  19  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca4)att08
+11:24:44  20  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca5)att09
+11:24:44  21  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca6)att10
+11:24:44  22  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca7)att11
+11:24:44  23  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca8)att12
+11:24:44  24  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca9)att13
+11:24:44  25  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx3)att14
+11:24:44  26  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx4)att15
+11:24:44  27  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx5)att16
+11:24:44  28  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx6)att17
+11:24:44  29  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx7)att18
+11:24:44  30  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx8)att19
+11:24:44  31  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx9)att20
+11:24:44  32  ,hh  att21
+11:24:44  33  ,d   att22
+11:24:44  34  ,w   att23
+11:24:44  35  ,mpm att24
+11:24:44  36  ,mph att25
+11:24:44  37  ,trend att26
+11:24:44  38  FROM stk14svmspy
+11:24:44  39  ORDER BY ydate
+11:24:44  40  /
+
+Table created.
+
+Elapsed: 00:00:00.58
+11:24:44 SQL> 
+11:24:44 SQL> -- rpt
+11:24:44 SQL> 
+11:24:44 SQL> SELECT
+11:24:44   2  tkr
+11:24:44   3  ,trend
+11:24:44   4  ,gatt
+11:24:44   5  ,COUNT(tkr)
+11:24:44   6  ,AVG(g1)
+11:24:44   7  FROM stk16svmspy
+11:24:44   8  GROUP BY tkr,trend,gatt
+11:24:44   9  ORDER BY tkr,trend,gatt
+11:24:44  10  /
+
+TKR	     TREND GAT COUNT(TKR)    AVG(G1)
+------- ---------- --- ---------- ----------
+GFI		-1 nup	      610 -.22403996
+GFI		-1 up	      665 .264960704
+GFI		-1	      162
+GFI		 1 nup	     1695 -.19846598
+GFI		 1 up	     1308 .268085127
+GFI		 1	      162
+
+6 rows selected.
+
+Elapsed: 00:00:00.02
+11:24:44 SQL> 
+11:24:44 SQL> -- Comment out feedback related syntax:
+11:24:44 SQL> -- CREATE OR REPLACE VIEW sc12tkr AS
+11:24:44 SQL> -- SELECT
+11:24:44 SQL> -- m.tkr
+11:24:44 SQL> -- ,m.ydate
+11:24:44 SQL> -- ,m.tkrdate
+11:24:44 SQL> -- ,l.score score_long
+11:24:44 SQL> -- ,s.score score_short
+11:24:44 SQL> -- ,m.g1
+11:24:44 SQL> -- FROM stkscores l,stkscores s,stk16svmspy m
+11:24:44 SQL> -- WHERE l.targ='gatt'
+11:24:44 SQL> -- AND	 s.targ='gattn'
+11:24:44 SQL> -- AND l.tkrdate = s.tkrdate
+11:24:44 SQL> -- AND l.tkrdate = m.tkrdate
+11:24:44 SQL> -- -- Speed things up:
+11:24:44 SQL> -- AND l.tkr = '&1'
+11:24:44 SQL> -- AND s.tkr = '&1'
+11:24:44 SQL> -- /
+11:24:44 SQL> --
+11:24:44 SQL> -- DROP TABLE score_corr_tkr;
+11:24:44 SQL> --
+11:24:44 SQL> -- CREATE TABLE score_corr_tkr COMPRESS AS
+11:24:44 SQL> -- SELECT tkrdate,AVG(sc_corr)sc_corr FROM
+11:24:44 SQL> -- (
+11:24:44 SQL> --   SELECT
+11:24:44 SQL> --   tkrdate
+11:24:44 SQL> --   -- Find corr() tween score and g1 over 8 day period:
+11:24:44 SQL> --   ,CORR((score_long - score_short),g1)
+11:24:44 SQL> --     OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8*24*60/5 PRECEDING AND CURRENT ROW)sc_corr
+11:24:44 SQL> --   FROM sc12tkr
+11:24:44 SQL> -- )
+11:24:44 SQL> -- GROUP BY tkrdate
+11:24:44 SQL> -- /
+11:24:44 SQL> 
+11:24:44 SQL> -- Now I derive goodness attributes and join with score_corr_tkr:
+11:24:44 SQL> 
+11:24:44 SQL> DROP TABLE stk_ms_svmspy;
+
+Table dropped.
+
+Elapsed: 00:00:00.04
+11:24:44 SQL> 
+11:24:44 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.26
+11:24:45 SQL> 
+11:24:45 SQL> CREATE TABLE stk_ms_svmspy COMPRESS AS
+11:24:45   2  SELECT
+11:24:45   3  tkr
+11:24:45   4  ,ydate
+11:24:45   5  ,tkrdate
+11:24:45   6  ,trend
+11:24:45   7  ,g1
+11:24:45   8  ,gatt
+11:24:45   9  ,gattn
+11:24:45  10  -- Goodness attributes:
+11:24:45  11  ,SUM(g1)OVER(PARTITION BY trend,att00 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g00
+11:24:45  12  ,SUM(g1)OVER(PARTITION BY trend,att01 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g01
+11:24:45  13  ,SUM(g1)OVER(PARTITION BY trend,att02 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g02
+11:24:45  14  ,SUM(g1)OVER(PARTITION BY trend,att03 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g03
+11:24:45  15  ,SUM(g1)OVER(PARTITION BY trend,att04 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g04
+11:24:45  16  ,SUM(g1)OVER(PARTITION BY trend,att05 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g05
+11:24:45  17  ,SUM(g1)OVER(PARTITION BY trend,att06 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g06
+11:24:45  18  ,SUM(g1)OVER(PARTITION BY trend,att07 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g07
+11:24:45  19  ,SUM(g1)OVER(PARTITION BY trend,att08 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g08
+11:24:45  20  ,SUM(g1)OVER(PARTITION BY trend,att09 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g09
+11:24:45  21  ,SUM(g1)OVER(PARTITION BY trend,att10 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g10
+11:24:45  22  ,SUM(g1)OVER(PARTITION BY trend,att11 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g11
+11:24:45  23  ,SUM(g1)OVER(PARTITION BY trend,att12 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g12
+11:24:45  24  ,SUM(g1)OVER(PARTITION BY trend,att13 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g13
+11:24:45  25  ,SUM(g1)OVER(PARTITION BY trend,att14 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g14
+11:24:45  26  ,SUM(g1)OVER(PARTITION BY trend,att15 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g15
+11:24:45  27  ,SUM(g1)OVER(PARTITION BY trend,att16 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g16
+11:24:45  28  ,SUM(g1)OVER(PARTITION BY trend,att17 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g17
+11:24:45  29  ,SUM(g1)OVER(PARTITION BY trend,att18 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g18
+11:24:45  30  ,SUM(g1)OVER(PARTITION BY trend,att19 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g19
+11:24:45  31  ,SUM(g1)OVER(PARTITION BY trend,att20 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g20
+11:24:45  32  ,SUM(g1)OVER(PARTITION BY trend,att21 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g21
+11:24:45  33  ,SUM(g1)OVER(PARTITION BY trend,att22 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g22
+11:24:45  34  ,SUM(g1)OVER(PARTITION BY trend,att23 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g23
+11:24:45  35  ,SUM(g1)OVER(PARTITION BY trend,att24 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g24
+11:24:45  36  ,SUM(g1)OVER(PARTITION BY trend,att25 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g25
+11:24:45  37  ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 90*24*60/5 PRECEDING AND CURRENT ROW)g26
+11:24:45  38  -- att26 is trend which is a powerful attribute so I derive 3 more goodness attributes from trend:
+11:24:45  39  ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 60*24*60/5 PRECEDING AND CURRENT ROW)g27
+11:24:45  40  ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 30*24*60/5 PRECEDING AND CURRENT ROW)g28
+11:24:45  41  ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 10*24*60/5 PRECEDING AND CURRENT ROW)g29
+11:24:45  42  FROM stk16svmspy
+11:24:45  43  /
+
+Table created.
+
+Elapsed: 00:00:00.86
+11:24:46 SQL> 
+11:24:46 SQL> -- rpt
+11:24:46 SQL> 
+11:24:46 SQL> SELECT
+11:24:46   2  tkr
+11:24:46   3  ,trend
+11:24:46   4  ,gatt
+11:24:46   5  ,COUNT(tkr)
+11:24:46   6  ,AVG(g1)
+11:24:46   7  FROM stk_ms_svmspy
+11:24:46   8  GROUP BY tkr,trend,gatt
+11:24:46   9  ORDER BY tkr,trend,gatt
+11:24:46  10  /
+
+TKR	     TREND GAT COUNT(TKR)    AVG(G1)
+------- ---------- --- ---------- ----------
+GFI		-1 nup	      610 -.22403996
+GFI		-1 up	      665 .264960704
+GFI		-1	      162
+GFI		 1 nup	     1695 -.19846598
+GFI		 1 up	     1308 .268085127
+GFI		 1	      162
+
+6 rows selected.
+
+Elapsed: 00:00:00.01
+11:24:46 SQL> 
+11:24:46 SQL> SELECT
+11:24:46   2  tkr
+11:24:46   3  ,0+TO_CHAR(ydate,'D')daynum
+11:24:46   4  ,COUNT(tkr)
+11:24:46   5  ,MIN(ydate),MAX(ydate)
+11:24:46   6  FROM stk_ms_svmspy
+11:24:46   7  GROUP BY tkr,0+TO_CHAR(ydate,'D')
+11:24:46   8  ORDER BY tkr,0+TO_CHAR(ydate,'D')
+11:24:46   9  /
+
+TKR	    DAYNUM COUNT(TKR) MIN(YDATE)	  MAX(YDATE)
+------- ---------- ---------- ------------------- -------------------
+GFI		 2	  858 2011-01-31 14:30:00 2011-04-25 19:55:00
+GFI		 3	  936 2011-02-01 14:30:00 2011-04-26 19:55:00
+GFI		 4	  936 2011-02-02 14:30:00 2011-04-27 19:55:00
+GFI		 5	  936 2011-02-03 14:30:00 2011-04-21 19:55:00
+GFI		 6	  936 2011-01-28 14:30:00 2011-04-15 19:55:00
+
+Elapsed: 00:00:00.01
+11:24:46 SQL> 
+11:24:46 SQL> -- exit
+11:24:46 SQL> @stk10svmd.sql '&1'
+11:24:46 SQL> --
+11:24:46 SQL> -- stk10svmd.sql
+11:24:46 SQL> --
+11:24:46 SQL> 
+11:24:46 SQL> -- Creates views and tables for demonstrating SVM.
+11:24:46 SQL> -- I need to run this after I run stk10.sql
+11:24:46 SQL> 
+11:24:46 SQL> DROP TABLE   stk_svmd10svmspy;
+
+Table dropped.
+
+Elapsed: 00:00:00.04
+11:24:46 SQL> 
+11:24:46 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.10
+11:24:46 SQL> 
+11:24:46 SQL> CREATE TABLE stk_svmd10svmspy COMPRESS AS
+11:24:46   2  SELECT
+11:24:46   3  tkr
+11:24:46   4  ,ydate
+11:24:46   5  ,tkr||ydate tkrdate
+11:24:46   6  ,clse
+11:24:46   7  ,rownum rnum -- acts as t in my time-series
+11:24:46   8  -- Derive some attributes from clse.
+11:24:46   9  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 3 PRECEDING AND CURRENT ROW)min3
+11:24:46  10  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 4 PRECEDING AND CURRENT ROW)min4
+11:24:46  11  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 5 PRECEDING AND CURRENT ROW)min5
+11:24:46  12  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)min6
+11:24:46  13  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 7 PRECEDING AND CURRENT ROW)min7
+11:24:46  14  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8 PRECEDING AND CURRENT ROW)min8
+11:24:46  15  ,MIN(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 9 PRECEDING AND CURRENT ROW)min9
+11:24:46  16  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 3 PRECEDING AND CURRENT ROW)avg3
+11:24:46  17  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 4 PRECEDING AND CURRENT ROW)avg4
+11:24:46  18  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 5 PRECEDING AND CURRENT ROW)avg5
+11:24:46  19  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)avg6
+11:24:46  20  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 7 PRECEDING AND CURRENT ROW)avg7
+11:24:46  21  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8 PRECEDING AND CURRENT ROW)avg8
+11:24:46  22  ,AVG(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 9 PRECEDING AND CURRENT ROW)avg9
+11:24:46  23  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 3 PRECEDING AND CURRENT ROW)max3
+11:24:46  24  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 4 PRECEDING AND CURRENT ROW)max4
+11:24:46  25  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 5 PRECEDING AND CURRENT ROW)max5
+11:24:46  26  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)max6
+11:24:46  27  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 7 PRECEDING AND CURRENT ROW)max7
+11:24:46  28  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8 PRECEDING AND CURRENT ROW)max8
+11:24:46  29  ,MAX(clse)OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 9 PRECEDING AND CURRENT ROW)max9
+11:24:46  30  ,LEAD(clse,1,NULL)OVER(PARTITION BY tkr ORDER BY ydate)ld
+11:24:46  31  -- ystk21 created here: svmd/cr_ystk21.sql
+11:24:46  32  FROM ystk21
+11:24:46  33  WHERE UPPER(tkr)='&1'
+11:24:46  34  AND ydate > '1990-01-01'
+11:24:46  35  AND ydate NOT IN(SELECT DISTINCT ydate FROM stk_ms_svmspy WHERE UPPER(tkr)='&1')
+11:24:46  36  ORDER BY ydate
+11:24:46  37  /
+old  33: WHERE UPPER(tkr)='&1'
+new  33: WHERE UPPER(tkr)='GFI'
+old  35: AND ydate NOT IN(SELECT DISTINCT ydate FROM stk_ms_svmspy WHERE UPPER(tkr)='&1')
+new  35: AND ydate NOT IN(SELECT DISTINCT ydate FROM stk_ms_svmspy WHERE UPPER(tkr)='GFI')
+
+Table created.
+
+Elapsed: 00:00:00.47
+11:24:46 SQL> 
+11:24:46 SQL> -- rpt
+11:24:46 SQL> 
+11:24:46 SQL> SELECT
+11:24:46   2  tkr
+11:24:46   3  ,COUNT(tkr)
+11:24:46   4  ,MIN(clse),MAX(clse)
+11:24:46   5  ,MIN(avg4),MAX(avg4)
+11:24:46   6  ,MIN(ydate),MAX(ydate)
+11:24:46   7  FROM stk_svmd10svmspy
+11:24:46   8  GROUP BY tkr
+11:24:46   9  /
+
+TKR	  COUNT(TKR)  MIN(CLSE)  MAX(CLSE)  MIN(AVG4)  MAX(AVG4) MIN(YDATE)	     MAX(YDATE)
+--------- ---------- ---------- ---------- ---------- ---------- ------------------- -------------------
+GFI		5011	   2.15      24.35	2.176	  23.484 1991-05-01 20:00:00 2011-04-26 20:00:00
+
+Elapsed: 00:00:00.01
+11:24:46 SQL> 
+11:24:46 SQL> -- Derive trend, clse-relations, moving correlation of clse, and date related params:
+11:24:46 SQL> DROP TABLE stk_svmd12;
+
+Table dropped.
+
+Elapsed: 00:00:00.10
+11:24:46 SQL> CREATE TABLE stk_svmd12 COMPRESS AS
+11:24:46   2  SELECT
+11:24:46   3  tkr
+11:24:46   4  ,ydate
+11:24:46   5  ,tkrdate
+11:24:46   6  ,clse
+11:24:46   7  ,rnum
+11:24:46   8  -- g1 is important. I want to predict g1:
+11:24:46   9  ,ld - clse g1
+11:24:46  10  ,SIGN(avg4 - LAG(avg4,2,NULL)OVER(PARTITION BY tkr ORDER BY ydate))trend
+11:24:46  11  -- I want more attributes from the ones I derived above:
+11:24:46  12  -- clse relation to moving-min
+11:24:46  13  ,clse-min3  cm3
+11:24:46  14  ,clse-min4  cm4
+11:24:46  15  ,clse-min5  cm5
+11:24:46  16  ,clse-min6  cm6
+11:24:46  17  ,clse-min7  cm7
+11:24:46  18  ,clse-min8  cm8
+11:24:46  19  ,clse-min9  cm9
+11:24:46  20  -- clse relation to moving-avg
+11:24:46  21  ,clse-avg3  ca3
+11:24:46  22  ,clse-avg4  ca4
+11:24:46  23  ,clse-avg5  ca5
+11:24:46  24  ,clse-avg6  ca6
+11:24:46  25  ,clse-avg7  ca7
+11:24:46  26  ,clse-avg8  ca8
+11:24:46  27  ,clse-avg9  ca9
+11:24:46  28  -- clse relation to moving-max
+11:24:46  29  ,clse-max3  cx3
+11:24:46  30  ,clse-max4  cx4
+11:24:46  31  ,clse-max5  cx5
+11:24:46  32  ,clse-max6  cx6
+11:24:46  33  ,clse-max7  cx7
+11:24:46  34  ,clse-max8  cx8
+11:24:46  35  ,clse-max9  cx9
+11:24:46  36  -- Derive date related attributes:
+11:24:46  37  ,0+TO_CHAR( ROUND(ydate,'HH24'),'HH24')hh
+11:24:46  38  ,0+TO_CHAR(ydate,'D')d
+11:24:46  39  ,0+TO_CHAR(ydate,'W')w
+11:24:46  40  -- mpm stands for minutes-past-midnight:
+11:24:46  41  ,ROUND( (ydate - trunc(ydate))*24*60 )mpm
+11:24:46  42  -- mph stands for minutes-past-hour:
+11:24:46  43  ,0+TO_CHAR(ydate,'MI')mph
+11:24:46  44  FROM stk_svmd10svmspy
+11:24:46  45  ORDER BY ydate
+11:24:46  46  /
+
+Table created.
+
+Elapsed: 00:00:00.18
+11:24:47 SQL> 
+11:24:47 SQL> -- rpt
+11:24:47 SQL> 
+11:24:47 SQL> SELECT
+11:24:47   2  tkr
+11:24:47   3  ,COUNT(tkr)
+11:24:47   4  ,MIN(clse),MAX(clse)
+11:24:47   5  ,MIN(ydate),MAX(ydate)
+11:24:47   6  FROM stk_svmd12
+11:24:47   7  GROUP BY tkr
+11:24:47   8  /
+
+TKR	  COUNT(TKR)  MIN(CLSE)  MAX(CLSE) MIN(YDATE)	       MAX(YDATE)
+--------- ---------- ---------- ---------- ------------------- -------------------
+GFI		5011	   2.15      24.35 1991-05-01 20:00:00 2011-04-26 20:00:00
+
+Elapsed: 00:00:00.01
+11:24:47 SQL> 
+11:24:47 SQL> -- Prepare for derivation of NTILE based parameters.
+11:24:47 SQL> -- Also derive the "trend" parameter:
+11:24:47 SQL> 
+11:24:47 SQL> DROP TABLE stk_svmd14;
+
+Table dropped.
+
+Elapsed: 00:00:00.04
+11:24:47 SQL> CREATE TABLE stk_svmd14 COMPRESS AS
+11:24:47   2  SELECT
+11:24:47   3  tkr
+11:24:47   4  ,ydate
+11:24:47   5  ,tkrdate
+11:24:47   6  ,clse
+11:24:47   7  ,g1
+11:24:47   8  ,CASE WHEN g1 IS NULL THEN NULL WHEN g1/clse >	0.30/100 THEN 'up' ELSE 'nup' END gatt
+11:24:47   9  ,CASE WHEN g1 IS NULL THEN NULL WHEN g1/clse < -0.30/100 THEN 'up' ELSE 'nup' END gattn
+11:24:47  10  ,CASE WHEN trend IS NULL THEN 1
+11:24:47  11  	    WHEN trend =0      THEN 1
+11:24:47  12  	    ELSE trend END trend
+11:24:47  13  ,cm3
+11:24:47  14  ,cm4
+11:24:47  15  ,cm5
+11:24:47  16  ,cm6
+11:24:47  17  ,cm7
+11:24:47  18  ,cm8
+11:24:47  19  ,cm9
+11:24:47  20  ,ca3
+11:24:47  21  ,ca4
+11:24:47  22  ,ca5
+11:24:47  23  ,ca6
+11:24:47  24  ,ca7
+11:24:47  25  ,ca8
+11:24:47  26  ,ca9
+11:24:47  27  ,cx3
+11:24:47  28  ,cx4
+11:24:47  29  ,cx5
+11:24:47  30  ,cx6
+11:24:47  31  ,cx7
+11:24:47  32  ,cx8
+11:24:47  33  ,cx9
+11:24:47  34  ,hh
+11:24:47  35  ,d
+11:24:47  36  ,w
+11:24:47  37  ,mpm
+11:24:47  38  ,mph
+11:24:47  39  FROM stk_svmd12
+11:24:47  40  -- Guard against divide by 0:
+11:24:47  41  WHERE clse > 0
+11:24:47  42  ORDER BY ydate
+11:24:47  43  /
+
+Table created.
+
+Elapsed: 00:00:00.11
+11:24:47 SQL> 
+11:24:47 SQL> -- rpt
+11:24:47 SQL> 
+11:24:47 SQL> SELECT
+11:24:47   2  tkr
+11:24:47   3  ,trend
+11:24:47   4  ,gatt
+11:24:47   5  ,COUNT(tkr)
+11:24:47   6  ,AVG(g1)
+11:24:47   7  FROM stk_svmd14
+11:24:47   8  GROUP BY tkr,trend,gatt
+11:24:47   9  ORDER BY tkr,trend,gatt
+11:24:47  10  /
+
+TKR	       TREND GAT COUNT(TKR)    AVG(G1)
+--------- ---------- --- ---------- ----------
+GFI		  -1 nup       1479 -.17682218
+GFI		  -1 up        1069 .241618335
+GFI		  -1		  1
+GFI		   1 nup       1396 -.19276504
+GFI		   1 up        1066  .26554409
+
+Elapsed: 00:00:00.01
+11:24:47 SQL> 
+11:24:47 SQL> -- Derive NTILE based params:
+11:24:47 SQL> 
+11:24:47 SQL> DROP TABLE stk_svmd16;
+
+Table dropped.
+
+Elapsed: 00:00:00.04
+11:24:47 SQL> CREATE TABLE stk_svmd16 COMPRESS AS
+11:24:47   2  SELECT
+11:24:47   3  tkr
+11:24:47   4  ,ydate
+11:24:47   5  ,tkrdate
+11:24:47   6  ,clse
+11:24:47   7  ,g1
+11:24:47   8  ,gatt
+11:24:47   9  ,gattn
+11:24:47  10  ,trend
+11:24:47  11  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm3)att00
+11:24:47  12  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm4)att01
+11:24:47  13  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm5)att02
+11:24:47  14  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm6)att03
+11:24:47  15  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm7)att04
+11:24:47  16  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm8)att05
+11:24:47  17  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cm9)att06
+11:24:47  18  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca3)att07
+11:24:47  19  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca4)att08
+11:24:47  20  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca5)att09
+11:24:47  21  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca6)att10
+11:24:47  22  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca7)att11
+11:24:47  23  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca8)att12
+11:24:47  24  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY ca9)att13
+11:24:47  25  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx3)att14
+11:24:47  26  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx4)att15
+11:24:47  27  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx5)att16
+11:24:47  28  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx6)att17
+11:24:47  29  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx7)att18
+11:24:47  30  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx8)att19
+11:24:47  31  ,NTILE(9)OVER(PARTITION BY trend,tkr ORDER BY cx9)att20
+11:24:47  32  ,hh  att21
+11:24:47  33  ,d   att22
+11:24:47  34  ,w   att23
+11:24:47  35  ,mpm att24
+11:24:47  36  ,mph att25
+11:24:47  37  ,trend att26
+11:24:47  38  FROM stk_svmd14
+11:24:47  39  ORDER BY ydate
+11:24:47  40  /
+
+Table created.
+
+Elapsed: 00:00:00.56
+11:24:47 SQL> 
+11:24:47 SQL> -- rpt
+11:24:47 SQL> 
+11:24:47 SQL> SELECT
+11:24:47   2  tkr
+11:24:47   3  ,trend
+11:24:47   4  ,gatt
+11:24:47   5  ,COUNT(tkr)
+11:24:47   6  ,AVG(g1)
+11:24:47   7  FROM stk_svmd16
+11:24:47   8  GROUP BY tkr,trend,gatt
+11:24:47   9  ORDER BY tkr,trend,gatt
+11:24:47  10  /
+
+TKR	       TREND GAT COUNT(TKR)    AVG(G1)
+--------- ---------- --- ---------- ----------
+GFI		  -1 nup       1479 -.17682218
+GFI		  -1 up        1069 .241618335
+GFI		  -1		  1
+GFI		   1 nup       1396 -.19276504
+GFI		   1 up        1066  .26554409
+
+Elapsed: 00:00:00.00
+11:24:47 SQL> 
+11:24:47 SQL> -- Comment out feedback related syntax:
+11:24:47 SQL> 
+11:24:47 SQL> -- CREATE OR REPLACE VIEW sc12tkr AS
+11:24:47 SQL> -- SELECT
+11:24:47 SQL> -- m.tkr
+11:24:47 SQL> -- ,m.ydate
+11:24:47 SQL> -- ,m.tkrdate
+11:24:47 SQL> -- ,l.score score_long
+11:24:47 SQL> -- ,s.score score_short
+11:24:47 SQL> -- ,m.g1
+11:24:47 SQL> -- FROM stkscores l,stkscores s,stk_svmd16 m
+11:24:47 SQL> -- WHERE l.targ='gatt'
+11:24:47 SQL> -- AND	 s.targ='gattn'
+11:24:47 SQL> -- AND l.tkrdate = s.tkrdate
+11:24:47 SQL> -- AND l.tkrdate = m.tkrdate
+11:24:47 SQL> -- -- Speed things up:
+11:24:47 SQL> -- AND l.tkr = '&1'
+11:24:47 SQL> -- AND s.tkr = '&1'
+11:24:47 SQL> -- /
+11:24:47 SQL> --
+11:24:47 SQL> -- DROP TABLE score_corr_tkr;
+11:24:47 SQL> --
+11:24:47 SQL> -- CREATE TABLE score_corr_tkr COMPRESS AS
+11:24:47 SQL> -- SELECT tkrdate,AVG(sc_corr)sc_corr FROM
+11:24:47 SQL> -- (
+11:24:47 SQL> --   SELECT
+11:24:47 SQL> --   tkrdate
+11:24:47 SQL> --   -- Find corr() tween score and g1 over 8 day period:
+11:24:47 SQL> --   ,CORR((score_long - score_short),g1)
+11:24:47 SQL> --     OVER(PARTITION BY tkr ORDER BY ydate ROWS BETWEEN 8 PRECEDING AND CURRENT ROW)sc_corr
+11:24:47 SQL> --   FROM sc12tkr
+11:24:47 SQL> -- )
+11:24:47 SQL> -- GROUP BY tkrdate
+11:24:47 SQL> -- /
+11:24:47 SQL> 
+11:24:47 SQL> -- Now I derive goodness attributes and join with score_corr_tkr:
+11:24:47 SQL> 
+11:24:47 SQL> DROP TABLE stk_ms_svmd_svmspy;
+
+Table dropped.
+
+Elapsed: 00:00:00.03
+11:24:47 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.25
+11:24:48 SQL> CREATE TABLE stk_ms_svmd_svmspy COMPRESS AS
+11:24:48   2  SELECT
+11:24:48   3  tkr
+11:24:48   4  ,ydate
+11:24:48   5  ,tkrdate
+11:24:48   6  ,trend
+11:24:48   7  ,g1
+11:24:48   8  ,gatt
+11:24:48   9  ,gattn
+11:24:48  10  -- Goodness attributes:
+11:24:48  11  ,SUM(g1)OVER(PARTITION BY trend,att00 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g00
+11:24:48  12  ,SUM(g1)OVER(PARTITION BY trend,att01 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g01
+11:24:48  13  ,SUM(g1)OVER(PARTITION BY trend,att02 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g02
+11:24:48  14  ,SUM(g1)OVER(PARTITION BY trend,att03 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g03
+11:24:48  15  ,SUM(g1)OVER(PARTITION BY trend,att04 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g04
+11:24:48  16  ,SUM(g1)OVER(PARTITION BY trend,att05 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g05
+11:24:48  17  ,SUM(g1)OVER(PARTITION BY trend,att06 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g06
+11:24:48  18  ,SUM(g1)OVER(PARTITION BY trend,att07 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g07
+11:24:48  19  ,SUM(g1)OVER(PARTITION BY trend,att08 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g08
+11:24:48  20  ,SUM(g1)OVER(PARTITION BY trend,att09 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g09
+11:24:48  21  ,SUM(g1)OVER(PARTITION BY trend,att10 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g10
+11:24:48  22  ,SUM(g1)OVER(PARTITION BY trend,att11 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g11
+11:24:48  23  ,SUM(g1)OVER(PARTITION BY trend,att12 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g12
+11:24:48  24  ,SUM(g1)OVER(PARTITION BY trend,att13 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g13
+11:24:48  25  ,SUM(g1)OVER(PARTITION BY trend,att14 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g14
+11:24:48  26  ,SUM(g1)OVER(PARTITION BY trend,att15 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g15
+11:24:48  27  ,SUM(g1)OVER(PARTITION BY trend,att16 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g16
+11:24:48  28  ,SUM(g1)OVER(PARTITION BY trend,att17 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g17
+11:24:48  29  ,SUM(g1)OVER(PARTITION BY trend,att18 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g18
+11:24:48  30  ,SUM(g1)OVER(PARTITION BY trend,att19 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g19
+11:24:48  31  ,SUM(g1)OVER(PARTITION BY trend,att20 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g20
+11:24:48  32  ,SUM(g1)OVER(PARTITION BY trend,att21 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g21
+11:24:48  33  ,SUM(g1)OVER(PARTITION BY trend,att22 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g22
+11:24:48  34  ,SUM(g1)OVER(PARTITION BY trend,att23 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g23
+11:24:48  35  ,SUM(g1)OVER(PARTITION BY trend,att24 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g24
+11:24:48  36  ,SUM(g1)OVER(PARTITION BY trend,att25 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g25
+11:24:48  37  ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 90 PRECEDING AND CURRENT ROW)g26
+11:24:48  38  -- att26 is trend which is a powerful attribute so I derive 3 more goodness attributes from trend:
+11:24:48  39  ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 60 PRECEDING AND CURRENT ROW)g27
+11:24:48  40  ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 30 PRECEDING AND CURRENT ROW)g28
+11:24:48  41  ,SUM(g1)OVER(PARTITION BY trend,att26 ORDER BY ydate ROWS BETWEEN 10 PRECEDING AND CURRENT ROW)g29
+11:24:48  42  FROM stk_svmd16
+11:24:48  43  /
+
+Table created.
+
+Elapsed: 00:00:00.93
+11:24:49 SQL> 
+11:24:49 SQL> -- rpt
+11:24:49 SQL> 
+11:24:49 SQL> SELECT
+11:24:49   2  tkr
+11:24:49   3  ,trend
+11:24:49   4  ,gatt
+11:24:49   5  ,COUNT(tkr)
+11:24:49   6  ,AVG(g1)
+11:24:49   7  FROM stk_ms_svmd_svmspy
+11:24:49   8  GROUP BY tkr,trend,gatt
+11:24:49   9  ORDER BY tkr,trend,gatt
+11:24:49  10  /
+
+TKR	       TREND GAT COUNT(TKR)    AVG(G1)
+--------- ---------- --- ---------- ----------
+GFI		  -1 nup       1479 -.17682218
+GFI		  -1 up        1069 .241618335
+GFI		  -1		  1
+GFI		   1 nup       1396 -.19276504
+GFI		   1 up        1066  .26554409
+
+Elapsed: 00:00:00.02
+11:24:49 SQL> 
+11:24:49 SQL> SELECT
+11:24:49   2  tkr
+11:24:49   3  ,COUNT(tkr)
+11:24:49   4  ,MIN(ydate),MAX(ydate)
+11:24:49   5  FROM stk_ms_svmd_svmspy
+11:24:49   6  GROUP BY tkr
+11:24:49   7  /
+
+TKR	  COUNT(TKR) MIN(YDATE) 	 MAX(YDATE)
+--------- ---------- ------------------- -------------------
+GFI		5011 1991-05-01 20:00:00 2011-04-26 20:00:00
+
+Elapsed: 00:00:00.01
+11:24:49 SQL> 
+11:24:49 SQL> -- exit
+11:24:49 SQL> 
+11:24:49 SQL> 
+11:24:49 SQL> DROP TABLE   stk_ms_u;
+
+Table dropped.
+
+Elapsed: 00:00:00.05
+11:24:49 SQL> 
+11:24:49 SQL> PURGE RECYCLEBIN;
+
+Recyclebin purged.
+
+Elapsed: 00:00:00.09
+11:24:49 SQL> 
+11:24:49 SQL> CREATE TABLE stk_ms_u COMPRESS AS
+11:24:49   2  SELECT * FROM stk_ms_svmspy
+11:24:49   3  UNION
+11:24:49   4  SELECT * FROM stk_ms_svmd_svmspy
+11:24:49   5  /
+
+Table created.
+
+Elapsed: 00:00:00.31
+11:24:49 SQL> 
+11:24:49 SQL> exit
+Disconnected from Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
