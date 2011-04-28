@@ -1,10 +1,19 @@
 #!/bin/bash
 
+. /pt/s/rluck/svmspy/.orcl
+. /pt/s/rluck/svmspy/.jruby
+
 set -x
+
+date
+
+cd $SVMSPY
+
 
 ./svmtkr.bash AAPL
 ./svmtkr.bash ABT
 ./svmtkr.bash ABX
+./svmtkr.bash ACI
 ./svmtkr.bash ADBE
 ./svmtkr.bash AEM
 ./svmtkr.bash AFL
@@ -66,6 +75,7 @@ set -x
 ./svmtkr.bash FFIV
 ./svmtkr.bash FLS
 ./svmtkr.bash FSLR
+./svmtkr.bash FXI
 ./svmtkr.bash GD
 ./svmtkr.bash GDX
 ./svmtkr.bash GFI
@@ -74,9 +84,11 @@ set -x
 ./svmtkr.bash GLD
 ./svmtkr.bash GOOG
 ./svmtkr.bash GS
+./svmtkr.bash HAL
 ./svmtkr.bash HD
 ./svmtkr.bash HES
 ./svmtkr.bash HL
+./svmtkr.bash HOC
 ./svmtkr.bash HON
 ./svmtkr.bash HPQ
 ./svmtkr.bash IBM
@@ -89,6 +101,7 @@ set -x
 ./svmtkr.bash KO
 ./svmtkr.bash LFT
 ./svmtkr.bash LMT
+./svmtkr.bash LVS
 ./svmtkr.bash MAR
 ./svmtkr.bash MCD
 ./svmtkr.bash MDT
@@ -100,6 +113,7 @@ set -x
 ./svmtkr.bash MON
 ./svmtkr.bash MOS
 ./svmtkr.bash MRK
+./svmtkr.bash MSFT
 ./svmtkr.bash MT
 ./svmtkr.bash MVG
 ./svmtkr.bash NEM
@@ -107,6 +121,7 @@ set -x
 ./svmtkr.bash NOC
 ./svmtkr.bash NUE
 ./svmtkr.bash OIH
+./svmtkr.bash ORCL
 ./svmtkr.bash OXY
 ./svmtkr.bash PAAS
 ./svmtkr.bash PALL
@@ -119,7 +134,7 @@ set -x
 ./svmtkr.bash PPLT
 ./svmtkr.bash PRU
 ./svmtkr.bash QCOM
-./svmtkr.bash QQQQ
+./svmtkr.bash QQQ
 ./svmtkr.bash RDY
 ./svmtkr.bash RIG
 ./svmtkr.bash RIMM
@@ -139,11 +154,13 @@ set -x
 ./svmtkr.bash SUN
 ./svmtkr.bash SVM
 ./svmtkr.bash SWC
+./svmtkr.bash T
 ./svmtkr.bash TEVA
 ./svmtkr.bash TGT
 ./svmtkr.bash TKR
 ./svmtkr.bash TLT
 ./svmtkr.bash TSO
+./svmtkr.bash TXN
 ./svmtkr.bash UNH
 ./svmtkr.bash UNP
 ./svmtkr.bash UPS
@@ -153,6 +170,7 @@ set -x
 ./svmtkr.bash VLO
 ./svmtkr.bash VMW
 ./svmtkr.bash WDC
+./svmtkr.bash WFC
 ./svmtkr.bash WFMI
 ./svmtkr.bash WHR
 ./svmtkr.bash WMT
@@ -162,4 +180,4 @@ set -x
 ./svmtkr.bash XLE
 ./svmtkr.bash XLU
 ./svmtkr.bash XOM
-
+./svmtkr.bash YUM
