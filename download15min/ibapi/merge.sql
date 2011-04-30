@@ -2,27 +2,28 @@
 -- merge.sql
 --
 
--- I use this script to merge data from ibs_stage into ibs15min.
+-- I use this script to merge data from ibs15min_stage into ibs15min.
 
+-- Useful syntax for when things go haywire:
+-- CREATE TABLE ibs15min         (tkr VARCHAR2(8),ydate DATE,clse NUMBER);
+-- CREATE TABLE ibs15min_old     (tkr VARCHAR2(8),ydate DATE,clse NUMBER);
+-- CREATE TABLE ibs15min_dups_old(tkr VARCHAR2(8),ydate DATE,clse NUMBER);
 
--- CREATE TABLE ibs_old     (tkr VARCHAR2(8),ydate DATE,clse NUMBER);
--- CREATE TABLE ibs_dups_old(tkr VARCHAR2(8),ydate DATE,clse NUMBER);
+DROP TABLE ibs15min_old;
+RENAME ibs15min TO ibs15min_old;
 
-DROP TABLE ibs_old;
-RENAME ibs15min TO ibs_old;
+DROP TABLE ibs15min_dups_old;
+RENAME ibs15min_dups TO ibs15min_dups_old;
 
-DROP TABLE ibs_dups_old;
-RENAME ibs_dups TO ibs_dups_old;
-
-CREATE TABLE ibs_dups COMPRESS AS
+CREATE TABLE ibs15min_dups COMPRESS AS
 SELECT
 tkr
 ,(TO_DATE('1970-01-01','YYYY-MM-DD')+(epochsec/24/3600))ydate
 ,clse
-FROM ibs_stage
+FROM ibs15min_stage
 UNION
 SELECT tkr,ydate,clse
-FROM ibs_old
+FROM ibs15min_old
 /
 
 CREATE TABLE ibs15min COMPRESS AS
@@ -30,7 +31,7 @@ SELECT
 tkr
 ,ydate
 ,AVG(clse)clse
-FROM ibs_dups
+FROM ibs15min_dups
 GROUP BY tkr,ydate
 /
 
@@ -43,8 +44,11 @@ tkr
 ,(sysdate - MAX(ydate))*24*60 minutes_age
 ,MIN(ydate)
 ,COUNT(ydate)
-,MAX(ydate)FROM
-ibs15min
+,MAX(ydate)
+,MIN(clse)
+,AVG(clse)
+,MAX(clse)
+FROM ibs15min
 GROUP BY tkr
 ORDER BY tkr
 /

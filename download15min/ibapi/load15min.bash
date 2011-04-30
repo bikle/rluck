@@ -21,29 +21,29 @@ cd csv_files/
 
 # Loop through the CSV files belonging to $1:
 
-sort ${1}* |uniq|grep 1|grep -v finished|awk -v awk_var=$1 -F, '{print awk_var","$2","$3}'> ibs_stage.csv
+sort ${1}_data_*_gmt.csv |uniq|grep 1|grep -v finished|awk -v awk_var=$1 -F, '{print awk_var","$2","$3}'> ibs15min_stage.csv
 
 cd ..
-rm -f ibs_stage.csv
-ln -s csv_files/ibs_stage.csv .
+rm -f ibs15min_stage.csv
+ln -s csv_files/ibs15min_stage.csv .
 
 sqt<<EOF
--- @cr_ibs_stage.sql
+-- @cr_ibs15min_stage.sql
 EOF
 
 # call sqlloader
-sqlldr trade/t bindsize=20971520 readsize=20971520 rows=123456 control=ibs_stage.ctl
-grep loaded ibs_stage.log
-wc -l ibs_stage.csv
+sqlldr trade/t bindsize=20971520 readsize=20971520 rows=123456 control=ibs15min_stage.ctl
+grep loaded ibs15min_stage.log
+wc -l ibs15min_stage.csv
 
 sqt>merge.txt<<EOF
 @merge.sql
 EOF
 
 export myts=`date +%Y_%m_%d_%H_%M`
-cp -p ibs_stage.log ibs_stage_sqlldr.${myts}.log
+cp -p ibs15min_stage.log ibs15min_stage_sqlldr.${myts}.log
 cp -p merge.txt merge15min.${myts}.txt
-mv merge15min.${myts}.txt ibs_stage_sqlldr.${myts}.log /pt/s/cron/out/
+mv merge15min.${myts}.txt ibs15min_stage_sqlldr.${myts}.log /pt/s/cron/out/
 
 exit 0
 

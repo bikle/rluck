@@ -1,6 +1,6 @@
 LOAD DATA
-INFILE 'ibs_stage.csv'
-REPLACE INTO TABLE ibs_stage
+INFILE 'ibs15min_stage.csv'
+REPLACE INTO TABLE ibs15min_stage
 FIELDS TERMINATED BY ','
 TRAILING NULLCOLS
 (
