@@ -1,8 +1,8 @@
 --
--- qry_ibs_stage.sql
+-- qry_ibs15min_stage.sql
 --
 
--- I use this script to look at data recently loaded into ibs_stage.
+-- I use this script to look at data recently loaded into ibs15min_stage.
 
 SELECT
 tkr
@@ -13,7 +13,7 @@ tkr
 ,MIN(epochsec)
 ,MAX(epochsec)
 ,STDDEV(epochsec)
-FROM ibs_stage
+FROM ibs15min_stage
 GROUP BY tkr
 ORDER BY tkr
 /
@@ -23,7 +23,7 @@ SELECT
 clse
 ,tkr
 ,epochsec
-FROM ibs_stage
+FROM ibs15min_stage
 ORDER BY clse,epochsec,tkr
 
 exit

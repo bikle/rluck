@@ -26,15 +26,15 @@ cd csv_files/
 
 # Loop through the CSV files belonging to $1:
 
-sort ${1}* |uniq|grep 1|grep -v finished|grep W|awk -v awk_var=$1 -F, '{print awk_var","$2","$3}'> ibs_stage.csv
+sort ${1}_data_*_gmt.csv |uniq|grep 1|grep -v finished|grep W|awk -v awk_var=$1 -F, '{print awk_var","$2","$3}'> ibs_stage.csv
 
 cd ..
 rm -f ibs_stage.csv
 ln -s csv_files/ibs_stage.csv .
 
-sqt<<EOF
--- @cr_ibs_stage.sql
-EOF
+# sqt<<EOF
+# -- @cr_ibs_stage.sql
+# EOF
 
 # call sqlloader
 sqlldr trade/t bindsize=20971520 readsize=20971520 rows=123456 control=ibs_stage.ctl

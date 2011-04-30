@@ -27,9 +27,9 @@ cd ..
 rm -f ibs15min_stage.csv
 ln -s csv_files/ibs15min_stage.csv .
 
-sqt<<EOF
--- @cr_ibs15min_stage.sql
-EOF
+# sqt<<EOF
+# @cr_ibs15min_stage.sql
+# EOF
 
 # call sqlloader
 sqlldr trade/t bindsize=20971520 readsize=20971520 rows=123456 control=ibs15min_stage.ctl

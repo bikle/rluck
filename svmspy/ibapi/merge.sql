@@ -42,7 +42,7 @@ FROM ibs_dups
 GROUP BY tkr,ydate
 /
 
-ANALYZE TABLE ibs5min COMPUTE STATISTICS;
+ANALYZE TABLE ibs5min ESTIMATE STATISTICS SAMPLE 9 PERCENT;
 
 -- I should see less than 60 min:
 SELECT
@@ -50,7 +50,11 @@ tkr
 ,(sysdate - MAX(ydate))*24*60 minutes_age
 ,MIN(ydate)
 ,COUNT(ydate)
-,MAX(ydate)FROM
+,MAX(ydate)
+,MIN(clse)
+,AVG(clse)
+,MAX(clse)
+FROM
 ibs5min
 GROUP BY tkr
 ORDER BY tkr

@@ -15,7 +15,7 @@ date
 # Get a backup.
 echo I am running an export b4 starting.
 set -x
-
+export myts=`date +%Y_%m_%d_%H_%M`
 ./expdp_ibs15min.bash > /pt/s/cron/out/expdp_ibs15min.${myts}.ibs.txt 2>&1
 
 date
@@ -193,6 +193,10 @@ date
 ./15min_data.bash XOM
 
 date
+
+sqt>delete_non_rth_rows.txt<<EOF
+@delete_non_rth_rows.sql
+EOF
 
 # Get a backup.
 ./expdp_ibs15min.bash > /pt/s/cron/out/expdp_ibs15min.${myts}.ibs.txt 2>&1
