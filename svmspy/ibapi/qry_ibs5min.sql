@@ -8,6 +8,54 @@ SET LINES 66
 DESC ibs5min
 SET LINES 166
 
+-- Get a view of tkrs at 19:55
+
+CREATE OR REPLACE VIEW ibs5min1955 AS
+SELECT 
+tkr
+,ydate idate
+,clse iclse
+,TRUNC(ydate)tdate 
+FROM ibs5min 
+WHERE ydate > '2011-03-14'
+AND TO_CHAR(ydate,'HH24:MI')='19:55'
+/
+
+-- Join with yahoo daily data.
+CREATE OR REPLACE VIEW iy1955 AS
+SELECT
+y.tkr
+,TRUNC(y.ydate)ydate
+,iclse
+,y.clse yclse
+,y.clse - iclse price_diff
+,STDDEV(y.clse-iclse)OVER(PARTITION BY y.tkr)pd_std
+-- price_diff / stddev of all price_diffs:
+,ABS(y.clse - iclse) / STDDEV(y.clse-iclse)OVER(PARTITION BY y.tkr)pd_o_pd_std
+FROM ibs5min1955 i,ystk y
+WHERE ydate > '2011-03-14'
+AND TRUNC(ydate)=tdate
+AND y.tkr=i.tkr
+/
+
+-- rpt
+select count(*)from(
+SELECT * FROM iy1955 WHERE tkr='X'AND ydate > '2011-04-20');
+
+SELECT * FROM iy1955 WHERE tkr='X'AND ydate > '2011-04-20'ORDER BY ydate;
+
+SELECT * FROM iy1955 WHERE pd_o_pd_std = (SELECT MAX(pd_o_pd_std)FROM iy1955);
+
+select count(*)from(
+SELECT * FROM iy1955 WHERE ydate>'2011-04-25'AND pd_o_pd_std>3 ORDER BY tkr,ydate);
+
+SELECT * FROM iy1955 WHERE ydate>'2011-04-18'AND pd_o_pd_std>3 ORDER BY tkr,ydate;
+
+SELECT * FROM iy1955 WHERE pd_o_pd_std>5 ORDER BY tkr,ydate;
+
+exit
+
+
 -- Look for dups
 SELECT COUNT(tkr)FROM
 (

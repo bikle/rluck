@@ -216,7 +216,7 @@ sqt>merge.txt<<EOF
 EOF
 
 # Create ystk21 which has a more accurate ydate:
-sqt>merge.txt<<EOF
+sqt>cr_ystk21.txt<<EOF
 @cr_ystk21.sql
 EOF
 
