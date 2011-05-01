@@ -99,4 +99,3 @@ cd $SVMSPY
 ./svmtkr.bash IWM
 ./svmtkr.bash IOC
 ./svmtkr.bash IBM
-

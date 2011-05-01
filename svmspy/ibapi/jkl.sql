@@ -8,6 +8,16 @@ SET LINES 66
 DESC ibs5min
 SET LINES 166
 
+SELECT
+tkr
+,MIN(ydate)
+,COUNT(tkr)
+,MAX(ydate)
+FROM ibs5min
+GROUP BY tkr
+ORDER BY MAX(ydate),tkr
+/
+
 -- Look for dups
 SELECT COUNT(tkr)FROM
 (
@@ -36,6 +46,8 @@ tkr
 ,(clse - LAG(clse,1,NULL)OVER(PARTITION BY tkr ORDER BY ydate))/clse lag_diff
 FROM ibs5min
 WHERE clse>0
+AND ydate BETWEEN'2011-02-18 20:50:00'AND'2011-02-22 14:35:00'
+ORDER BY tkr, ydate
 /
 
 CREATE OR REPLACE VIEW ibs5min_ld AS
@@ -53,15 +65,12 @@ GROUP BY tkr
 SELECT * FROM ibs5min_ld ORDER BY min_lag_diff;
 SELECT * FROM ibs5min_ld ORDER BY max_lag_diff;
 
-select count(*)from(
-SELECT * FROM ibs5min10 WHERE lag_diff < -0.05);
 
-SELECT * FROM ibs5min10 WHERE lag_diff < -0.05 ORDER BY tkr,ydate;
+SELECT * FROM ibs5min10 WHERE lag_diff = (SELECT MIN(min_lag_diff)FROM ibs5min_ld);
 
-select count(*)from(
-SELECT * FROM ibs5min10 WHERE lag_diff > 0.05);
+SELECT * FROM ibs5min10 WHERE lag_diff = (SELECT MAX(max_lag_diff)FROM ibs5min_ld);
 
-SELECT * FROM ibs5min10 WHERE lag_diff > 0.05 ORDER BY tkr,ydate;
+exit
 
 -- SELECT COUNT(*)FROM ibs5min10 WHERE lag_diff IN(SELECT max_lag_diff FROM ibs5min_ld);
 
@@ -79,12 +88,8 @@ l.tkr
 ,i.minutes_diff
 FROM ibs5min_ld l, ibs5min10 i
 WHERE l.min_lag_diff = i.lag_diff
--- ORDER BY i.ydate,l.tkr
-ORDER BY i.lag_diff/stddev_lag_diff DESC
+ORDER BY i.ydate,l.tkr
 /
-
--- select * from ystk where tkr='CRM'and ydate between'2011-01-16'and'2011-01-24'order by ydate;
--- select * from ystk where tkr='APA'and ydate between'2011-03-12'and'2011-03-19'order by ydate;
 
 -- Get a closer look at the largest lag_diffs:
 
@@ -100,10 +105,8 @@ l.tkr
 ,i.minutes_diff
 FROM ibs5min_ld l, ibs5min10 i
 WHERE l.max_lag_diff = i.lag_diff
-ORDER BY i.lag_diff/stddev_lag_diff
+ORDER BY i.ydate,l.tkr
 /
-
-exit
 
 -- I want to see rows around the rows which are connected to the max/min clse values
 
