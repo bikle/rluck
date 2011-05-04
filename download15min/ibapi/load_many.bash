@@ -21,6 +21,7 @@ export myts=`date +%Y_%m_%d_%H_%M`
 date
 
 ./15min_data.bash T
+./15min_data.bash SBUX
 ./15min_data.bash WFC
 ./15min_data.bash ACI
 ./15min_data.bash MRO

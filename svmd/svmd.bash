@@ -9,18 +9,13 @@
 
 cd $SVMD
 
-# wgetem is fast so just get them all.
 ./wgetem.bash
 
-# sqlloadem is fast too.
 ./sqlloadem.bash
 
-# Run SVM against the good tkrs only.
-#./good_svmtkr.bash 
 exit
-# Run SVM against all the tkrs.
-./many_svmtkr.bash
 
+./many_svmtkr.bash
 
 exit 0
 

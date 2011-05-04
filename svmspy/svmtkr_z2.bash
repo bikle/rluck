@@ -9,26 +9,26 @@ date
 
 cd $SVMSPY
 
-# ./svmtkr.bash AAPL
-# ./svmtkr.bash ABT
-# ./svmtkr.bash ABX
-# ./svmtkr.bash ACI
-# ./svmtkr.bash ADBE
-# ./svmtkr.bash AEM
-# ./svmtkr.bash AFL
-# ./svmtkr.bash AGU
-# ./svmtkr.bash AIG
-# ./svmtkr.bash AKAM
-# ./svmtkr.bash ALL
-# ./svmtkr.bash AMGN
-# ./svmtkr.bash AMT
-# ./svmtkr.bash AMX
-# ./svmtkr.bash AMZN
-# ./svmtkr.bash APA
-# ./svmtkr.bash APC
-# ./svmtkr.bash ARG
-# ./svmtkr.bash AXP
-# ./svmtkr.bash AXU
+./svmtkr.bash AAPL
+./svmtkr.bash ABT
+./svmtkr.bash ABX
+./svmtkr.bash ACI
+./svmtkr.bash ADBE
+./svmtkr.bash AEM
+./svmtkr.bash AFL
+./svmtkr.bash AGU
+./svmtkr.bash AIG
+./svmtkr.bash AKAM
+./svmtkr.bash ALL
+./svmtkr.bash AMGN
+./svmtkr.bash AMT
+./svmtkr.bash AMX
+./svmtkr.bash AMZN
+./svmtkr.bash APA
+./svmtkr.bash APC
+./svmtkr.bash ARG
+./svmtkr.bash AXP
+./svmtkr.bash AXU
 ./svmtkr.bash BA
 ./svmtkr.bash BBT
 ./svmtkr.bash BBY
@@ -63,9 +63,6 @@ cd $SVMSPY
 ./svmtkr.bash DNDN
 ./svmtkr.bash DTV
 ./svmtkr.bash DVN
-
-exit
-
 ./svmtkr.bash EBAY
 ./svmtkr.bash EFA
 ./svmtkr.bash EOG

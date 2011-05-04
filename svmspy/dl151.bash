@@ -18,6 +18,7 @@ date
 cd $SVMSPY/ibapi
 
 ./5min_data.bash T
+./5min_data.bash SBUX
 ./5min_data.bash MSFT
 ./5min_data.bash ACI
 ./5min_data.bash MRO
@@ -192,6 +193,7 @@ cd $SVMSPY/ibapi
 
 # Get a backup:
 ./expdp_ibs5min.bash > /pt/s/cron/out/expdp_ibs5min.${myts}.ibs.txt 2>&1
+exit
 
 # Merge IB data with Dukas data:
 sqt>update_di5min_stk.txt<<EOF

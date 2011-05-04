@@ -1,0 +1,69 @@
+--
+-- cr_some_tkrs.sql
+--
+
+DROP   TABLE some_tkrs;
+CREATE TABLE some_tkrs(tkr VARCHAR2(8));
+
+INSERT INTO some_tkrs VALUES('AAPL');
+INSERT INTO some_tkrs VALUES('ABT');
+INSERT INTO some_tkrs VALUES('ABX');
+INSERT INTO some_tkrs VALUES('ACI');
+INSERT INTO some_tkrs VALUES('ADBE');
+INSERT INTO some_tkrs VALUES('AEM');
+INSERT INTO some_tkrs VALUES('AFL');
+INSERT INTO some_tkrs VALUES('AGU');
+INSERT INTO some_tkrs VALUES('AIG');
+INSERT INTO some_tkrs VALUES('AKAM');
+INSERT INTO some_tkrs VALUES('ALL');
+INSERT INTO some_tkrs VALUES('AMGN');
+INSERT INTO some_tkrs VALUES('AMT');
+INSERT INTO some_tkrs VALUES('AMX');
+
+INSERT INTO some_tkrs VALUES('DD');
+INSERT INTO some_tkrs VALUES('DE');
+INSERT INTO some_tkrs VALUES('DIA');
+INSERT INTO some_tkrs VALUES('DIS');
+INSERT INTO some_tkrs VALUES('DNDN');
+INSERT INTO some_tkrs VALUES('DTV');
+INSERT INTO some_tkrs VALUES('DVN');
+INSERT INTO some_tkrs VALUES('EBAY');
+INSERT INTO some_tkrs VALUES('EFA');
+
+INSERT INTO some_tkrs VALUES('HPQ');
+INSERT INTO some_tkrs VALUES('HON');
+INSERT INTO some_tkrs VALUES('HOC');
+INSERT INTO some_tkrs VALUES('HL');
+
+INSERT INTO some_tkrs VALUES('IBM');
+INSERT INTO some_tkrs VALUES('IOC');
+INSERT INTO some_tkrs VALUES('IWM');
+INSERT INTO some_tkrs VALUES('JNJ');
+INSERT INTO some_tkrs VALUES('JOYG');
+INSERT INTO some_tkrs VALUES('JPM');
+INSERT INTO some_tkrs VALUES('JWN');
+INSERT INTO some_tkrs VALUES('KO');
+INSERT INTO some_tkrs VALUES('LFT');
+INSERT INTO some_tkrs VALUES('LMT');
+INSERT INTO some_tkrs VALUES('LVS');
+INSERT INTO some_tkrs VALUES('MAR');
+INSERT INTO some_tkrs VALUES('MCD');
+INSERT INTO some_tkrs VALUES('MDT');
+INSERT INTO some_tkrs VALUES('MDY');
+INSERT INTO some_tkrs VALUES('MEE');
+
+INSERT INTO some_tkrs VALUES('YUM');
+INSERT INTO some_tkrs VALUES('XOM');
+INSERT INTO some_tkrs VALUES('XLU');
+INSERT INTO some_tkrs VALUES('XLE');
+INSERT INTO some_tkrs VALUES('XLB');
+INSERT INTO some_tkrs VALUES('X');
+INSERT INTO some_tkrs VALUES('WYNN');
+INSERT INTO some_tkrs VALUES('WMT');
+INSERT INTO some_tkrs VALUES('WHR');
+INSERT INTO some_tkrs VALUES('WFMI');
+INSERT INTO some_tkrs VALUES('WFC');
+INSERT INTO some_tkrs VALUES('WDC');
+INSERT INTO some_tkrs VALUES('VMW');
+INSERT INTO some_tkrs VALUES('VLO');
+

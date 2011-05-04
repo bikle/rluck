@@ -51,6 +51,7 @@ cd $SVMSPY
 ./svmtkr.bash SJM
 ./svmtkr.bash SINA
 ./svmtkr.bash SCCO
+./svmtkr.bash SBUX
 ./svmtkr.bash RTN
 ./svmtkr.bash RIMM
 ./svmtkr.bash RIG

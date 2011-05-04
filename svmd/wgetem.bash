@@ -17,6 +17,8 @@ rm -f *csv
 
 wget --output-document=HL.csv http://ichart.finance.yahoo.com/table.csv?s=HL
 
+wget --output-document=SBUX.csv http://ichart.finance.yahoo.com/table.csv?s=SBUX
+
 wget --output-document=ACI.csv http://ichart.finance.yahoo.com/table.csv?s=ACI
 
 wget --output-document=MRO.csv http://ichart.finance.yahoo.com/table.csv?s=MRO
