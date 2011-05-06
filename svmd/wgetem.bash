@@ -203,7 +203,7 @@ wget --output-document=V.csv http://ichart.finance.yahoo.com/table.csv?s=V
 wget --output-document=VECO.csv http://ichart.finance.yahoo.com/table.csv?s=VECO  
 wget --output-document=VMW.csv http://ichart.finance.yahoo.com/table.csv?s=VMW   
 wget --output-document=WDC.csv http://ichart.finance.yahoo.com/table.csv?s=WDC   
-wget --output-document=WFMI.csv http://ichart.finance.yahoo.com/table.csv?s=WFMI  
+wget --output-document=WFM.csv http://ichart.finance.yahoo.com/table.csv?s=WFM  
 wget --output-document=WHR.csv http://ichart.finance.yahoo.com/table.csv?s=WHR   
 wget --output-document=WMT.csv http://ichart.finance.yahoo.com/table.csv?s=WMT   
 wget --output-document=WYNN.csv http://ichart.finance.yahoo.com/table.csv?s=WYNN  

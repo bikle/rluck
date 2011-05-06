@@ -60,7 +60,7 @@ describe "rlooper helps me download tkr prices and then run SVM against them" do
     first5tkrs.each{|tkr| `echo /pt/s/rluck/svmspy/ibapi/5min_data.bash #{tkr} >> /tmp/dl_first5tkrs.bash`}
     `/bin/bash /tmp/dl_first5tkrs.bash`
     # I wait for the shell script in /tmp/ to finish:
-    `ps waux | grep dl_first5tkrs.bash`.should == ""
+    `ps waux | grep dl_first5tkrs.bash |grep -v grep`.should == ""
     # I should see a recent CSV file younger than 5*60 seconds:
     recent_fn = Dir.glob("/pt/s/rluck/svmspy/ibapi/csv_files/#{first5tkrs.last}*csv").sort.last
     csv_time = File.ctime(recent_fn)
@@ -77,6 +77,7 @@ describe "rlooper helps me download tkr prices and then run SVM against them" do
     next5tkrs = []
     5.times.each{|tkr| next5tkrs << tkrs_a.pop} unless tkrs_a.size < 5
     next5tkrs.size.should == 5
+
     p "Now downloading next5tkrs in the background:"
     p next5tkrs
     `echo '#!/bin/bash' > /tmp/dl_next5tkrs.bash`
@@ -84,9 +85,13 @@ describe "rlooper helps me download tkr prices and then run SVM against them" do
     `echo '#!/bin/bash' > /tmp/run_dl_next5tkrs.bash`
     `echo '/tmp/dl_next5tkrs.bash &' >> /tmp/run_dl_next5tkrs.bash`
     `chmod +x /tmp/dl_next5tkrs.bash /tmp/run_dl_next5tkrs.bash`
+    # I want the script below to run in the background so the command should return quickly:
+    time0 = Time.now
     `/tmp/run_dl_next5tkrs.bash > /tmp/out_of_run_dl_next5tkrs.txt 2>&1`
     sleep 1
-    `ps waux | grep /tmp/dl_next5tkrs.bash | grep -v grep`.should include "dl_next5tkrs.bash"
+    (Time.now - time0).should < 5
+    # I should see the dl_script in the ps-listing:
+    `ps waux | grep /tmp/dl_next5tkrs.bash | grep -v grep | wc -l`.chomp.should == "1"
     p "Now running SVM on first5tkrs."
     `echo '#!/bin/bash' > /tmp/svm_first5tkrs.bash`
     `echo 'set -x' >> /tmp/svm_first5tkrs.bash`
@@ -94,13 +99,15 @@ describe "rlooper helps me download tkr prices and then run SVM against them" do
     first5tkrs.each{|tkr| `echo /pt/s/rluck/svmspy/svmtkr.bash #{tkr} >> /tmp/svm_first5tkrs.bash`}
     `chmod +x /tmp/svm_first5tkrs.bash`
     # Look for the 1st tkr in the svm shell script:
-debugger
     `grep svmtkr.bash /tmp/svm_first5tkrs.bash`.chomp.should include first5tkrs.first
+    # Now run SVM against the first5tkrs.  It should take awhile, at least 2 * 60 seconds:
+    time0 = Time.now
     `/tmp/svm_first5tkrs.bash > /tmp/out_of_svm_first5tkrs.txt 2>&1`
-
+    (Time.now - time0).should > (2 * 60)
     # Now I am setup to loop through groups of tkrs while tkrs_a contains more than 4 tkrs.
     # Each group has 5 tkrs.
     while(tkrs_a.size > 4)
+      p "Now inside a loop to loop through groups of 5 tkrs."
       # Save next5tkrs so I may run SVM against them.
       next5tkrs_saved = next5tkrs
       next5tkrs_saved.size.should == 5
@@ -108,6 +115,15 @@ debugger
       next5tkrs = []
       5.times.each{|tkr| next5tkrs << tkrs_a.pop}
       next5tkrs.size.should == 5
+
+      # Wait if there is another download running.
+      other_dl_count=`ps waux | grep 5min_data | grep -v grep|wc -l`.chomp.to_i
+debugger
+      while(other_dl_count > 0)
+        p "Waiting 20 seconds  for other download to finish."
+        sleep 20
+      end
+
       p "Now downloading:"
       p next5tkrs
       `echo '#!/bin/bash' > /tmp/dl_next5tkrs.bash`
@@ -115,6 +131,7 @@ debugger
       `echo '#!/bin/bash' > /tmp/run_dl_next5tkrs.bash`
       `echo '/tmp/dl_next5tkrs.bash &' >> /tmp/run_dl_next5tkrs.bash`
       `chmod +x /tmp/dl_next5tkrs.bash /tmp/run_dl_next5tkrs.bash`
+      p '/tmp/run_dl_next5tkrs.bash > /tmp/out_of_run_dl_next5tkrs.txt 2>&1'
       `/tmp/run_dl_next5tkrs.bash > /tmp/out_of_run_dl_next5tkrs.txt 2>&1`
       sleep 1
       `ps waux | grep /tmp/dl_next5tkrs.bash | grep -v grep`.should include "dl_next5tkrs.bash"
@@ -128,8 +145,11 @@ debugger
       # Look for the 1st tkr in the svm shell script:
 debugger
       `grep svmtkr.bash /tmp/svm_next5tkrs.bash`.chomp.should include next5tkrs_saved.first
+      # Now run SVM:
+      p '/tmp/svm_next5tkrs.bash > /tmp/out_of_svm_next5tkrs.txt 2>&1'
       `/tmp/svm_next5tkrs.bash > /tmp/out_of_svm_next5tkrs.txt 2>&1`
     end
+    # Now, I should be at the end of tkrs_a 
     tkrs_a.size.should == 0
     next5tkrs.should == ["ADBE", "ACI", "ABX", "ABT", "AAPL"]
   end
@@ -142,6 +162,16 @@ debugger
     next5tkrs.should == ["ADBE", "ACI", "ABX", "ABT", "AAPL"]
     p "Now running SVM on:"
     p next5tkrs
+    `echo '#!/bin/bash' > /tmp/svm_next5tkrs.bash`
+    `echo 'set -x' >> /tmp/svm_next5tkrs.bash`
+    `echo /pt/s/rluck/svmspy/ibapi/update_di5min_stk.bash >> /tmp/svm_next5tkrs.bash`
+    next5tkrs.each{|tkr| `echo /pt/s/rluck/svmspy/svmtkr.bash #{tkr} >> /tmp/svm_next5tkrs.bash`}
+    `chmod +x /tmp/svm_next5tkrs.bash`
+    # Look for the 1st tkr in the svm shell script:
+debugger
+    `grep svmtkr.bash /tmp/svm_next5tkrs.bash`.chomp.should include next5tkrs.first
+    # Now run SVM:
+    `/tmp/svm_next5tkrs.bash > /tmp/out_of_svm_next5tkrs.txt 2>&1`
   end
 ##
 

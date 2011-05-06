@@ -196,7 +196,7 @@ cat V.csv      | awk  '{print "V,"$0}' | grep 0 >>ystk_stage.csv
 cat VECO.csv   | awk  '{print "VECO,"$0}' | grep 0 >>ystk_stage.csv
 cat VMW.csv    | awk  '{print "VMW,"$0}' | grep 0 >>ystk_stage.csv
 cat WDC.csv    | awk  '{print "WDC,"$0}' | grep 0 >>ystk_stage.csv
-cat WFMI.csv   | awk  '{print "WFMI,"$0}' | grep 0 >>ystk_stage.csv
+cat WFM.csv   | awk  '{print "WFM,"$0}' | grep 0 >>ystk_stage.csv
 cat WHR.csv    | awk  '{print "WHR,"$0}' | grep 0 >>ystk_stage.csv
 cat WMT.csv    | awk  '{print "WMT,"$0}' | grep 0 >>ystk_stage.csv
 cat WYNN.csv   | awk  '{print "WYNN,"$0}' | grep 0 >>ystk_stage.csv

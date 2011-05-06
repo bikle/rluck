@@ -186,7 +186,7 @@ set -x
 ./svmtkr.bash VLO
 ./svmtkr.bash VMW
 ./svmtkr.bash WDC
-./svmtkr.bash WFMI
+./svmtkr.bash WFM
 ./svmtkr.bash WHR
 ./svmtkr.bash WMT
 ./svmtkr.bash WYNN

@@ -183,7 +183,7 @@ cd $SVMSPY/ibapi
 ./5min_data.bash VLO
 ./5min_data.bash VMW
 ./5min_data.bash WDC
-./5min_data.bash WFMI
+./5min_data.bash WFM
 ./5min_data.bash WHR
 ./5min_data.bash WMT
 ./5min_data.bash WYNN

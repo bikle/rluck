@@ -185,7 +185,7 @@ date
 ./15min_data.bash VLO
 ./15min_data.bash VMW
 ./15min_data.bash WDC
-./15min_data.bash WFMI
+./15min_data.bash WFM
 ./15min_data.bash WHR
 ./15min_data.bash WMT
 ./15min_data.bash WYNN
