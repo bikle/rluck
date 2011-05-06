@@ -118,10 +118,10 @@ describe "rlooper helps me download tkr prices and then run SVM against them" do
 
       # Wait if there is another download running.
       other_dl_count=`ps waux | grep 5min_data | grep -v grep|wc -l`.chomp.to_i
-debugger
       while(other_dl_count > 0)
         p "Waiting 20 seconds  for other download to finish."
         sleep 20
+        other_dl_count=`ps waux | grep 5min_data | grep -v grep|wc -l`.chomp.to_i
       end
 
       p "Now downloading:"
@@ -143,7 +143,6 @@ debugger
       next5tkrs_saved.each{|tkr| `echo /pt/s/rluck/svmspy/svmtkr.bash #{tkr} >> /tmp/svm_next5tkrs.bash`}
       `chmod +x /tmp/svm_next5tkrs.bash`
       # Look for the 1st tkr in the svm shell script:
-debugger
       `grep svmtkr.bash /tmp/svm_next5tkrs.bash`.chomp.should include next5tkrs_saved.first
       # Now run SVM:
       p '/tmp/svm_next5tkrs.bash > /tmp/out_of_svm_next5tkrs.txt 2>&1'
@@ -158,7 +157,6 @@ debugger
   it "rlooper state should transition to running SVM" do
     `echo running SVM > /pt/s/rluck/svmspy/rlooper/states.txt`
     `cat /pt/s/rluck/svmspy/rlooper/states.txt`.chomp.should == "running SVM"
-
     next5tkrs.should == ["ADBE", "ACI", "ABX", "ABT", "AAPL"]
     p "Now running SVM on:"
     p next5tkrs
@@ -168,7 +166,6 @@ debugger
     next5tkrs.each{|tkr| `echo /pt/s/rluck/svmspy/svmtkr.bash #{tkr} >> /tmp/svm_next5tkrs.bash`}
     `chmod +x /tmp/svm_next5tkrs.bash`
     # Look for the 1st tkr in the svm shell script:
-debugger
     `grep svmtkr.bash /tmp/svm_next5tkrs.bash`.chomp.should include next5tkrs.first
     # Now run SVM:
     `/tmp/svm_next5tkrs.bash > /tmp/out_of_svm_next5tkrs.txt 2>&1`
