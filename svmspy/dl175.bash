@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# dl151.bash
+# dl175.bash
 
 # I use this script to download many csv files and then run sqlldr.
 # Frequently, I get the csv files from dl_then_svm.bash
@@ -18,6 +18,8 @@ date
 cd $SVMSPY/ibapi
 
 ./5min_data.bash T
+./5min_data.bash CSCO
+./5min_data.bash ADM
 ./5min_data.bash SBUX
 ./5min_data.bash MSFT
 ./5min_data.bash ACI

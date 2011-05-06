@@ -8,6 +8,10 @@ set -x
 
 ./svmtkr.bash DD
 
+./svmtkr.bash ADM
+
+./svmtkr.bash CSCO
+
 ./svmtkr.bash SBUX
 
 ./svmtkr.bash ACI

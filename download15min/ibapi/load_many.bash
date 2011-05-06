@@ -22,6 +22,8 @@ date
 
 ./15min_data.bash T
 ./15min_data.bash SBUX
+./15min_data.bash ADM
+./15min_data.bash CSCO
 ./15min_data.bash WFC
 ./15min_data.bash ACI
 ./15min_data.bash MRO
