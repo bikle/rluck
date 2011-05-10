@@ -9,12 +9,12 @@ date
 
 cd $SVMSPY
 
-
 ./svmtkr.bash AAPL
 ./svmtkr.bash ABT
 ./svmtkr.bash ABX
 ./svmtkr.bash ACI
 ./svmtkr.bash ADBE
+./svmtkr.bash ADM
 ./svmtkr.bash AEM
 ./svmtkr.bash AFL
 ./svmtkr.bash AGU
@@ -52,6 +52,7 @@ cd $SVMSPY
 ./svmtkr.bash COST
 ./svmtkr.bash CREE
 ./svmtkr.bash CRM
+./svmtkr.bash CSCO
 ./svmtkr.bash CSX
 ./svmtkr.bash CTSH
 ./svmtkr.bash CVE
@@ -113,6 +114,7 @@ cd $SVMSPY
 ./svmtkr.bash MON
 ./svmtkr.bash MOS
 ./svmtkr.bash MRK
+./svmtkr.bash MRO
 ./svmtkr.bash MSFT
 ./svmtkr.bash MT
 ./svmtkr.bash MVG
@@ -172,7 +174,7 @@ cd $SVMSPY
 ./svmtkr.bash VMW
 ./svmtkr.bash WDC
 ./svmtkr.bash WFC
-./svmtkr.bash WFMI
+./svmtkr.bash WFM
 ./svmtkr.bash WHR
 ./svmtkr.bash WMT
 ./svmtkr.bash WYNN

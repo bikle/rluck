@@ -27,20 +27,20 @@ describe "rlooper helps me download tkr prices and then run SVM against them" do
 ##
 
   it "Some tkrs should exist" do
-    sqt_out = `sqt @qry_tkrs.sql`
+    sqt_out = `sqt @qry_tkrs_a_j.sql`
     sqt_out.should include("IBM")
-    sqt_out.should include("175 rows selected")
+    sqt_out.should include("90 rows selected")
     # Copy the tkrs I want into a long String:
-    tkrs_s = /(AAPL\n)(\w+\n)+(YUM\n)/.match(sqt_out)[0]
+    tkrs_s = /(AAPL\n)(\w+\n)+(JWN\n)/.match(sqt_out)[0]
     # Copy the tkrs I want into an Array:
     tkrs_a = []
     tkrs_s.each_line{ |al| tkrs_a << al.chomp }
-    tkrs_a.size.should == 175
+    tkrs_a.size.should == 90
   end
 ##
 
   it "rlooper starting state should be not started yet" do
-    tkrs_a.size.should == 175
+    tkrs_a.size.should == 90
     # I make note of my current state
     `echo not started yet > /pt/s/rluck/svmspy/rlooper/states.txt`
     `cat /pt/s/rluck/svmspy/rlooper/states.txt`.chomp.should == "not started yet"

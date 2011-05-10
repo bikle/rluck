@@ -18,7 +18,7 @@ cd $SVMSPY
 ./svmtkr.bash WYNN
 ./svmtkr.bash WMT
 ./svmtkr.bash WHR
-./svmtkr.bash WFMI
+./svmtkr.bash WFM
 ./svmtkr.bash WFC
 ./svmtkr.bash WDC
 ./svmtkr.bash VMW
@@ -78,6 +78,7 @@ cd $SVMSPY
 ./svmtkr.bash MVG
 ./svmtkr.bash MT
 ./svmtkr.bash MSFT
+./svmtkr.bash MRO
 ./svmtkr.bash MRK
 ./svmtkr.bash MOS
 ./svmtkr.bash MON
@@ -139,6 +140,7 @@ cd $SVMSPY
 ./svmtkr.bash CVE
 ./svmtkr.bash CTSH
 ./svmtkr.bash CSX
+./svmtkr.bash CSCO
 ./svmtkr.bash CRM
 ./svmtkr.bash CREE
 ./svmtkr.bash COST
@@ -176,15 +178,9 @@ cd $SVMSPY
 ./svmtkr.bash AGU
 ./svmtkr.bash AFL
 ./svmtkr.bash AEM
+./svmtkr.bash ADM
 ./svmtkr.bash ADBE
 ./svmtkr.bash ACI
 ./svmtkr.bash ABX
 ./svmtkr.bash ABT
 ./svmtkr.bash AAPL
-
-
-
-
-
-
-
