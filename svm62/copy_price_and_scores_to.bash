@@ -25,3 +25,6 @@ echo "impdp trade/t table_exists_action=replace dumpfile=svm62_p_s.${myts}.dpdmp
 echo "impdp trade/t table_exists_action=append dumpfile=svm62_p_s.${myts}.dpdmp tables=ibf5min,svm62scores"
 echo "sqt @de_dup_svm62scores"
 echo "sqt @ibapi/merge"
+
+set -x
+scp -p ~/dpdump/svm62_p_s.${myts}.dpdmp z2:dpdump/
