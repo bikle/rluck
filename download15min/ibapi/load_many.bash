@@ -20,23 +20,12 @@ export myts=`date +%Y_%m_%d_%H_%M`
 
 date
 
-./15min_data.bash T
-./15min_data.bash SBUX
-./15min_data.bash ADM
-./15min_data.bash CSCO
-./15min_data.bash WFC
-./15min_data.bash ACI
-./15min_data.bash MRO
-./15min_data.bash TXN
-./15min_data.bash LVS
-./15min_data.bash YUM
-./15min_data.bash HAL
-./15min_data.bash FXI
-./15min_data.bash ORCL
 ./15min_data.bash AAPL
 ./15min_data.bash ABT
 ./15min_data.bash ABX
+./15min_data.bash ACI
 ./15min_data.bash ADBE
+./15min_data.bash ADM
 ./15min_data.bash AEM
 ./15min_data.bash AFL
 ./15min_data.bash AGU
@@ -74,6 +63,7 @@ date
 ./15min_data.bash COST
 ./15min_data.bash CREE
 ./15min_data.bash CRM
+./15min_data.bash CSCO
 ./15min_data.bash CSX
 ./15min_data.bash CTSH
 ./15min_data.bash CVE
@@ -97,6 +87,7 @@ date
 ./15min_data.bash FFIV
 ./15min_data.bash FLS
 ./15min_data.bash FSLR
+./15min_data.bash FXI
 ./15min_data.bash GD
 ./15min_data.bash GDX
 ./15min_data.bash GFI
@@ -105,6 +96,7 @@ date
 ./15min_data.bash GLD
 ./15min_data.bash GOOG
 ./15min_data.bash GS
+./15min_data.bash HAL
 ./15min_data.bash HD
 ./15min_data.bash HES
 ./15min_data.bash HL
@@ -121,6 +113,7 @@ date
 ./15min_data.bash KO
 ./15min_data.bash LFT
 ./15min_data.bash LMT
+./15min_data.bash LVS
 ./15min_data.bash MAR
 ./15min_data.bash MCD
 ./15min_data.bash MDT
@@ -132,6 +125,8 @@ date
 ./15min_data.bash MON
 ./15min_data.bash MOS
 ./15min_data.bash MRK
+./15min_data.bash MRO
+./15min_data.bash MSFT
 ./15min_data.bash MT
 ./15min_data.bash MVG
 ./15min_data.bash NEM
@@ -139,6 +134,7 @@ date
 ./15min_data.bash NOC
 ./15min_data.bash NUE
 ./15min_data.bash OIH
+./15min_data.bash ORCL
 ./15min_data.bash OXY
 ./15min_data.bash PAAS
 ./15min_data.bash PALL
@@ -156,6 +152,7 @@ date
 ./15min_data.bash RIG
 ./15min_data.bash RIMM
 ./15min_data.bash RTN
+./15min_data.bash SBUX
 ./15min_data.bash SCCO
 ./15min_data.bash SINA
 ./15min_data.bash SJM
@@ -171,11 +168,13 @@ date
 ./15min_data.bash SUN
 ./15min_data.bash SVM
 ./15min_data.bash SWC
+./15min_data.bash T
 ./15min_data.bash TEVA
 ./15min_data.bash TGT
 ./15min_data.bash TKR
 ./15min_data.bash TLT
 ./15min_data.bash TSO
+./15min_data.bash TXN
 ./15min_data.bash UNH
 ./15min_data.bash UNP
 ./15min_data.bash UPS
@@ -185,6 +184,7 @@ date
 ./15min_data.bash VLO
 ./15min_data.bash VMW
 ./15min_data.bash WDC
+./15min_data.bash WFC
 ./15min_data.bash WFM
 ./15min_data.bash WHR
 ./15min_data.bash WMT
@@ -194,6 +194,7 @@ date
 ./15min_data.bash XLE
 ./15min_data.bash XLU
 ./15min_data.bash XOM
+./15min_data.bash YUM
 
 date
 
