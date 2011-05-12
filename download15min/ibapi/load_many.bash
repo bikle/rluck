@@ -39,6 +39,8 @@ date
 ./15min_data.bash APA
 ./15min_data.bash APC
 ./15min_data.bash ARG
+./15min_data.bash AU
+./15min_data.bash AUY
 ./15min_data.bash AXP
 ./15min_data.bash AXU
 ./15min_data.bash BA
@@ -78,6 +80,7 @@ date
 ./15min_data.bash DVN
 ./15min_data.bash EBAY
 ./15min_data.bash EFA
+./15min_data.bash EGO
 ./15min_data.bash EOG
 ./15min_data.bash ESRX
 ./15min_data.bash EWZ
@@ -100,9 +103,11 @@ date
 ./15min_data.bash HD
 ./15min_data.bash HES
 ./15min_data.bash HL
+./15min_data.bash HMY
 ./15min_data.bash HOC
 ./15min_data.bash HON
 ./15min_data.bash HPQ
+./15min_data.bash IAG
 ./15min_data.bash IBM
 ./15min_data.bash IOC
 ./15min_data.bash IWM

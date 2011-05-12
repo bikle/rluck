@@ -8,6 +8,12 @@ set -x
 
 ./svmtkr.bash DD
 
+./svmtkr.bash IAG
+./svmtkr.bash HMY
+./svmtkr.bash AU 
+./svmtkr.bash EGO
+./svmtkr.bash AUY
+
 ./svmtkr.bash ADM
 
 ./svmtkr.bash CSCO
