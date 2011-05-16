@@ -18,7 +18,7 @@ cd $SVMSPY
 ./svmtkr.bash WYNN
 ./svmtkr.bash WMT
 ./svmtkr.bash WHR
-./svmtkr.bash WFMI
+./svmtkr.bash WFM
 ./svmtkr.bash WFC
 ./svmtkr.bash WDC
 ./svmtkr.bash VMW

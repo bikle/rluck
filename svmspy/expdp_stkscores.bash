@@ -19,3 +19,6 @@ echo "scp -p ~/dpdump/STKSCORES.${myts}.`hostname`.DPDMP z3:dpdump/"
 echo "scp -p ~/dpdump/STKSCORES.${myts}.`hostname`.DPDMP usr10@xp:dpdump/"
 
 echo "impdp trade/t table_exists_action=append dumpfile=STKSCORES.${myts}.`hostname`.DPDMP"
+
+set -x
+scp -p ~/dpdump/STKSCORES.${myts}.`hostname`.DPDMP z3:dpdump/

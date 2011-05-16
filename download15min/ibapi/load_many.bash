@@ -53,6 +53,7 @@ date
 ./15min_data.bash BRCM
 ./15min_data.bash BTU
 ./15min_data.bash BUCY
+./15min_data.bash C
 ./15min_data.bash CAT
 ./15min_data.bash CDE
 ./15min_data.bash CELG
@@ -76,6 +77,7 @@ date
 ./15min_data.bash DIA
 ./15min_data.bash DIS
 ./15min_data.bash DNDN
+./15min_data.bash DOW
 ./15min_data.bash DTV
 ./15min_data.bash DVN
 ./15min_data.bash EBAY
@@ -111,14 +113,18 @@ date
 ./15min_data.bash IBM
 ./15min_data.bash IOC
 ./15min_data.bash IWM
+./15min_data.bash IYR
+./15min_data.bash JCP
 ./15min_data.bash JNJ
 ./15min_data.bash JOYG
 ./15min_data.bash JPM
 ./15min_data.bash JWN
 ./15min_data.bash KO
 ./15min_data.bash LFT
+./15min_data.bash LLY
 ./15min_data.bash LMT
 ./15min_data.bash LVS
+./15min_data.bash MA
 ./15min_data.bash MAR
 ./15min_data.bash MCD
 ./15min_data.bash MDT
@@ -138,6 +144,7 @@ date
 ./15min_data.bash NFLX
 ./15min_data.bash NOC
 ./15min_data.bash NUE
+./15min_data.bash NVDA
 ./15min_data.bash OIH
 ./15min_data.bash ORCL
 ./15min_data.bash OXY
@@ -188,6 +195,8 @@ date
 ./15min_data.bash VECO
 ./15min_data.bash VLO
 ./15min_data.bash VMW
+./15min_data.bash VZ
+./15min_data.bash WAG
 ./15min_data.bash WDC
 ./15min_data.bash WFC
 ./15min_data.bash WFM

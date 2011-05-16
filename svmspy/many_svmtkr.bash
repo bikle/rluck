@@ -5,6 +5,25 @@ set -x
 date
 
 ./svmtkr.bash T
+
+./svmtkr.bash JCP
+./svmtkr.bash C   
+./svmtkr.bash VZ  
+./svmtkr.bash LLY 
+./svmtkr.bash DOW 
+./svmtkr.bash IYR 
+./svmtkr.bash WAG 
+./svmtkr.bash MA  
+./svmtkr.bash NVDA
+./svmtkr.bash IAG
+./svmtkr.bash HMY
+./svmtkr.bash AU 
+./svmtkr.bash EGO
+./svmtkr.bash AUY
+./svmtkr.bash CSCO
+./svmtkr.bash ADM
+./svmtkr.bash SBUX
+
 ./svmtkr.bash MSFT
 ./svmtkr.bash LVS
 ./svmtkr.bash TXN

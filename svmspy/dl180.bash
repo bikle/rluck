@@ -18,6 +18,15 @@ date
 cd $SVMSPY/ibapi
 
 ./5min_data.bash T
+./5min_data.bash JCP
+./5min_data.bash C   
+./5min_data.bash VZ  
+./5min_data.bash LLY 
+./5min_data.bash DOW 
+./5min_data.bash IYR 
+./5min_data.bash WAG 
+./5min_data.bash MA  
+./5min_data.bash NVDA
 ./5min_data.bash IAG
 ./5min_data.bash HMY
 ./5min_data.bash AU 

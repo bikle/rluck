@@ -84,6 +84,8 @@ COLUMN sum_g6       FORMAT 9.9999
 COLUMN stddev_g6    FORMAT 9.9999
 COLUMN sharpe_ratio FORMAT 99.9999
 
+-- backtest:
+
 SELECT
 SIGN(rscore_diff2)sign_score_diff
 ,pair
@@ -93,13 +95,15 @@ SIGN(rscore_diff2)sign_score_diff
 ,AVG(g6)/STDDEV(g6) sharpe_ratio
 ,SUM(g6)            sum_g6
 FROM qrs12
-WHERE rnng_crr1 > 0.1
-AND ABS(rscore_diff2) > 0.6
+WHERE rnng_crr1 > -1
+AND ABS(rscore_diff2) > 0.5
 AND ydate > sysdate - 15
 GROUP BY SIGN(rscore_diff2),pair
 HAVING STDDEV(g6) > 0
 ORDER BY SIGN(rscore_diff2),pair
 /
+
+-- See if rnng_crr1 helps:
 
 SELECT
 SIGN(rscore_diff2)sign_score_diff
@@ -118,10 +122,9 @@ HAVING STDDEV(g6) > 0
 ORDER BY SIGN(rscore_diff2),pair
 /
 
-exit
-
 SELECT
 pair
+,ydate
 ,CASE WHEN rscore_diff2<0 THEN'sell'ELSE'buy'END bors
 ,ROUND(clse,4)clse
 ,rscore_diff2
@@ -133,7 +136,7 @@ pair
 FROM qrs12
 WHERE rnng_crr1 > 0.1
 AND ydate > sysdate - 4/24
-AND ABS(rscore_diff2) > 0.6
+AND ABS(rscore_diff2) > 0.5
 ORDER BY pair,ydate
 /
 

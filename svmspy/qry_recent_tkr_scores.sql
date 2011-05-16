@@ -12,6 +12,17 @@
 SELECT
 tkr
 ,ydate
+,targ
+,score
+FROM stkscores
+WHERE ydate > sysdate - 1
+AND tkr = '&1'
+ORDER BY tkr,ydate
+/
+
+SELECT
+tkr
+,ydate
 ,ROUND(score_diff,2)score_diff
 ,ROUND(g1,2)        gain1day
 ,ROUND(rnng_crr1,2) rnng_crr1

@@ -8,6 +8,16 @@ set -x
 
 ./svmtkr.bash DD
 
+./svmtkr.bash JCP
+./svmtkr.bash C   
+./svmtkr.bash VZ  
+./svmtkr.bash LLY 
+./svmtkr.bash DOW 
+./svmtkr.bash IYR 
+./svmtkr.bash WAG 
+./svmtkr.bash MA  
+./svmtkr.bash NVDA
+
 ./svmtkr.bash IAG
 ./svmtkr.bash HMY
 ./svmtkr.bash AU 

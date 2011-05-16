@@ -4,6 +4,16 @@
 
 -- I use this to give me a list of distinct tkrs.
 
+
+SET PAGES 333
+
+SELECT cmd FROM
+  (SELECT DISTINCT './15min_data.bash '||tkr cmd FROM ibs5min WHERE ydate > '2011-04-25')
+ORDER BY cmd
+/
+
+exit
+
 SELECT tkr FROM
 (
 SELECT DISTINCT tkr FROM ystk

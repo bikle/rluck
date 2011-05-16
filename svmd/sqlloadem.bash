@@ -12,6 +12,17 @@ cd /pt/s/rluck/svmd/cf/
 cat TLT.csv | awk  '{print "TLT,"$0}' | grep 0 > ystk_stage.csv
 
 cat ADM.csv | awk  '{print "ADM,"$0}' | grep 0 >>ystk_stage.csv
+
+cat JCP.csv | awk  '{print "JCP,"$0}' | grep 0 >>ystk_stage.csv
+cat C.csv | awk  '{print "C,"$0}' | grep 0 >>ystk_stage.csv
+cat VZ.csv | awk  '{print "VZ,"$0}' | grep 0 >>ystk_stage.csv
+cat LLY.csv | awk  '{print "LLY,"$0}' | grep 0 >>ystk_stage.csv
+cat DOW.csv | awk  '{print "DOW,"$0}' | grep 0 >>ystk_stage.csv
+cat IYR.csv | awk  '{print "IYR,"$0}' | grep 0 >>ystk_stage.csv
+cat WAG.csv | awk  '{print "WAG,"$0}' | grep 0 >>ystk_stage.csv
+cat MA.csv | awk  '{print "MA,"$0}' | grep 0 >>ystk_stage.csv
+cat NVDA.csv | awk  '{print "NVDA,"$0}' | grep 0 >>ystk_stage.csv
+
 cat AUY.csv | awk  '{print "AUY,"$0}' | grep 0 >>ystk_stage.csv
 cat EGO.csv | awk  '{print "EGO,"$0}' | grep 0 >>ystk_stage.csv
 cat AU.csv | awk  '{print "AU,"$0}' | grep 0 >>ystk_stage.csv

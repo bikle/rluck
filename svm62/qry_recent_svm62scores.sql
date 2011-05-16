@@ -2,7 +2,18 @@
 -- qry_recent_svm62scores.sql
 --
 
-SELECT * FROM svm62scores WHERE rundate> sysdate -0.5/24 ORDER BY rundate;
+SELECT
+pair
+,targ
+,MIN(ydate)
+,AVG(score)
+,MAX(ydate)
+FROM svm62scores 
+WHERE rundate> sysdate -2/24
+GROUP BY pair,targ
+ORDER BY pair,targ
+/
+
 
 exit
 

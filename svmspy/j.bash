@@ -1,19 +1,32 @@
+#!/bin/bash
 
-./5min_data.bash  HAL
-./5min_data.bash  HD
-./5min_data.bash  HES
-./5min_data.bash  HL
-./5min_data.bash  HOC
-./5min_data.bash  HON
-./5min_data.bash  HPQ
-sqt>update_di5min_stk.txt<<EOF
-@update_di5min_stk.sql
-EOF
-cd ..
-./svmtkr.bash HAL
-./svmtkr.bash HD
-./svmtkr.bash HES
-./svmtkr.bash HL
-./svmtkr.bash HOC
-./svmtkr.bash HON
-./svmtkr.bash HPQ
+. /pt/s/rluck/svmspy/.orcl
+. /pt/s/rluck/svmspy/.jruby
+
+set -x
+
+date
+
+cd $SVMSPY
+
+./svmtkr.bash QCOM
+./svmtkr.bash QQQ
+./svmtkr.bash RDY
+./svmtkr.bash RIG
+./svmtkr.bash RIMM
+./svmtkr.bash RTN
+./svmtkr.bash SCCO
+./svmtkr.bash SINA
+./svmtkr.bash SJM
+./svmtkr.bash SKX
+./svmtkr.bash SLB
+./svmtkr.bash SLV
+./svmtkr.bash SLW
+./svmtkr.bash SNDK
+./svmtkr.bash SOHU
+./svmtkr.bash SPY
+./svmtkr.bash STT
+./svmtkr.bash SU
+./svmtkr.bash SUN
+./svmtkr.bash SVM
+./svmtkr.bash SWC

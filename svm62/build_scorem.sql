@@ -22,7 +22,7 @@ WHERE ydate NOT IN
 AND ydate > '2011-01-30'
 AND pair = '&1'
 )
-WHERE ydate > '2011-01-30'
+WHERE ydate > '2011-03-27'
 -- ORDER BY DBMS_RANDOM.VALUE
 ORDER BY ydate,cmd
 /
