@@ -1,19 +1,15 @@
 #!/bin/bash
 
-. /pt/s/rluck/svmspy/.orcl
-. /pt/s/rluck/svmspy/.jruby
-
 set -x
 
 date
-
-cd $SVMSPY
 
 ./svmtkr.bash AAPL
 ./svmtkr.bash ABT
 ./svmtkr.bash ABX
 ./svmtkr.bash ACI
 ./svmtkr.bash ADBE
+./svmtkr.bash ADM
 ./svmtkr.bash AEM
 ./svmtkr.bash AFL
 ./svmtkr.bash AGU
@@ -27,6 +23,8 @@ cd $SVMSPY
 ./svmtkr.bash APA
 ./svmtkr.bash APC
 ./svmtkr.bash ARG
+./svmtkr.bash AU
+./svmtkr.bash AUY
 ./svmtkr.bash AXP
 ./svmtkr.bash AXU
 ./svmtkr.bash BA
@@ -39,6 +37,7 @@ cd $SVMSPY
 ./svmtkr.bash BRCM
 ./svmtkr.bash BTU
 ./svmtkr.bash BUCY
+./svmtkr.bash C
 ./svmtkr.bash CAT
 ./svmtkr.bash CDE
 ./svmtkr.bash CELG
@@ -51,6 +50,7 @@ cd $SVMSPY
 ./svmtkr.bash COST
 ./svmtkr.bash CREE
 ./svmtkr.bash CRM
+./svmtkr.bash CSCO
 ./svmtkr.bash CSX
 ./svmtkr.bash CTSH
 ./svmtkr.bash CVE
@@ -61,10 +61,12 @@ cd $SVMSPY
 ./svmtkr.bash DIA
 ./svmtkr.bash DIS
 ./svmtkr.bash DNDN
+./svmtkr.bash DOW
 ./svmtkr.bash DTV
 ./svmtkr.bash DVN
 ./svmtkr.bash EBAY
 ./svmtkr.bash EFA
+./svmtkr.bash EGO
 ./svmtkr.bash EOG
 ./svmtkr.bash ESRX
 ./svmtkr.bash EWZ
@@ -87,23 +89,26 @@ cd $SVMSPY
 ./svmtkr.bash HD
 ./svmtkr.bash HES
 ./svmtkr.bash HL
+./svmtkr.bash HMY
 ./svmtkr.bash HOC
 ./svmtkr.bash HON
 ./svmtkr.bash HPQ
-
-exit
-
+./svmtkr.bash IAG
 ./svmtkr.bash IBM
 ./svmtkr.bash IOC
 ./svmtkr.bash IWM
+./svmtkr.bash IYR
+./svmtkr.bash JCP
 ./svmtkr.bash JNJ
 ./svmtkr.bash JOYG
 ./svmtkr.bash JPM
 ./svmtkr.bash JWN
 ./svmtkr.bash KO
 ./svmtkr.bash LFT
+./svmtkr.bash LLY
 ./svmtkr.bash LMT
 ./svmtkr.bash LVS
+./svmtkr.bash MA
 ./svmtkr.bash MAR
 ./svmtkr.bash MCD
 ./svmtkr.bash MDT
@@ -115,6 +120,7 @@ exit
 ./svmtkr.bash MON
 ./svmtkr.bash MOS
 ./svmtkr.bash MRK
+./svmtkr.bash MRO
 ./svmtkr.bash MSFT
 ./svmtkr.bash MT
 ./svmtkr.bash MVG
@@ -122,6 +128,7 @@ exit
 ./svmtkr.bash NFLX
 ./svmtkr.bash NOC
 ./svmtkr.bash NUE
+./svmtkr.bash NVDA
 ./svmtkr.bash OIH
 ./svmtkr.bash ORCL
 ./svmtkr.bash OXY
@@ -141,6 +148,7 @@ exit
 ./svmtkr.bash RIG
 ./svmtkr.bash RIMM
 ./svmtkr.bash RTN
+./svmtkr.bash SBUX
 ./svmtkr.bash SCCO
 ./svmtkr.bash SINA
 ./svmtkr.bash SJM
@@ -171,9 +179,11 @@ exit
 ./svmtkr.bash VECO
 ./svmtkr.bash VLO
 ./svmtkr.bash VMW
+./svmtkr.bash VZ
+./svmtkr.bash WAG
 ./svmtkr.bash WDC
 ./svmtkr.bash WFC
-./svmtkr.bash WFMI
+./svmtkr.bash WFM
 ./svmtkr.bash WHR
 ./svmtkr.bash WMT
 ./svmtkr.bash WYNN

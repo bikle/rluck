@@ -4,37 +4,12 @@ set -x
 
 date
 
-./svmtkr.bash T
-
-./svmtkr.bash JCP
-./svmtkr.bash C   
-./svmtkr.bash VZ  
-./svmtkr.bash LLY 
-./svmtkr.bash DOW 
-./svmtkr.bash IYR 
-./svmtkr.bash WAG 
-./svmtkr.bash MA  
-./svmtkr.bash NVDA
-./svmtkr.bash IAG
-./svmtkr.bash HMY
-./svmtkr.bash AU 
-./svmtkr.bash EGO
-./svmtkr.bash AUY
-./svmtkr.bash CSCO
-./svmtkr.bash ADM
-./svmtkr.bash SBUX
-
-./svmtkr.bash MSFT
-./svmtkr.bash LVS
-./svmtkr.bash TXN
-./svmtkr.bash YUM
-./svmtkr.bash HAL
-./svmtkr.bash FXI
-./svmtkr.bash ORCL
 ./svmtkr.bash AAPL
 ./svmtkr.bash ABT
 ./svmtkr.bash ABX
+./svmtkr.bash ACI
 ./svmtkr.bash ADBE
+./svmtkr.bash ADM
 ./svmtkr.bash AEM
 ./svmtkr.bash AFL
 ./svmtkr.bash AGU
@@ -48,6 +23,8 @@ date
 ./svmtkr.bash APA
 ./svmtkr.bash APC
 ./svmtkr.bash ARG
+./svmtkr.bash AU
+./svmtkr.bash AUY
 ./svmtkr.bash AXP
 ./svmtkr.bash AXU
 ./svmtkr.bash BA
@@ -60,6 +37,7 @@ date
 ./svmtkr.bash BRCM
 ./svmtkr.bash BTU
 ./svmtkr.bash BUCY
+./svmtkr.bash C
 ./svmtkr.bash CAT
 ./svmtkr.bash CDE
 ./svmtkr.bash CELG
@@ -72,6 +50,7 @@ date
 ./svmtkr.bash COST
 ./svmtkr.bash CREE
 ./svmtkr.bash CRM
+./svmtkr.bash CSCO
 ./svmtkr.bash CSX
 ./svmtkr.bash CTSH
 ./svmtkr.bash CVE
@@ -82,10 +61,12 @@ date
 ./svmtkr.bash DIA
 ./svmtkr.bash DIS
 ./svmtkr.bash DNDN
+./svmtkr.bash DOW
 ./svmtkr.bash DTV
 ./svmtkr.bash DVN
 ./svmtkr.bash EBAY
 ./svmtkr.bash EFA
+./svmtkr.bash EGO
 ./svmtkr.bash EOG
 ./svmtkr.bash ESRX
 ./svmtkr.bash EWZ
@@ -95,6 +76,7 @@ date
 ./svmtkr.bash FFIV
 ./svmtkr.bash FLS
 ./svmtkr.bash FSLR
+./svmtkr.bash FXI
 ./svmtkr.bash GD
 ./svmtkr.bash GDX
 ./svmtkr.bash GFI
@@ -103,22 +85,30 @@ date
 ./svmtkr.bash GLD
 ./svmtkr.bash GOOG
 ./svmtkr.bash GS
+./svmtkr.bash HAL
 ./svmtkr.bash HD
 ./svmtkr.bash HES
 ./svmtkr.bash HL
+./svmtkr.bash HMY
 ./svmtkr.bash HOC
 ./svmtkr.bash HON
 ./svmtkr.bash HPQ
+./svmtkr.bash IAG
 ./svmtkr.bash IBM
 ./svmtkr.bash IOC
 ./svmtkr.bash IWM
+./svmtkr.bash IYR
+./svmtkr.bash JCP
 ./svmtkr.bash JNJ
 ./svmtkr.bash JOYG
 ./svmtkr.bash JPM
 ./svmtkr.bash JWN
 ./svmtkr.bash KO
 ./svmtkr.bash LFT
+./svmtkr.bash LLY
 ./svmtkr.bash LMT
+./svmtkr.bash LVS
+./svmtkr.bash MA
 ./svmtkr.bash MAR
 ./svmtkr.bash MCD
 ./svmtkr.bash MDT
@@ -130,13 +120,17 @@ date
 ./svmtkr.bash MON
 ./svmtkr.bash MOS
 ./svmtkr.bash MRK
+./svmtkr.bash MRO
+./svmtkr.bash MSFT
 ./svmtkr.bash MT
 ./svmtkr.bash MVG
 ./svmtkr.bash NEM
 ./svmtkr.bash NFLX
 ./svmtkr.bash NOC
 ./svmtkr.bash NUE
+./svmtkr.bash NVDA
 ./svmtkr.bash OIH
+./svmtkr.bash ORCL
 ./svmtkr.bash OXY
 ./svmtkr.bash PAAS
 ./svmtkr.bash PALL
@@ -154,6 +148,7 @@ date
 ./svmtkr.bash RIG
 ./svmtkr.bash RIMM
 ./svmtkr.bash RTN
+./svmtkr.bash SBUX
 ./svmtkr.bash SCCO
 ./svmtkr.bash SINA
 ./svmtkr.bash SJM
@@ -169,11 +164,13 @@ date
 ./svmtkr.bash SUN
 ./svmtkr.bash SVM
 ./svmtkr.bash SWC
+./svmtkr.bash T
 ./svmtkr.bash TEVA
 ./svmtkr.bash TGT
 ./svmtkr.bash TKR
 ./svmtkr.bash TLT
 ./svmtkr.bash TSO
+./svmtkr.bash TXN
 ./svmtkr.bash UNH
 ./svmtkr.bash UNP
 ./svmtkr.bash UPS
@@ -182,8 +179,11 @@ date
 ./svmtkr.bash VECO
 ./svmtkr.bash VLO
 ./svmtkr.bash VMW
+./svmtkr.bash VZ
+./svmtkr.bash WAG
 ./svmtkr.bash WDC
-./svmtkr.bash WFMI
+./svmtkr.bash WFC
+./svmtkr.bash WFM
 ./svmtkr.bash WHR
 ./svmtkr.bash WMT
 ./svmtkr.bash WYNN
@@ -192,3 +192,4 @@ date
 ./svmtkr.bash XLE
 ./svmtkr.bash XLU
 ./svmtkr.bash XOM
+./svmtkr.bash YUM

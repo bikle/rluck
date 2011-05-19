@@ -21,11 +21,10 @@ AND tkr = '&1'
 AND tkrdate NOT IN(SELECT tkrdate FROM stkscores WHERE targ='gatt'AND tkr = '&1')
 )
 -- ORDER BY DBMS_RANDOM.VALUE
--- WHERE ydate >= '2011-05-12 19:00:00'
--- WHERE ydate >= '2011-05-12'
+-- WHERE ydate >= '2011-05-19 19:30:00'
 -- WHERE ydate BETWEEN'2011-03-14'AND'2011-04-01'
-WHERE ydate > sysdate - 1.5/24
--- WHERE ydate > '2011-04-18'
+-- WHERE ydate > sysdate - 2/24
+WHERE ydate > '2011-04-11'
 ORDER BY ydate,cmd
 /
 

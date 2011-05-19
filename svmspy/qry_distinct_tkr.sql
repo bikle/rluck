@@ -6,6 +6,13 @@
 
 SET HEAD OFF PAGES 444
 
+SELECT cmd FROM
+  (SELECT DISTINCT './svmtkr.bash '||tkr cmd FROM ibs5min WHERE ydate > '2011-04-25')
+ORDER BY cmd
+/
+
+exit
+
 SELECT tkr FROM
 (
 SELECT DISTINCT tkr FROM ystk

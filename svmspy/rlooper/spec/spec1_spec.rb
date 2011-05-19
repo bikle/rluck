@@ -149,15 +149,15 @@ describe "rlooper helps me download tkr prices and then run SVM against them" do
       `/tmp/svm_next5tkrs.bash > /tmp/out_of_svm_next5tkrs.txt 2>&1`
     end
     # Now, I should be at the end of tkrs_a 
-    tkrs_a.size.should == 0
-    next5tkrs.should == ["ADBE", "ACI", "ABX", "ABT", "AAPL"]
+    tkrs_a.size.should == 4
+    next5tkrs.should == ["AGU", "AFL", "AEM", "ADM", "ADBE"]
   end
 ##
 
   it "rlooper state should transition to running SVM" do
     `echo running SVM > /pt/s/rluck/svmspy/rlooper/states.txt`
     `cat /pt/s/rluck/svmspy/rlooper/states.txt`.chomp.should == "running SVM"
-    next5tkrs.should == ["ADBE", "ACI", "ABX", "ABT", "AAPL"]
+    next5tkrs.should == ["AGU", "AFL", "AEM", "ADM", "ADBE"]
     p "Now running SVM on:"
     p next5tkrs
     `echo '#!/bin/bash' > /tmp/svm_next5tkrs.bash`
